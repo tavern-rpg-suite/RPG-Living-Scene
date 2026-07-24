@@ -1,0 +1,9 @@
+{
+    "display_name": "RPG Living Scene",
+    "loading_order": 117,
+    "js": "index.js",
+    "css": "style.css",
+    "author": "Arkana8",
+    "version": "1.7.1",
+    "homePage": "https://github.com/tavern-rpg-suite/RPG-Living-Scene"
+}

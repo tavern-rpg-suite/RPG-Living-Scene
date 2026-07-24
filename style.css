@@ -1,0 +1,294 @@
+/* ============================================================
+   RPG LIVING SCENE — glassy ambient bubbles
+   ============================================================ */
+
+/* fixed overlay layer: bubbles float over the page, glued to their messages */
+#rls-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2500;   /* above chat, safely below the suite's buttons and modals */
+}
+
+.rls-chip {
+    position: fixed;
+    max-width: 250px;
+    display: flex;
+    padding: 7px 11px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, rgba(160, 120, 255, 0.14), rgba(45, 30, 90, 0.55));
+    border: 1px solid rgba(170, 140, 255, 0.32);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    pointer-events: auto;
+    cursor: pointer;
+    animation: rls-pop 0.28s ease-out;
+    transition: opacity 0.15s;
+}
+@keyframes rls-pop {
+    from { opacity: 0; transform: translateY(8px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+/* speech-bubble tails pointing toward the message */
+.rls-chip.left::after, .rls-chip.right::after {
+    content: '';
+    position: absolute;
+    top: 16px;
+    border: 7px solid transparent;
+}
+.rls-chip.left::after { right: -13px; border-left-color: rgba(170, 140, 255, 0.35); }
+.rls-chip.right::after { left: -13px; border-right-color: rgba(170, 140, 255, 0.35); }
+.rls-chip.tight::after { display: none; }   /* no tail when hugging the message edge */
+
+/* thoughts: dreamier tint, dashed border */
+.rls-chip.think {
+    background: linear-gradient(135deg, rgba(120, 190, 255, 0.12), rgba(30, 55, 95, 0.55));
+    border-style: dashed;
+    border-color: rgba(140, 190, 255, 0.35);
+}
+.rls-chip.think.left::after { border-left-color: rgba(140, 190, 255, 0.4); }
+.rls-chip.think.right::after { border-right-color: rgba(140, 190, 255, 0.4); }
+
+/* collapsed: just the little avatar hovering by the scene */
+.rls-chip .rls-mini { display: none; position: relative; }
+.rls-chip.collapsed { padding: 3px; border-radius: 50%; }
+.rls-chip.collapsed .rls-full { display: none; }
+.rls-chip.collapsed .rls-mini { display: block; }
+.rls-chip.collapsed::after { display: none; }
+.rls-mini-th { position: absolute; right: -6px; top: -8px; font-size: 11px; }
+
+.rls-full { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.rls-head { display: flex; align-items: center; gap: 7px; }
+
+.rls-ava {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
+}
+.rls-ava-npc {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.rls-name {
+    flex: 1;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    color: #b39dff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rls-chip.think .rls-name { color: #8ec5ff; }
+.rls-text {
+    font-size: 0.83rem;
+    line-height: 1.32;
+    color: #efeaff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+    word-break: break-word;
+}
+
+.rls-acts { display: flex; gap: 9px; opacity: 0; transition: opacity 0.15s; flex-shrink: 0; }
+.rls-chip:hover .rls-acts { opacity: 0.9; }
+.rls-acts i { cursor: pointer; font-size: 0.78rem; color: #cdbcff; }
+.rls-reply:hover { color: #7bd88f; transform: scale(1.15); }
+.rls-del:hover { color: #ff6b6b; transform: scale(1.15); }
+
+/* floating stir-the-scene wand at the newest message */
+.rls-stir-float {
+    position: fixed;
+    width: 30px; height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 50%;
+    border: 1px dashed rgba(170, 140, 255, 0.45);
+    background: rgba(35, 25, 65, 0.55);
+    backdrop-filter: blur(5px);
+    color: rgba(190, 168, 255, 0.85);
+    font-size: 13px;
+    cursor: pointer;
+    pointer-events: auto;
+    opacity: 0.55;
+    transition: opacity 0.2s, transform 0.2s;
+}
+.rls-stir-float:hover { opacity: 1; transform: rotate(-14deg) scale(1.1); }
+
+/* ============================================================
+   ROSTER POPOVER
+   ============================================================ */
+#rls-roster {
+    position: fixed;
+    right: 20px;
+    bottom: 84px;
+    width: min(310px, 92vw);
+    max-height: 64vh;
+    overflow-y: auto;
+    z-index: 3002;
+    border-radius: 14px;
+    background: linear-gradient(150deg, rgba(45, 35, 75, 0.92), rgba(25, 20, 45, 0.94));
+    border: 1px solid rgba(170, 140, 255, 0.3);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.5);
+    padding: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(8px);
+    transition: opacity 0.18s, transform 0.18s;
+    scrollbar-width: thin;
+}
+#rls-roster.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
+#rls-roster::-webkit-scrollbar { width: 6px; }
+#rls-roster::-webkit-scrollbar-thumb { background: rgba(170, 140, 255, 0.35); border-radius: 3px; }
+
+.rls-roster-title { font-weight: 700; font-size: 0.95rem; color: #cdbcff; margin-bottom: 4px; }
+.rls-roster-hint { font-size: 0.74rem; opacity: 0.65; margin-bottom: 10px; line-height: 1.35; }
+.rls-roster-sec {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
+    opacity: 0.55; margin: 10px 0 5px;
+}
+.rls-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 6px; border-radius: 10px;
+}
+.rls-row:hover { background: rgba(255, 255, 255, 0.05); }
+.rls-row-name { flex: 1; font-size: 0.86rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rls-npc-del { cursor: pointer; opacity: 0.4; font-size: 0.75rem; }
+.rls-npc-del:hover { opacity: 1; color: #ff6b6b; }
+
+.rls-toggle {
+    width: 36px; height: 20px; border-radius: 10px;
+    background: rgba(255, 255, 255, 0.12);
+    cursor: pointer; position: relative; flex-shrink: 0;
+    transition: background 0.2s;
+}
+.rls-toggle .rls-knob {
+    position: absolute; top: 2px; left: 2px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #999; transition: left 0.2s, background 0.2s;
+}
+.rls-toggle.on { background: rgba(140, 100, 255, 0.45); }
+.rls-toggle.on .rls-knob { left: 18px; background: #cdbcff; }
+
+.rls-npc-add-row { display: flex; gap: 6px; margin-top: 10px; }
+.rls-npc-add-row input { flex: 1; }
+
+/* narrow screens: bubbles auto-hug the message edge (handled in JS via .tight),
+   just keep them a bit slimmer */
+@media (max-width: 700px) {
+    .rls-chip { max-width: 210px; }
+}
+
+/* the 🎭 roster button: full style of its own (the shared class is unstyled) */
+#rls-btn {
+    width: 50px; height: 50px;
+    background: linear-gradient(135deg, #4a2d8f, #6a3fd1);
+    border: 2px solid #a685ff;
+    border-radius: 50%;
+    color: #fff; font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+#rls-btn:hover { transform: scale(1.1); box-shadow: 0 6px 20px rgba(166, 133, 255, 0.6); }
+
+/* background whispers: smaller, quieter, huddled in a tight column */
+.rls-chip.whisper {
+    max-width: 205px;
+    padding: 5px 9px;
+    background: linear-gradient(135deg, rgba(200, 200, 220, 0.08), rgba(50, 48, 70, 0.5));
+    border-color: rgba(200, 200, 230, 0.22);
+    opacity: 0.93;
+}
+.rls-chip.whisper::after { display: none; }        /* no tails — it's a side murmur */
+.rls-chip.whisper .rls-name { color: #b9b4d6; }
+.rls-chip.whisper .rls-text { font-size: 0.78rem; font-style: italic; opacity: 0.92; }
+.rls-chip.whisper .rls-ava { width: 24px; height: 24px; }
+
+/* ============================================================
+   1.4.0: motion & the reply box
+   ============================================================ */
+
+/* idle bobbing — the bubbles gently float, each on its own rhythm */
+@keyframes rls-float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+.rls-chip { animation: rls-pop 0.28s ease-out, rls-float 4.6s ease-in-out infinite; }
+
+/* smooth open/close instead of the instant snap */
+.rls-chip { transition: opacity 0.15s, padding 0.22s ease, border-radius 0.22s ease; }
+.rls-chip .rls-full,
+.rls-chip.collapsed .rls-full {
+    display: flex;
+    overflow: hidden;
+    transition: max-width 0.22s ease, max-height 0.22s ease, opacity 0.16s ease;
+}
+.rls-chip .rls-full { max-width: 320px; max-height: 260px; opacity: 1; }
+.rls-chip.collapsed .rls-full { max-width: 0; max-height: 0; opacity: 0; pointer-events: none; }
+
+/* the in-bubble reply box (hidden until 💬 is pressed) */
+.rls-ask { display: none; align-items: center; gap: 6px; margin-top: 5px; }
+.rls-chip.asking .rls-ask { display: flex; }
+.rls-ask-in {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.78rem;
+    padding: 4px 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(170, 140, 255, 0.35);
+    background: rgba(20, 15, 40, 0.55);
+    color: #efeaff;
+    outline: none;
+}
+.rls-ask-in:focus { border-color: rgba(170, 140, 255, 0.7); }
+.rls-ask-send { cursor: pointer; color: #a685ff; font-size: 0.82rem; }
+.rls-ask-send:hover { color: #7bd88f; transform: scale(1.15); }
+
+/* the wand spins while the scene is thinking */
+@keyframes rls-spin { to { transform: rotate(360deg); } }
+.rls-stir-float.busy { opacity: 1; border-style: solid; pointer-events: none; }
+.rls-stir-float.busy i { animation: rls-spin 0.9s linear infinite; }
+
+/* reroll: spinner while a single line regenerates */
+.rls-regen:hover { color: #f0c24b; transform: rotate(90deg) scale(1.1); transition: 0.15s; }
+.rls-chip.rls-busy .rls-regen { animation: rls-spin 0.9s linear infinite; pointer-events: none; }
+.rls-chip.rls-busy .rls-text { opacity: 0.45; }
+
+/* "auto" badge: this one was seated by the scene itself, not by hand */
+.rls-auto {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    padding: 1px 6px;
+    border-radius: 7px;
+    background: rgba(140, 100, 255, 0.18);
+    border: 1px solid rgba(170, 140, 255, 0.3);
+    color: #b9a5ff;
+    flex-shrink: 0;
+}
+
+/* the tiny action beat above the line */
+.rls-action {
+    font-size: 0.72rem;
+    font-style: italic;
+    opacity: 0.72;
+    color: #cfc6ee;
+}
+
+/* aliases & note editor + the call counter */
+.rls-meta-edit { cursor: pointer; opacity: 0.35; font-size: 0.7rem; }
+.rls-meta-edit:hover { opacity: 1; color: #cdbcff; }
+.rls-meta-editor { display: flex; flex-direction: column; gap: 5px; padding: 6px 6px 8px 34px; }
+.rls-meta-editor input { font-size: 0.78rem; }
+.rls-meta-editor .menu_button { align-self: flex-end; font-size: 0.75rem; padding: 3px 12px; }
+.rls-calls-line { font-size: 0.76rem; opacity: 0.65; margin: 2px 0 8px; }
