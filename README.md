@@ -2,7 +2,7 @@
 
 A SillyTavern extension that gives your **group chats a background**. Characters who are present in the scene but aren't the one speaking drop short reactions as **glassy bubbles floating beside the messages** — a quiet remark, a 💭 thought they'd never say out loud, or two of them whispering to each other. Answer a bubble and that character replies properly, in the main chat, with their own card.
 
-**Version 1.7.1**
+**Version 1.7.2**
 
 ---
 
