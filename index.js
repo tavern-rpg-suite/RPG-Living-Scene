@@ -159,6 +159,7 @@ function loadSettings() {
         apiKey: '',
         model: 'google/gemma-4-31b-it',
         temperature: 0.9,
+    strictJson: true,
         barkChance: 65,      // % chance that a message stirs AI reactions at all
         maxBarks: 2,         // max AI reactions per message
         cooldown: 3,         // a character stays quiet for N messages after barking
@@ -275,17 +276,82 @@ function presentCast(excludeName) {
    SIDE API
    ============================================================ */
 let apiCallCount = 0;
+/* ------------------------------------------------------------
+   ENDPOINT HANDLING — reaching the server only. Nothing about presence,
+   barks, whispers or any prompt changes here.
+   1. An empty key falls back to Tavern RPG Engine's. An address YOU typed always
+      wins: borrowing takes only what is missing, never the URL. A local backend
+      needs no key, so a placeholder is used rather than a borrowed one.
+   2. OpenAI-style backends live under /v1; without it LM Studio and KoboldCpp
+      reject the path outright.
+   3. response_format is an OpenAI parameter. KoboldCpp turns it into a grammar
+      forbidding anything but an object, and a model opening with "[" bails out
+      with EOS. Local backends do not get it — the reply is parsed leniently anyway.
+   ------------------------------------------------------------ */
+const KEY_SOURCES = ['tavern_rpg_engine'];
+function normalizeBase(url) {
+    let u = String(url || '').trim().replace(/\s+/g, '');
+    if (!u) return u;
+    u = u.replace(/\/+$/, '');
+    u = u.replace(/\/(chat\/completions|completions|images|images\/generations|embeddings)$/i, '');
+    if (!/\/v\d+($|\/)/i.test(u)) u += '/v1';
+    return u;
+}
+function isLocalEndpoint(url) {
+    const u = String(url || '').toLowerCase();
+    if (!u) return false;
+    return /(^|\/\/)(localhost|127\.0\.0\.1|0\.0\.0\.0|\[::1\]|host\.docker\.internal)([:/]|$)/.test(u)
+        || /:(5001|5000|8080|8000|1234|11434|5002)(\/|$)/.test(u)
+        || /192\.168\.|10\.\d+\.|172\.(1[6-9]|2\d|3[01])\./.test(u);
+}
+function wantsStrictJson(url) {
+    if (settings.strictJson === false) return false;
+    return !isLocalEndpoint(url);
+}
+function borrowedRaw() {
+    for (const src of KEY_SOURCES) {
+        if (src === MODULE_NAME) continue;
+        try {
+            const x = extension_settings[src];
+            if (x && x.apiKey && x.model) return { url: x.baseUrl, key: x.apiKey, model: x.model, from: src };
+        } catch (e) { /* a neighbour with broken settings must not break us */ }
+    }
+    return { url: '', key: '', model: '', from: null };
+}
+function apiConf() {
+    const own = String(settings.baseUrl || '').trim();
+    const ownKey = String(settings.apiKey || '').trim();
+    const ownModel = String(settings.model || '').trim();
+    if (own) {
+        const local = isLocalEndpoint(own);
+        const b = (ownKey && ownModel) ? { key: '', model: '', from: null } : borrowedRaw();
+        return {
+            url: own,
+            key: ownKey || (local ? 'local' : b.key),
+            model: ownModel || (local ? '' : b.model),
+            from: ownKey ? null : (local ? null : b.from)
+        };
+    }
+    if (ownKey && ownModel) return { url: '', key: ownKey, model: ownModel, from: null };
+    const b = borrowedRaw();
+    return b.key ? b : { url: '', key: ownKey, model: ownModel, from: null };
+}
+function apiKey() { return apiConf().key || ''; }
+function apiUrl() { return normalizeBase(apiConf().url) || 'https://openrouter.ai/api/v1'; }
+function apiModel() { return apiConf().model || ''; }
+function borrowedFrom() { return apiConf().from; }
+
 async function callAI(systemPrompt, userPrompt) {
-    if (!settings.apiKey) throw new Error('API key is not set');
-    const endpointUrl = (settings.baseUrl || 'https://openrouter.ai/api/v1').replace(/\/$/, '') + '/chat/completions';
+    if (!apiKey()) throw new Error('API key is not set');
+    const endpointUrl = apiUrl() + '/chat/completions';
     const response = await fetch(endpointUrl, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${settings.apiKey.trim()}`, 'Content-Type': 'application/json' },
+        headers: { 'Authorization': `Bearer ${apiKey().trim()}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            model: settings.model,
+            model: apiModel(),
             messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
             temperature: settings.temperature,
-            response_format: { type: 'json_object' }
+            ...(wantsStrictJson(endpointUrl) ? { response_format: { type: 'json_object' } } : {})
         })
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -402,7 +468,7 @@ async function generateBarks(messageId, cast, force = false, activeNames = []) {
     const myChat = ctx.chatId;
     const chat = ctx.chat;
     const msg = chat[messageId];
-    if (!msg || !cast.length || !settings.apiKey) return [];
+    if (!msg || !cast.length || !apiKey()) return [];
 
     const st = sceneState();
     // cooldown gates NORMAL barks; whispers are exempt — a murmured aside is cheap flavor,
@@ -516,7 +582,7 @@ async function processMessage(messageId, force = false) {
         if (force) toastr.info(t('gen_nocast'));
         return;
     }
-    if (force && !settings.apiKey) { renderBarks(messageId); toastr.warning(t('gen_nokey')); return; }
+    if (force && !apiKey()) { renderBarks(messageId); toastr.warning(t('gen_nokey')); return; }
 
     let barks = [];
 
@@ -878,7 +944,7 @@ async function regenOneBark(messageId, i) {
     const msg = ctx.chat[messageId];
     const b = msg && msg.extra && Array.isArray(msg.extra.rls_barks) ? msg.extra.rls_barks[i] : null;
     if (!b) return;
-    if (!settings.apiKey) { toastr.warning(t('gen_nokey')); return; }
+    if (!apiKey()) { toastr.warning(t('gen_nokey')); return; }
     const d = rlsBubbles.get(`${messageId}::${i}`);
     if (d) d.bubble.classList.add('rls-busy');   // the 🔄 spins while the model thinks
 
