@@ -58,3 +58,55 @@ Everything else is optional tuning: reaction chance, max reactions per message, 
 ## 💾 Storage
 
 Presence, custom NPCs, aliases and notes live in the chat's own metadata; the bubbles are stored on the messages they belong to and survive reloads. Bubbles are tied to the swipe they were written for, so swiping away a reply takes its reactions with it.
+
+# 🎬 Who speaks next (group chats)
+
+In a group, somebody has to decide who answers. Left alone, either everyone
+answers every line, or one character quietly starts playing all the others.
+Living Scene now decides — and it decides from the line you just wrote.
+
+**Version 1.9.0**
+
+---
+
+## How it reads a line
+
+- 🗣️ **Addressed by name** — *"Albert, pour me a drink"* → Albert answers. Nicknames
+  from the roster count too.
+- 👀 **Looked at, turned to, nodded at** — *"\*Jenny looked at Albert and nodded.\*"* →
+  Albert answers. A look is an address.
+- 💬 **Named inside speech, in the third person** — *"Sebastian helped me a lot"* → nobody
+  is summoned. Talking **about** someone is not talking **to** them.
+- 🧍 **Alone with one character** → they answer, no name needed.
+- ➡️ **Nobody new addressed** → the conversation carries on with whoever you were
+  already talking to.
+- 🤫 **Still nothing** → nobody is triggered and the turn stays yours. Silence is a
+  valid answer, and the default one.
+- 🧠 Unsure? One short request to the **side model** (the same one that writes the
+  bubbles) settles it. Small prompt, one line back — a local model is plenty.
+
+Muted members never answer, and neither does anyone you switched off in the roster.
+
+## ⚙️ Settings
+
+| Setting | What it does |
+|---|---|
+| Hand the turn to whoever is addressed | The feature itself. Works with the bubbles off. |
+| After my message | Decide once you have written. |
+| Let characters answer each other | They may reply to each other, not only to you. |
+| Replies in a row without me | 0–5. How far a conversation may run before it is your turn again. |
+| Confidence needed | 0–1. Lower it to act on a mere mention, raise it for name-only. |
+| Never the same character twice running | Keeps one voice from holding the floor. |
+| Ask the side model when unclear | Turn off to keep it rules-only and free. |
+| Ask them to speak only as themselves | Injects a short note so one character stops writing everyone else's lines. |
+| Still nobody → a random enabled member | Lets SillyTavern draw a random unmuted member. Off by default. |
+
+## 📋 One requirement
+
+The group's own reply order must be set to **Manual** — *"characters reply… when you
+say so"*. On any automatic order SillyTavern picks speakers by itself, and two
+directors means three characters queued instead of one.
+
+There is a button for it in the settings: **Set this group to reply manually**. Some
+themes hide that dropdown; the button writes the same field. The line under it always
+shows the current state.
