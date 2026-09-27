@@ -1,5 +1,9 @@
 # RPG Living Scene
 
+<p>
+<img width="1849" height="851" alt="d457aa37-1146-41e4-beb8-10a8d4c799e7" src="https://github.com/user-attachments/assets/461287ff-affe-4dce-a490-50e0885e7c52" />
+</p>
+
 A SillyTavern extension that gives your **group chats a background**. Characters who are present in the scene but aren't the one speaking drop short reactions as **glassy bubbles floating beside the messages** — a quiet remark, a 💭 thought they'd never say out loud, or two of them whispering to each other. Answer a bubble and that character replies properly, in the main chat, with their own card.
 
 **Version 1.7.2**
@@ -110,3 +114,6 @@ directors means three characters queued instead of one.
 There is a button for it in the settings: **Set this group to reply manually**. Some
 themes hide that dropdown; the button writes the same field. The line under it always
 shows the current state.
+
+## Screenshots
+<img width="1898" height="873" alt="626275503-6747279d-a001-446b-a3b4-4b0f798e4f7f" src="https://github.com/user-attachments/assets/4709868b-6f66-4ce9-a524-fb3fd9b96e99" />
