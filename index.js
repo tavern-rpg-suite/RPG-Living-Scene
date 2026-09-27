@@ -1,6 +1,7 @@
 import { getContext, extension_settings } from '../../../extensions.js';
 import { eventSource, event_types, saveChatDebounced, saveSettingsDebounced, setExtensionPrompt, extension_prompt_roles, characters, name1 } from '../../../../script.js';
-import { selected_group, groups } from '../../../group-chats.js';
+import { selected_group, groups, editGroup } from '../../../group-chats.js';
+import * as ST from '../../../../script.js';
 
 const MODULE_NAME = 'rpg_living_scene';
 const PROMPT_KEY = 'rpg_living_scene_injection';
@@ -21,6 +22,28 @@ const I18N = {
         set_header: 'RPG Living Scene', set_enable: 'Enable Living Scene',
         set_lang: 'Language:', set_api: 'API Settings (side model)',
         set_url: 'URL', set_key: 'API Key', set_model: 'Model', set_temp: 'AI temperature:',
+        set_turn: 'Who speaks next',
+        set_pass: 'Hand the turn to whoever is addressed',
+        set_pass_hint: 'A name or a nickname in the last line, and that character answers — in the main chat, as themselves. Nothing obvious in the text? Nobody is triggered and the turn stays yours.',
+        set_pass_after: 'After my message',
+        set_pass_between: 'Let characters answer each other',
+        set_pass_chain: 'Replies in a row without me:',
+        set_pass_conf: 'Confidence needed (0–1):',
+        set_pass_norepeat: 'Never the same character twice running',
+        set_pass_ask: 'Ask the side model when the text is unclear',
+        set_pass_solo: 'Ask them to speak only as themselves',
+        set_pass_continue: 'Nobody new addressed → my current partner answers',
+        set_pass_random: 'Still nobody → a random enabled member answers (muted ones never)',
+        turn_picked: 'The turn goes to {name}',
+        turn_needs_manual: 'Living Scene: the group answers on its own, so the turn cannot be handed over. Use the button in the settings to switch it to Manual.',
+        turn_btn_manual: 'Set this group to reply manually',
+        turn_btn_hint: 'Writes the group\u2019s own "characters reply…" setting to Manual. Some themes hide that dropdown; this is the same field.',
+        turn_set_manual: 'This group now replies only when you say so.',
+        turn_already_manual: 'This group already replies manually.',
+        turn_no_group: 'Open a group chat first.',
+        turn_set_failed: 'Could not change it: {err}',
+        turn_state_manual: 'Reply order: manual — the turn is ours to hand over.',
+        turn_state_auto: 'Reply order: automatic — SillyTavern picks the speakers.',
         set_logic: 'Scene logic',
         set_chance: 'Reaction chance per message (%):',
         set_max: 'Max AI reactions per message:',
@@ -54,7 +77,8 @@ const I18N = {
         set_inject_depth: 'Injection depth:',
         set_off_left: 'Left bubbles: offset from message top (px, below the thoughts):',
         set_off_right: 'Right bubbles: offset from message top (px):',
-        set_autonpc: 'Diary NPCs join the scene automatically when mentioned',
+        set_autonpc: 'Offer diary NPCs in the roster',
+        set_autonpc_hint: 'They are listed so you can let them in with "+" or the switch. Being mentioned is not enough — an NPC nobody invited stays silent.',
         roster_diary: 'From the Diary',
         roster_diary_add: 'Add to the scene',
         roster_diary_none: 'The Diary has no NPCs yet (or the Diary extension is off).',
@@ -71,6 +95,28 @@ const I18N = {
         set_header: 'RPG Живая сцена', set_enable: 'Включить живую сцену',
         set_lang: 'Язык:', set_api: 'Настройки API (боковая модель)',
         set_url: 'URL', set_key: 'API-ключ', set_model: 'Модель', set_temp: 'Температура ИИ:',
+        set_turn: 'Кто говорит следующим',
+        set_pass: 'Передавать ход тому, к кому обратились',
+        set_pass_hint: 'Имя или прозвище в последней реплике — и этот персонаж отвечает в основном чате, сам за себя. Если в тексте ничего явного нет, никто не вызывается и ход остаётся у тебя.',
+        set_pass_after: 'После моего сообщения',
+        set_pass_between: 'Разрешить персонажам отвечать друг другу',
+        set_pass_chain: 'Ответов подряд без меня:',
+        set_pass_conf: 'Нужная уверенность (0–1):',
+        set_pass_norepeat: 'Один и тот же не отвечает дважды подряд',
+        set_pass_ask: 'Спрашивать боковую модель, когда текст неясен',
+        set_pass_solo: 'Просить говорить только за себя',
+        set_pass_continue: 'Ни к кому новому не обратилась → отвечает тот, с кем говорю',
+        set_pass_random: 'Всё равно никто → отвечает случайный из включённых (приглушённые никогда)',
+        turn_picked: 'Ход переходит к {name}',
+        turn_needs_manual: 'Living Scene: группа отвечает сама, поэтому ход передать нельзя. Нажми кнопку в настройках — она переключит на ручной режим.',
+        turn_btn_manual: 'Переключить эту группу на ручной ответ',
+        turn_btn_hint: 'Записывает настройку самой группы «Персонажи отвечают…» в значение «Когда вы скажете». В некоторых темах этот список спрятан — здесь то же самое поле.',
+        turn_set_manual: 'Теперь группа отвечает только когда ты скажешь.',
+        turn_already_manual: 'Группа уже отвечает вручную.',
+        turn_no_group: 'Сначала открой групповой чат.',
+        turn_set_failed: 'Не удалось переключить: {err}',
+        turn_state_manual: 'Порядок ответа: вручную — ход можно передавать.',
+        turn_state_auto: 'Порядок ответа: автоматический — говорящих выбирает Таверна.',
         set_logic: 'Логика сцены',
         set_chance: 'Шанс реакции на сообщение (%):',
         set_max: 'Макс. ИИ-реакций на сообщение:',
@@ -104,7 +150,8 @@ const I18N = {
         set_inject_depth: 'Глубина вставки:',
         set_off_left: 'Облачка слева: отступ от верха сообщения (px, ниже мыслей):',
         set_off_right: 'Облачка справа: отступ от верха сообщения (px):',
-        set_autonpc: 'NPC из дневника сами появляются в сцене, если упомянуты',
+        set_autonpc: 'Показывать NPC из дневника в списке сцены',
+        set_autonpc_hint: 'Они появляются в списке, чтобы их можно было впустить кнопкой «+» или переключателем. Одного упоминания мало — неприглашённый NPC молчит.',
         roster_diary: 'Из дневника',
         roster_diary_add: 'Добавить в сцену',
         roster_diary_none: 'В дневнике пока нет NPC (или расширение дневника выключено).',
@@ -174,6 +221,20 @@ function loadSettings() {
         allowActions: false, // bubbles may carry a tiny *action* beat
         reactToUser: true,   // the scene may react to the PLAYER's messages too
         userBarkChance: 40,  // …with its own, lower chance
+        /* THE TURN
+           Bubbles say who is alive in the scene; this says who speaks next. The
+           roster, the aliases and the side model are already here, so the decision
+           costs nothing extra — and silence stays the default answer. */
+        passEnabled: false,      // hand the turn to whoever is being addressed
+        passAfterUser: true,     // …after the player writes
+        passBetween: false,      // …and let characters answer each other
+        passChain: 1,            // replies in a row without the player
+        passConfidence: 0.7,     // below this the turn goes back to the player
+        passNoRepeat: true,      // never the same character twice running
+        passAskModel: true,      // one short side call when the text is unclear
+        passSoloVoice: true,     // ask the one who answers not to voice the others
+        passContinue: true,      // nobody new addressed → the current partner answers
+        passFallbackRandom: false, // still nobody → a random enabled (unmuted) member answers
         offsetLeft: 250,    // px below the message top on the LEFT (clear of the thought bubbles)
         offsetRight: 8      // px below the message top on the RIGHT
     };
@@ -188,6 +249,8 @@ function loadSettings() {
     if (!Number.isFinite(settings.offsetLeft)) settings.offsetLeft = defaults.offsetLeft;
     if (!Number.isFinite(settings.offsetRight)) settings.offsetRight = defaults.offsetRight;
     if (!Number.isFinite(settings.temperature)) settings.temperature = defaults.temperature;
+    if (!Number.isFinite(settings.passChain)) settings.passChain = defaults.passChain;
+    if (!Number.isFinite(settings.passConfidence)) settings.passConfidence = defaults.passConfidence;
 }
 function saveSettings() {
     extension_settings[MODULE_NAME] = settings;
@@ -265,10 +328,26 @@ function presentCast(excludeName) {
     const st = sceneState();
     const cast = [];
     const seen = new Set();
-    const add = (entry) => { if (entry.name !== excludeName && !seen.has(entry.name) && isPresent(entry.name)) { seen.add(entry.name); cast.push(entry); } };
-    groupMembers().forEach(m => add(m));
-    st.npcs.forEach(n => add({ name: n.name, avatar: null, isNpc: true }));
-    if (settings.autoNpc) diaryNpcs().forEach(n => add({ name: n.name, avatar: null, isNpc: true }));   // auto-join when mentioned
+    const add = (entry, present) => {
+        if (entry.name === excludeName || seen.has(entry.name) || !present) return;
+        seen.add(entry.name);
+        cast.push(entry);
+    };
+
+    // characters of the chat: presence as configured — automatic or switched by hand
+    groupMembers().forEach(m => add(m, isPresent(m.name)));
+
+    // NPCs you added yourself with "+": in the scene until you switch them off
+    st.npcs.forEach(n => add({ name: n.name, avatar: null, isNpc: true }, st.present[n.name] !== false));
+
+    /* NPCs that live only in the diary are NOT let in by a mention. Being talked
+       about is not being in the room: they speak once you let them in — with "+"
+       or with the switch in the roster. */
+    if (settings.autoNpc) {
+        const added = new Set(st.npcs.map(n => n.name));
+        diaryNpcs().forEach(n => add({ name: n.name, avatar: null, isNpc: true },
+            !added.has(n.name) && st.present[n.name] === true));
+    }
     return cast;
 }
 
@@ -882,6 +961,397 @@ function renderBarks(messageId, startCollapsed = false) {
 }
 
 // your line goes to the main chat, then the character's own card answers it:
+/* ============================================================
+   THE TURN — who answers next
+   The roster knows who is present and what they are called; that is most of
+   the work. A name addressed in the last line hands the turn over. A name
+   merely mentioned does not: "I looked at William" is not a question to him.
+   When the text says nothing either way, ONE short side call may decide, and
+   if that is unsure too, nobody is triggered at all.
+   ============================================================ */
+const TURN_KEY = 'rpg_living_scene_solo';
+let turnChain = 0;         // replies since the player last wrote
+let turnBusy = false;
+let generating = false;    // ST is busy: triggering now throws "generation already in progress"
+let turnWarned = false;
+
+/* SillyTavern's own group reply strategy runs first. On Natural, List or Pooled it
+   picks speakers by itself the moment you send — ours would then queue a second and
+   a third on top, which is exactly the pile-up. Only Manual leaves the decision open,
+   so that is the only mode where the turn is ours to hand over. */
+const GROUP_MANUAL = 2;
+function groupStrategy() {
+    try {
+        const g = (groups || []).find(x => x && x.id === selected_group);
+        return Number(g?.activation_strategy ?? 0);
+    } catch (e) { return 0; }
+}
+
+/* Some themes hide the group's "characters reply…" dropdown entirely, so the
+   setting is written here instead. It is the same field the dropdown edits. */
+async function setGroupManual() {
+    if (!selected_group) { toastr.warning(t('turn_no_group')); return false; }
+    const g = (groups || []).find(x => x && x.id === selected_group);
+    if (!g) { toastr.warning(t('turn_no_group')); return false; }
+    const was = Number(g.activation_strategy ?? 0);
+    if (was === GROUP_MANUAL) { toastr.info(t('turn_already_manual')); return true; }
+    g.activation_strategy = GROUP_MANUAL;
+    try {
+        await editGroup(selected_group, true, false);
+        // the dropdown, if this theme shows one, should agree with what was written
+        const sel = document.getElementById('rm_group_activation_strategy');
+        if (sel) sel.value = String(GROUP_MANUAL);
+        turnWarned = false;
+        toastr.success(t('turn_set_manual'));
+        return true;
+    } catch (e) {
+        g.activation_strategy = was;
+        console.error('[Living Scene] could not change the group strategy:', e);
+        toastr.error(t('turn_set_failed', { err: e.message || e }));
+        return false;
+    }
+}
+
+/** Wait for the current generation to finish, within reason. */
+function waitIdle(ms = 20000) {
+    if (!generating) return Promise.resolve(true);
+    return new Promise(resolve => {
+        const started = Date.now();
+        const tick = setInterval(() => {
+            if (!generating) { clearInterval(tick); resolve(true); }
+            else if (Date.now() - started > ms) { clearInterval(tick); resolve(false); }
+        }, 250);
+    });
+}
+
+function normTurn(v) {
+    return String(v || '').toLowerCase().replace(/ё/g, 'е').replace(/[^\p{L}\p{N} ]+/gu, ' ').replace(/\s+/g, ' ').trim();
+}
+
+/* "What do you think about Albert?" names Albert and means William. A name that
+   follows one of these is the subject of the sentence, not its target. */
+const ABOUT_RX = /(?:об|обо|о|про|насчёт|насчет|по\s+поводу|вместо|кроме|без|для|about|regarding|concerning|instead\s+of|without)\s*$/i;
+
+/* Presence is generous on purpose — a mention is enough to make someone "present"
+   so they can drop a thought bubble. Handing them the TURN on a mention is another
+   matter: talking about Albert must not summon Albert. For the turn, a character
+   counts as in the room only if you marked them present by hand, or if they have
+   actually spoken in the last few messages. */
+/* Who may take the turn: the group's ENABLED members — muted ones never — minus
+   anyone you marked absent in the roster. Deliberately not the bubble roster, which
+   counts a character as present only once they have been mentioned. */
+function turnCast(excludeName) {
+    const g = (groups || []).find(x => x && x.id === selected_group);
+    if (!g) return [];
+    const muted = new Set(g.disabled_members || []);
+    const st = sceneState();
+    return (g.members || [])
+        .filter(avatar => !muted.has(avatar))
+        .map(avatar => characters.find(c => c && c.avatar === avatar))
+        .filter(c => c && c.name && c.name !== excludeName && st.present[c.name] !== false)
+        .map(c => ({ name: c.name, avatar: c.avatar, isNpc: false }));
+}
+
+function reallyHere(name) {
+    // In a group the roster already says who is in the room — absent ones are
+    // muted there. So everyone enabled counts, unless you marked them absent here.
+    try { return sceneState().present[name] !== false; } catch (e) { return true; }
+}
+
+/** Addressed, merely named, talked about, or absent from the line. */
+function addressedIn(text, name) {
+    const body = normTurn(text);
+    if (!body) return { hit: false };
+    for (const alias of aliasNamesOf(name)) {
+        const n = normTurn(alias);
+        if (!n || n.length < 2) continue;
+        let idx = body.indexOf(n);
+        while (idx !== -1) {
+            const before = idx === 0 ? ' ' : body[idx - 1];
+            if (!/[\p{L}\p{N}]/u.test(before)) {
+                // a preposition right in front means the line is ABOUT them
+                if (ABOUT_RX.test(body.slice(Math.max(0, idx - 14), idx))) return { hit: true, about: true };
+                // what follows decides: "Albert, pour me a drink" vs "Louis and Albert left"
+                const rawIdx = text.toLowerCase().replace(/ё/g, 'е').indexOf(n.slice(0, 4));
+                const tail = rawIdx >= 0 ? text.slice(rawIdx + n.length) : '';
+                const direct = /^\s*[,:!?…]/.test(tail) || /^\s*[—–-]/.test(tail);
+                return { hit: true, direct };
+            }
+            idx = body.indexOf(n, idx + 1);
+        }
+    }
+    return { hit: false };
+}
+
+/* A roleplay line has three parts and each means something different:
+     *actions*   — "looked at Albert" points the line AT Albert
+     "speech"    — "Albert, come here" addresses him; "Sebastian helped me" is ABOUT Sebastian
+     narration   — whatever is left, read like an action                                   */
+function splitLine(text) {
+    const src = String(text || '');
+    const actions = [];
+    const speech = [];
+    src.replace(/\*([^*]+)\*/g, (_, a) => { actions.push(a); return ''; });
+    src.replace(/[“"«]([^”"»]+)[”"»]/g, (_, q) => { speech.push(q); return ''; });
+    const narration = src.replace(/\*[^*]+\*/g, ' ').replace(/[“"«][^”"»]+[”"»]/g, ' ');
+    return { actions: actions.concat(narration.trim() ? [narration] : []), speech };
+}
+
+// looking, turning, nodding, smiling AT someone makes them the one being answered
+const GAZE_RX = /(look(?:s|ed|ing)?\s+(?:at|up\s+at|over\s+at)|glanc\p{L}*\s+at|stare[sd]?\s+at|turn(?:s|ed|ing)?\s+to(?:ward)?s?|smil\p{L}*\s+at|nod(?:s|ded|ding)?\s+(?:at|to)|fac(?:es|ed|ing)|reach\p{L}*\s+for|смотр\p{L}*\s+на|посмотр\p{L}*\s+на|взгляну\p{L}*\s+на|взглядыва\p{L}*\s+на|гляд\p{L}*\s+на|погляде\p{L}*\s+на|уставил\p{L}*\s+на|поверну\p{L}*\s+к|оберну\p{L}*\s+к|обрати\p{L}*\s+к|улыбну\p{L}*\s+|кивну\p{L}*\s+|подня\p{L}*\s+(?:глаза|взгляд)\s+на)\s*$/iu;
+
+function gazeAt(actionText, name) {
+    const body = normTurn(actionText);
+    for (const alias of aliasNamesOf(name)) {
+        const n = normTurn(alias);
+        if (!n || n.length < 2) continue;
+        let idx = body.indexOf(n);
+        while (idx !== -1) {
+            const before = idx === 0 ? ' ' : body[idx - 1];
+            if (!/[\p{L}\p{N}]/u.test(before) && GAZE_RX.test(body.slice(Math.max(0, idx - 36), idx))) return true;
+            idx = body.indexOf(n, idx + 1);
+        }
+    }
+    return false;
+}
+
+/* A name standing on its own is a call: "Oh… William." / "Уильям." The earlier rule
+   only knew the comma form, so a name closing a sentence read as a mere mention and
+   the turn went to whoever you had been talking to. Interjections before it are
+   skipped; a name followed by a verb ("William nodded") is still narration. */
+const CALL_LEAD_RX = /^[\s"'«»“”*\-—–…,.!?]*(?:о[хй]|а[хй]|э[йх]|ну|слушай|послушай|погоди|подожди|постой|прошу|пожалуйста|эм|мм+|oh|ah|hey|hm+|well|look|listen|please|wait|um+)?[\s,…!?.\-—–]*/iu;
+
+function nameCalled(text, name) {
+    const sentences = String(text || '').split(/[.!?…\n]+/);
+    for (const raw of sentences) {
+        let part = raw.replace(/[*_`]/g, ' ').trim();
+        if (!part) continue;
+        part = part.replace(CALL_LEAD_RX, '').trim();
+        const low = normTurn(part);
+        for (const alias of aliasNamesOf(name)) {
+            const n = normTurn(alias);
+            if (!n || n.length < 2) continue;
+            if (low === n) return true;                      // the whole sentence is the name
+            if (low.startsWith(n)) {
+                const rest = low.slice(n.length).trim();
+                if (!rest) return true;                      // nothing after it
+                if (/^[,:;!?…]/.test(rest)) return true;     // "William, come here"
+            }
+        }
+    }
+    return false;
+}
+
+function lastPartner(cast) {
+    // whoever spoke last among those present — the conversation already under way
+    const chat = getContext().chat || [];
+    for (let i = chat.length - 1; i >= Math.max(0, chat.length - 12); i--) {
+        const m = chat[i];
+        if (!m || m.is_user || m.is_system) continue;
+        const hit = cast.find(c => normTurn(c.name) === normTurn(m.name));
+        if (hit) return hit;
+    }
+    return null;
+}
+
+function pickByText(text, cast) {
+    const parts = splitLine(text);
+
+    // 1. addressed by name inside speech: "Albert, …" / "…, Albert?"
+    const vocative = cast.filter(c => parts.speech.some(q => addressedIn(q, c.name).direct));
+    if (vocative.length === 1) return { name: vocative[0].name, isNpc: !!vocative[0].isNpc, confidence: 0.95, why: 'addressed' };
+
+    // 1b. the name stands alone as a call — quotes may be missing or unbalanced
+    const called = cast.filter(c => nameCalled(text, c.name));
+    if (called.length === 1) return { name: called[0].name, isNpc: !!called[0].isNpc, confidence: 0.92, why: 'called by name' };
+
+    // 2. looked at, turned to, nodded at in the action
+    const gaze = cast.filter(c => parts.actions.some(a => gazeAt(a, c.name)));
+    if (gaze.length === 1) return { name: gaze[0].name, isNpc: !!gaze[0].isNpc, confidence: 0.9, why: 'looked at' };
+
+    // 3. a plain line with no quotes at all still gets the old reading
+    if (!parts.speech.length && !parts.actions.some(a => /\S/.test(a) && a !== text)) {
+        const plain = pickPlain(text, cast);
+        if (plain.name) return plain;
+    }
+
+    // 4. alone with one character: there is nobody else to answer
+    if (cast.length === 1) return { name: cast[0].name, isNpc: !!cast[0].isNpc, confidence: 0.9, why: 'only one here' };
+
+    // 5. nobody new addressed: the conversation carries on with whoever it was with
+    if (settings.passContinue) {
+        const partner = lastPartner(cast);
+        if (partner) return { name: partner.name, isNpc: !!partner.isNpc, confidence: 0.8, why: 'conversation continues' };
+    }
+    return { name: '', confidence: 0, why: 'nobody addressed' };
+}
+
+function pickPlain(text, cast) {
+    const all = cast.map(c => ({ name: c.name, isNpc: !!c.isNpc, ...addressedIn(text, c.name) })).filter(h => h.hit);
+    const hits = all.filter(h => !h.about);
+    if (!hits.length) {
+        // everyone named was only being discussed: nobody is being asked anything
+        return { name: '', confidence: 0, why: all.length ? 'only talked about' : 'nobody named' };
+    }
+    const direct = hits.filter(h => h.direct);
+    if (direct.length === 1) return { name: direct[0].name, isNpc: direct[0].isNpc, confidence: 0.95, why: 'addressed' };
+    if (direct.length > 1) return { name: '', confidence: 0, why: 'several addressed' };
+    if (hits.length === 1) return { name: hits[0].name, isNpc: hits[0].isNpc, confidence: 0.5, why: 'named only' };
+    return { name: '', confidence: 0, why: 'several named' };
+}
+
+async function askWhoSpeaks(cast, text) {
+    const roster = cast.map(c => `- ${c.name}`).join('\n');
+    const sys = settings.language === 'ru'
+        ? 'Ты ведёшь групповую сцену. Отвечай только JSON.'
+        : 'You are directing a group scene. Answer with JSON only.';
+    const user = (settings.language === 'ru'
+        ? `КТО ПРИСУТСТВУЕТ:\n${roster}\n\nПОСЛЕДНЯЯ РЕПЛИКА:\n${text}\n\nНазови того единственного, чьего ответа действительно ждут: к кому обратились, кого спросили, обвинили, тронули. Если ни на кого конкретно не указывает — верни пустое имя, это нормальный ответ.\nТолько JSON: {"speaker":"","confidence":0.0}`
+        : `WHO IS PRESENT:\n${roster}\n\nTHE LAST LINE:\n${text}\n\nName the one character whose reply is genuinely expected — addressed, asked, accused, touched. If nothing points at anyone in particular, return an empty name; that is a normal answer.\nJSON only: {"speaker":"","confidence":0.0}`);
+    const raw = await callAI(sys, user);
+    const obj = typeof raw === 'string' ? JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1)) : raw;
+    const want = normTurn(obj && obj.speaker);
+    const found = cast.find(c => normTurn(c.name) === want) || (want ? cast.find(c => normTurn(c.name).startsWith(want)) : null);
+    return { name: found ? found.name : '', isNpc: found ? !!found.isNpc : false, confidence: Math.max(0, Math.min(1, Number(obj && obj.confidence) || 0)), why: 'side model' };
+}
+
+function soloVoiceNote(name) {
+    if (!settings.passEnabled || !settings.passSoloVoice || !name) {
+        setExtensionPrompt(TURN_KEY, '', 0, 0, false);
+        return;
+    }
+    const txt = settings.language === 'ru'
+        ? `\n[Пиши только за ${name}. Не пиши реплики, мысли и действия за других персонажей сцены — они отвечают сами. Никогда не упоминай эту заметку.]\n`
+        : `\n[Write only as ${name}. Do not write dialogue, thoughts or actions for the other characters present — they answer for themselves. Never mention this note.]\n`;
+    setExtensionPrompt(TURN_KEY, txt, 2, 0, false, extension_prompt_roles.SYSTEM);
+}
+
+function turnLog(msg) { console.log(`[Living Scene] turn: ${msg}`); }
+const pause = (ms) => new Promise(r => setTimeout(r, ms));
+
+/* Wait until SillyTavern has finished whatever it is doing. The player's own
+   message is still inside the group wrapper when MESSAGE_SENT fires; starting a
+   reply before that wrapper returns sends it down the wrong path. */
+function stBusy() {
+    if (typeof ST.isGenerating === 'function') return ST.isGenerating();
+    // older builds do not export the flag; the Stop button is shown for exactly that time
+    const stop = document.getElementById('mes_stop');
+    return !!(stop && stop.offsetParent !== null && getComputedStyle(stop).display !== 'none');
+}
+async function stIdle(ms = 15000) {
+    const busy = stBusy;
+    const t0 = Date.now();
+    await pause(150);
+    while (Date.now() - t0 < ms) {
+        if (!busy()) return true;
+        await pause(200);
+    }
+    return false;
+}
+
+const turnHandled = new Set();   // messages already decided, so a late signal cannot run it twice
+
+async function passTheTurn(messageId, fromUser) {
+    // Deliberately NOT gated on the main Living Scene switch: that one is for the
+    // thought bubbles. Handing the turn over is its own feature with its own toggle.
+    if (!settings.passEnabled) { turnLog('skipped — "hand the turn over" is off in the settings'); return null; }
+    const key = `${getContext().chatId || ''}#${messageId}`;
+    if (turnHandled.has(key)) return null;
+    turnHandled.add(key);
+    if (turnHandled.size > 200) turnHandled.delete(turnHandled.values().next().value);
+    if (turnBusy) { turnLog('skipped — already deciding'); return null; }
+    if (fromUser ? !settings.passAfterUser : !settings.passBetween) {
+        if (fromUser) turnLog('skipped — "after my message" is off');
+        return null;
+    }
+    if (!fromUser && turnChain >= Math.max(0, settings.passChain || 0)) { turnLog(`skipped — ${turnChain} replies in a row already`); return null; }
+    if (!selected_group) { turnLog('skipped — not a group chat'); return null; }
+
+    // On any automatic strategy the group already answers on its own; two directors
+    // means three characters in the queue instead of one.
+    if (groupStrategy() !== GROUP_MANUAL) {
+        turnLog('skipped — the group is not set to reply manually');
+        if (!turnWarned) { turnWarned = true; toastr.info(t('turn_needs_manual')); }
+        return null;
+    }
+    // No wait here: /trigger itself waits until SillyTavern is free. A lock of our
+    // own could stay shut after a manual-mode send, when no reply ever ends it.
+
+    const chat = getContext().chat || [];
+    const msg = chat[messageId];
+    if (!msg || msg.is_system) { turnLog(`skipped — message #${messageId} not found`); return null; }
+
+    let cast = turnCast(fromUser ? null : msg.name);
+    if (settings.passNoRepeat && !fromUser && msg.name) cast = cast.filter(c => normTurn(c.name) !== normTurn(msg.name));
+    if (!cast.length) { turnLog('skipped — no enabled member to answer'); return null; }
+    turnLog(`can answer: ${cast.map(c => c.name).join(', ')}`);
+
+    turnBusy = true;
+    try {
+        let pick = pickByText(String(msg.mes || ''), cast);
+        if (pick.confidence < settings.passConfidence && settings.passAskModel && apiKey()) {
+            try { pick = await askWhoSpeaks(cast, String(msg.mes || '').slice(-1200)); }
+            catch (e) { console.warn('[Living Scene] turn: side model failed', e); }
+        }
+        if (!pick.name || pick.confidence < settings.passConfidence) {
+            turnLog(`nobody — ${pick.why || 'unclear'} (${pick.confidence})`);
+            soloVoiceNote('');
+            /* On Manual, a generation with no character named makes SillyTavern pick a
+               random ENABLED member itself — muted ones are never drawn. That is exactly
+               the fallback wanted here, and it is the same path regeneration takes. */
+            if (fromUser && settings.passFallbackRandom) {
+                const c = getContext();
+                if (typeof c.generate === 'function') {
+                    turnLog('→ nobody addressed: SillyTavern picks a random enabled member');
+                    turnChain++;
+                    c.generate('normal');
+                }
+            }
+            return null;
+        }
+        soloVoiceNote(pick.name);
+        turnChain++;
+        const ctx = getContext();
+        /* The speech bubble next to a group member calls Generate('normal',
+           { force_chid }) — nothing else. SillyTavern exposes that same function to
+           extensions as context.generate, so that is what is called here: no slash
+           command, no name to match, the character index and nothing more. */
+        // the card that is IN this group — a library can hold two characters of one name
+        const chars = ctx.characters || [];
+        const g = (groups || []).find(x => x && x.id === selected_group);
+        const inGroup = new Set((g && g.members) || []);
+        let chid = chars.findIndex(c => c && inGroup.has(c.avatar) && normTurn(c.name) === normTurn(pick.name));
+        if (chid < 0) chid = chars.findIndex(c => c && normTurn(c.name) === normTurn(pick.name));
+        if (chid < 0) { turnLog(`${pick.name} was chosen but is not in the character list`); return null; }
+        if (typeof ctx.generate !== 'function') { turnLog('this SillyTavern does not expose generate()'); return null; }
+
+        turnLog(`→ ${pick.name} (${pick.why}, ${pick.confidence}) · character #${chid}`);
+
+        /* The group wrapper begins with "if already generating, return" — and returns
+           silently. So the call is repeated until the wrapper really starts, which
+           the GROUP_WRAPPER_STARTED event confirms. */
+        let started = false;
+        const onStart = () => { started = true; };
+        if (event_types.GROUP_WRAPPER_STARTED) eventSource.on(event_types.GROUP_WRAPPER_STARTED, onStart);
+        try {
+            for (let attempt = 1; attempt <= 4 && !started; attempt++) {
+                if (!(await stIdle())) { turnLog('SillyTavern stayed busy for 15s — not triggered'); return null; }
+                ctx.generate('normal', { force_chid: chid });
+                await pause(900);
+                if (!event_types.GROUP_WRAPPER_STARTED) break;           // cannot confirm on this build
+                if (!started) turnLog(`attempt ${attempt}: the group was still busy, trying again`);
+            }
+        } finally {
+            if (event_types.GROUP_WRAPPER_STARTED && typeof eventSource.removeListener === 'function') {
+                eventSource.removeListener(event_types.GROUP_WRAPPER_STARTED, onStart);
+            }
+        }
+        if (event_types.GROUP_WRAPPER_STARTED && !started) { turnLog('the group never started — giving up'); return null; }
+        toastr.info(t('turn_picked', { name: pick.name }));
+        return pick;
+    } finally { turnBusy = false; }
+}
+
 // /send <text> | /trigger "<name>". An NPC has no card — the main model voices them.
 function askCharacter(bark, isNpc, text) {
     const name = typeof bark === 'string' ? bark : bark.name;
@@ -1187,6 +1657,33 @@ function settingsHtml() { return `
                 <label>${t('set_chatter_chance')}</label>
                 <input type="number" id="rls-chatter-chance" class="text_pole" min="0" max="100" style="width:60px;">
             </div>
+            <hr class="sysHR">
+            <h4>🎬 ${t('set_turn')}</h4>
+            <label class="checkbox_label"><input type="checkbox" id="rls-pass"> <b>${t('set_pass')}</b></label>
+            <div class="rls-hint" style="font-size:.78rem;opacity:.7;line-height:1.5;margin:2px 0 8px 20px;">${t('set_pass_hint')}</div>
+            <div style="padding-left:20px;">
+                <label class="checkbox_label"><input type="checkbox" id="rls-pass-after"> ${t('set_pass_after')}</label>
+                <label class="checkbox_label"><input type="checkbox" id="rls-pass-between"> ${t('set_pass_between')}</label>
+                <label class="checkbox_label"><input type="checkbox" id="rls-pass-norepeat"> ${t('set_pass_norepeat')}</label>
+                <label class="checkbox_label"><input type="checkbox" id="rls-pass-ask"> ${t('set_pass_ask')}</label>
+                <label class="checkbox_label"><input type="checkbox" id="rls-pass-solo"> ${t('set_pass_solo')}</label>
+                <label class="checkbox_label"><input type="checkbox" id="rls-pass-continue"> ${t('set_pass_continue')}</label>
+                <label class="checkbox_label"><input type="checkbox" id="rls-pass-random"> ${t('set_pass_random')}</label>
+                <div class="margin-b-10">
+                    <input type="button" id="rls-pass-manual" class="menu_button" value="${t('turn_btn_manual')}">
+                    <div class="rls-hint" style="font-size:.75rem;opacity:.65;line-height:1.45;margin-top:4px;">${t('turn_btn_hint')}</div>
+                    <div id="rls-pass-state" class="rls-hint" style="font-size:.75rem;opacity:.8;margin-top:4px;"></div>
+                </div>
+                <div class="flex-container alignitemscenter flexgap5 margin-b-10">
+                    <label>${t('set_pass_chain')}</label>
+                    <input type="number" id="rls-pass-chain" class="text_pole" min="0" max="5" style="width:50px;">
+                </div>
+                <div class="flex-container alignitemscenter flexgap5 margin-b-10">
+                    <label>${t('set_pass_conf')}</label>
+                    <input type="number" step="0.05" id="rls-pass-conf" class="text_pole" min="0" max="1" style="width:60px;">
+                </div>
+            </div>
+            <hr class="sysHR">
             <label class="checkbox_label"><input type="checkbox" id="rls-inject"> ${t('set_inject')}</label>
             <div class="flex-container alignitemscenter flexgap5 margin-b-10" style="padding-left:20px;">
                 <label>${t('set_inject_depth')}</label>
@@ -1195,6 +1692,7 @@ function settingsHtml() { return `
             <label class="checkbox_label"><input type="checkbox" id="rls-quote"> ${t('set_quote_reply')}</label>
             <label class="checkbox_label"><input type="checkbox" id="rls-actions"> ${t('set_actions')}</label>
             <label class="checkbox_label"><input type="checkbox" id="rls-autonpc"> ${t('set_autonpc')}</label>
+            <div class="rls-hint" style="font-size:.78rem;opacity:.7;line-height:1.5;margin:2px 0 8px 20px;">${t('set_autonpc_hint')}</div>
             <div class="flex-container alignitemscenter flexgap5 margin-b-10">
                 <label>${t('set_off_left')}</label>
                 <input type="number" id="rls-off-left" class="text_pole" min="0" max="800" style="width:65px;">
@@ -1241,6 +1739,31 @@ function setupUI() {
     $('#rls-thoughts').prop('checked', settings.allowThoughts).on('change', function () { settings.allowThoughts = this.checked; saveSettings(); });
     $('#rls-chatter').prop('checked', settings.allowChatter).on('change', function () { settings.allowChatter = this.checked; saveSettings(); });
     $('#rls-chatter-chance').val(settings.chatterChance).on('change', function () { settings.chatterChance = Math.max(0, Math.min(100, parseInt($(this).val()) || 0)); $(this).val(settings.chatterChance); saveSettings(); });
+    $('#rls-pass').prop('checked', settings.passEnabled).on('change', function () { settings.passEnabled = this.checked; saveSettings(); if (!this.checked) setExtensionPrompt(TURN_KEY, '', 0, 0, false); });
+    const paintTurnState = () => {
+        const el = document.getElementById('rls-pass-state');
+        if (!el) return;
+        if (!selected_group) { el.textContent = t('turn_no_group'); return; }
+        el.textContent = groupStrategy() === GROUP_MANUAL ? t('turn_state_manual') : t('turn_state_auto');
+    };
+    $('#rls-pass-manual').on('click', async () => { await setGroupManual(); paintTurnState(); });
+    paintTurnState();
+
+    $('#rls-pass-after').prop('checked', settings.passAfterUser).on('change', function () { settings.passAfterUser = this.checked; saveSettings(); });
+    $('#rls-pass-between').prop('checked', settings.passBetween).on('change', function () { settings.passBetween = this.checked; saveSettings(); });
+    $('#rls-pass-norepeat').prop('checked', settings.passNoRepeat).on('change', function () { settings.passNoRepeat = this.checked; saveSettings(); });
+    $('#rls-pass-continue').prop('checked', settings.passContinue).on('change', function () { settings.passContinue = this.checked; saveSettings(); });
+    $('#rls-pass-random').prop('checked', settings.passFallbackRandom).on('change', function () { settings.passFallbackRandom = this.checked; saveSettings(); });
+    $('#rls-pass-ask').prop('checked', settings.passAskModel).on('change', function () { settings.passAskModel = this.checked; saveSettings(); });
+    $('#rls-pass-solo').prop('checked', settings.passSoloVoice).on('change', function () { settings.passSoloVoice = this.checked; saveSettings(); if (!this.checked) setExtensionPrompt(TURN_KEY, '', 0, 0, false); });
+    $('#rls-pass-chain').val(settings.passChain).on('change', function () {
+        const v = parseInt(this.value, 10); settings.passChain = Number.isFinite(v) ? Math.max(0, Math.min(5, v)) : 1;
+        this.value = settings.passChain; saveSettings();
+    });
+    $('#rls-pass-conf').val(settings.passConfidence).on('change', function () {
+        const v = parseFloat(this.value); settings.passConfidence = Number.isFinite(v) ? Math.max(0, Math.min(1, v)) : 0.7;
+        this.value = settings.passConfidence; saveSettings();
+    });
     $('#rls-inject').prop('checked', settings.injectBarks).on('change', function () { settings.injectBarks = this.checked; saveSettings(); updateInjection(); });
     $('#rls-inject-depth').val(settings.injectDepth).on('change', function () { settings.injectDepth = Math.max(0, parseInt($(this).val()) || 0); $(this).val(settings.injectDepth); saveSettings(); updateInjection(); });
     $('#rls-quote').prop('checked', settings.quoteReply).on('change', function () { settings.quoteReply = this.checked; saveSettings(); });
@@ -1256,6 +1779,7 @@ function setupUI() {
    ============================================================ */
 jQuery(() => {
     loadSettings();
+    console.log(`[Living Scene] loaded — who speaks next: ${settings.passEnabled ? 'ON' : 'OFF'}, fallback to a random enabled member: ${settings.passFallbackRandom ? 'ON' : 'OFF'}`);
     setupUI();
     renderRosterButton();
     initLayer();
@@ -1276,13 +1800,56 @@ jQuery(() => {
         setTimeout(restoreOnLoad, 150);
     });
 
+    /* Your message is still inside SillyTavern's group wrapper when MESSAGE_SENT
+       fires — saving the chat, deciding nobody replies on Manual — and the wrapper
+       silently ignores anything started while it runs. So the message is noted
+       here and the turn is decided on GROUP_WRAPPER_FINISHED, once it is free. */
+    const hasWrapperEvents = !!event_types.GROUP_WRAPPER_FINISHED;
+    let pendingTurn = null;          // { id, fromUser }
+
     eventSource.on(event_types.MESSAGE_RECEIVED, (messageId) => {
         setTimeout(() => processMessage(messageId), 60);
+        if (hasWrapperEvents && selected_group) pendingTurn = { id: messageId, fromUser: false };
+        else setTimeout(() => passTheTurn(messageId, false), 400);
     });
 
     eventSource.on(event_types.MESSAGE_SENT, (messageId) => {
-        if (!settings.reactToUser) return;
-        setTimeout(() => processMessage(messageId), 60);
+        turnChain = 0;                       // the player wrote: the chain starts over
+        if (settings.reactToUser) setTimeout(() => processMessage(messageId), 60);
+        if (hasWrapperEvents && selected_group) {
+            const job = { id: messageId, fromUser: true };
+            pendingTurn = job;
+            turnLog(`message #${messageId} sent — deciding once the group is free`);
+            // if the "group finished" signal never comes, do not wait forever
+            setTimeout(() => {
+                if (pendingTurn !== job) return;
+                pendingTurn = null;
+                turnLog('no "group finished" signal after 3s — deciding anyway');
+                passTheTurn(job.id, job.fromUser);
+            }, 3000);
+        } else setTimeout(() => passTheTurn(messageId, true), 400);
+    });
+
+    if (hasWrapperEvents) {
+        eventSource.on(event_types.GROUP_WRAPPER_FINISHED, () => {
+            const job = pendingTurn;
+            pendingTurn = null;
+            if (!job) return;
+            // let the wrapper's own cleanup settle before starting a new one
+            setTimeout(() => passTheTurn(job.id, job.fromUser), 150);
+        });
+    }
+
+    eventSource.on(event_types.CHAT_CHANGED, () => {
+        turnChain = 0;
+        turnWarned = false;
+        setExtensionPrompt(TURN_KEY, '', 0, 0, false);
+    });
+
+    // knowing whether ST is mid-generation is what keeps /trigger from colliding
+    eventSource.on(event_types.GENERATION_STARTED, () => { generating = true; });
+    ['GENERATION_ENDED', 'GENERATION_STOPPED', 'MESSAGE_RECEIVED'].forEach(k => {
+        if (event_types[k]) eventSource.on(event_types[k], () => { generating = false; });
     });
 
     eventSource.on(event_types.MESSAGE_SWIPED, (messageId) => {
