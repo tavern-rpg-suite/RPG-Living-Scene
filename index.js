@@ -420,11 +420,17 @@ function apiUrl() { return normalizeBase(apiConf().url) || 'https://openrouter.a
 function apiModel() { return apiConf().model || ''; }
 function borrowedFrom() { return apiConf().from; }
 
-async function callAI(systemPrompt, userPrompt) {
+async function callAI(systemPrompt, userPrompt, timeoutMs = 0) {
     if (!apiKey()) throw new Error('API key is not set');
     const endpointUrl = apiUrl() + '/chat/completions';
+    // A side call that never returns used to hold the turn shut for good: every later
+    // message was "already deciding" and nobody answered again until a reload.
+    const ctl = timeoutMs > 0 && typeof AbortController === 'function' ? new AbortController() : null;
+    const timer = ctl ? setTimeout(() => ctl.abort(), timeoutMs) : null;
+    try {
     const response = await fetch(endpointUrl, {
         method: 'POST',
+        ...(ctl ? { signal: ctl.signal } : {}),
         headers: { 'Authorization': `Bearer ${apiKey().trim()}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
             model: apiModel(),
@@ -440,6 +446,7 @@ async function callAI(systemPrompt, userPrompt) {
     const content = (data.choices?.[0]?.message?.content || '').trim();
     const m = content.match(/\{[\s\S]*\}/);
     return JSON.parse(m ? m[0] : content);
+    } finally { if (timer) clearTimeout(timer); }
 }
 
 /* ============================================================
@@ -1208,18 +1215,21 @@ async function askWhoSpeaks(cast, text) {
     const user = (settings.language === 'ru'
         ? `КТО ПРИСУТСТВУЕТ:\n${roster}\n\nПОСЛЕДНЯЯ РЕПЛИКА:\n${text}\n\nНазови того единственного, чьего ответа действительно ждут: к кому обратились, кого спросили, обвинили, тронули. Если ни на кого конкретно не указывает — верни пустое имя, это нормальный ответ.\nТолько JSON: {"speaker":"","confidence":0.0}`
         : `WHO IS PRESENT:\n${roster}\n\nTHE LAST LINE:\n${text}\n\nName the one character whose reply is genuinely expected — addressed, asked, accused, touched. If nothing points at anyone in particular, return an empty name; that is a normal answer.\nJSON only: {"speaker":"","confidence":0.0}`);
-    const raw = await callAI(sys, user);
+    const raw = await callAI(sys, user, 20000);
     const obj = typeof raw === 'string' ? JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1)) : raw;
     const want = normTurn(obj && obj.speaker);
     const found = cast.find(c => normTurn(c.name) === want) || (want ? cast.find(c => normTurn(c.name).startsWith(want)) : null);
     return { name: found ? found.name : '', isNpc: found ? !!found.isNpc : false, confidence: Math.max(0, Math.min(1, Number(obj && obj.confidence) || 0)), why: 'side model' };
 }
 
+let turnNoteFor = '';
 function soloVoiceNote(name) {
     if (!settings.passEnabled || !settings.passSoloVoice || !name) {
+        turnNoteFor = '';
         setExtensionPrompt(TURN_KEY, '', 0, 0, false);
         return;
     }
+    turnNoteFor = name;
     const txt = settings.language === 'ru'
         ? `\n[Пиши только за ${name}. Не пиши реплики, мысли и действия за других персонажей сцены — они отвечают сами. Никогда не упоминай эту заметку.]\n`
         : `\n[Write only as ${name}. Do not write dialogue, thoughts or actions for the other characters present — they answer for themselves. Never mention this note.]\n`;
@@ -1250,16 +1260,27 @@ async function stIdle(ms = 15000) {
 }
 
 const turnHandled = new Set();   // messages already decided, so a late signal cannot run it twice
+let turnQueued = null;           // a message that arrived while the previous one was being decided
+/* The key was the message's number alone. Delete a reply and write again, or
+   regenerate, and the new message gets the SAME number — it was taken for one already
+   decided and nobody answered it, silently. The time it was sent and its text tell
+   the two apart. */
+function turnKey(messageId, msg) {
+    const m = msg || {};
+    return `${getContext().chatId || ''}#${messageId}#${m.send_date || ''}#${String(m.mes || '').length}`;
+}
 
 async function passTheTurn(messageId, fromUser) {
     // Deliberately NOT gated on the main Living Scene switch: that one is for the
     // thought bubbles. Handing the turn over is its own feature with its own toggle.
     if (!settings.passEnabled) { turnLog('skipped — "hand the turn over" is off in the settings'); return null; }
-    const key = `${getContext().chatId || ''}#${messageId}`;
+    const key = turnKey(messageId, (getContext().chat || [])[messageId]);
     if (turnHandled.has(key)) return null;
+    // Busy deciding the previous one: this message waits its turn instead of being
+    // marked done and dropped.
+    if (turnBusy) { turnLog('busy deciding — this one waits'); turnQueued = { id: messageId, fromUser }; return null; }
     turnHandled.add(key);
     if (turnHandled.size > 200) turnHandled.delete(turnHandled.values().next().value);
-    if (turnBusy) { turnLog('skipped — already deciding'); return null; }
     if (fromUser ? !settings.passAfterUser : !settings.passBetween) {
         if (fromUser) turnLog('skipped — "after my message" is off');
         return null;
@@ -1330,26 +1351,60 @@ async function passTheTurn(messageId, fromUser) {
         /* The group wrapper begins with "if already generating, return" — and returns
            silently. So the call is repeated until the wrapper really starts, which
            the GROUP_WRAPPER_STARTED event confirms. */
+        /* A retry used to follow a fixed 900 ms. Before the group starts, SillyTavern
+           pings its own server — on a slow connection that alone takes longer, the
+           "not started" check fired, and a SECOND generate went out while the first
+           was still on its way: two wrappers raced past the busy check and the scene
+           got a double reply. Now each call is awaited: it either really starts, or
+           returns at once because the group was busy (then it is tried again), or —
+           taking long without either — is left alone rather than duplicated. */
+        const hasStartEvt = !!event_types.GROUP_WRAPPER_STARTED;
         let started = false;
         const onStart = () => { started = true; };
-        if (event_types.GROUP_WRAPPER_STARTED) eventSource.on(event_types.GROUP_WRAPPER_STARTED, onStart);
+        if (hasStartEvt) eventSource.on(event_types.GROUP_WRAPPER_STARTED, onStart);
+        // a half-typed line in the box would be sent along as your message; keep it aside
+        const ta = document.getElementById('send_textarea');
+        const draft = ta ? String(ta.value || '') : '';
+        if (draft && ta) { ta.value = ''; ta.dispatchEvent(new Event('input', { bubbles: true })); }
+        const giveDraftBack = () => {
+            if (!draft || !ta) return;
+            const now = String(ta.value || '');
+            ta.value = now ? draft + ' ' + now : draft;
+            ta.dispatchEvent(new Event('input', { bubbles: true }));
+        };
+        let run = null;
         try {
             for (let attempt = 1; attempt <= 4 && !started; attempt++) {
-                if (!(await stIdle())) { turnLog('SillyTavern stayed busy for 15s — not triggered'); return null; }
-                ctx.generate('normal', { force_chid: chid });
-                await pause(900);
-                if (!event_types.GROUP_WRAPPER_STARTED) break;           // cannot confirm on this build
-                if (!started) turnLog(`attempt ${attempt}: the group was still busy, trying again`);
+                if (!(await stIdle())) { turnLog('SillyTavern stayed busy for 15s — not triggered'); break; }
+                let settled = false;
+                run = Promise.resolve().then(() => ctx.generate('normal', { force_chid: chid })).catch(e => { console.warn('[Living Scene] turn: generate failed', e); });
+                run.then(() => { settled = true; });
+                if (!hasStartEvt) { started = true; break; }        // cannot confirm on this build
+                const t0 = Date.now();
+                while (!started && !settled && Date.now() - t0 < 12000) await pause(100);
+                if (started) break;
+                if (!settled) { turnLog('the group is taking long to start — not sending a second request'); started = true; break; }
+                turnLog(`attempt ${attempt}: the group was still busy, trying again`);
             }
         } finally {
-            if (event_types.GROUP_WRAPPER_STARTED && typeof eventSource.removeListener === 'function') {
+            if (hasStartEvt && typeof eventSource.removeListener === 'function') {
                 eventSource.removeListener(event_types.GROUP_WRAPPER_STARTED, onStart);
             }
         }
-        if (event_types.GROUP_WRAPPER_STARTED && !started) { turnLog('the group never started — giving up'); return null; }
+        // the "write only as …" note belongs to THIS reply; left in place it told the
+        // next character you summoned by hand to write as someone else
+        const myNote = pick.name;
+        const after = () => { giveDraftBack(); if (turnNoteFor === myNote) soloVoiceNote(''); };
+        if (run && started) run.then(after); else after();
+        if (!started) { turnLog('the group never started — giving up'); return null; }
         toastr.info(t('turn_picked', { name: pick.name }));
         return pick;
-    } finally { turnBusy = false; }
+    } finally {
+        turnBusy = false;
+        const q = turnQueued; turnQueued = null;
+        // only if it is still the newest message: an older one would answer out of place
+        if (q && q.id === (getContext().chat || []).length - 1) setTimeout(() => passTheTurn(q.id, q.fromUser), 150);
+    }
 }
 
 // /send <text> | /trigger "<name>". An NPC has no card — the main model voices them.
@@ -1843,6 +1898,8 @@ jQuery(() => {
     eventSource.on(event_types.CHAT_CHANGED, () => {
         turnChain = 0;
         turnWarned = false;
+        turnQueued = null;
+        turnNoteFor = '';
         setExtensionPrompt(TURN_KEY, '', 0, 0, false);
     });
 
