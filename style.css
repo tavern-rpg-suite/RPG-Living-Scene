@@ -364,8 +364,11 @@
 .mes:hover .rls-parts-tools, .rls-parts-tools:focus-within { opacity: 1; }
 .rls-parts-tools button { width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: rgba(0, 0, 0, .4); color: rgba(255, 255, 255, .6); font-size: 12px; line-height: 24px; cursor: pointer; }
 .rls-parts-tools button.on { background: rgba(232, 200, 130, .85); color: #1d161c; }
+/* the two buttons keep one width whatever their glyph: the spinner is narrower than the people-arrows,
+   and the whole row of icons used to jump left and back when it came and went */
+.mes_buttons .rls-split-btn, .mes_buttons .rls-novel-btn { box-sizing: content-box; width: 1.25em; text-align: center; }
 .rls-split-btn.busy, .rls-novel-btn.busy { opacity: .7; pointer-events: none; }
-.rls-split-btn.busy::before, .rls-novel-btn.busy::before { content: '\f110'; display: inline-block; animation: rls-spin 1s linear infinite; transform-origin: 50% 50%; }
+.rls-split-btn.busy::before, .rls-novel-btn.busy::before { content: '\f110'; display: inline-block; width: 1em; height: 1em; line-height: 1em; vertical-align: -0.125em; text-align: center; animation: rls-spin 1s linear infinite; transform-origin: 50% 50%; }
 @keyframes rls-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .rls-parts.anim .rls-part, .rls-split-btn.busy::before, .rls-novel-btn.busy::before { animation: none; } .rls-part.who:hover { transform: none; } }
 @media (max-width: 600px) { .rls-part.who { max-width: 100%; } .rls-part-ava { width: 36px; height: 36px; } }

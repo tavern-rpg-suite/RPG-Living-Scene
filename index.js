@@ -2236,7 +2236,8 @@ function splitPieces(mes) {
     text.split('\n').forEach(line => {
         const ls = at; at += line.length + 1;
         if (!line.trim()) return;
-        if (/^[\s ]*[—–]/.test(line) && !/[«"“]/.test(line)) {
+        // (the whole line may sit in italics or bold: "*— Ready, miss. — he said.*" is still a dash dialogue line)
+        if (/^[\s ]*[*_]*[\s ]*[—–]/.test(line) && !/[«"“]/.test(line)) {
             // a dash dialogue line: speech and the author's words take turns, split at " — "
             const re = /[\s ][—–][\s ]/g;
             let last = ls, m, speech = true;
