@@ -1,6 +1,7 @@
 import { getContext, extension_settings } from '../../../extensions.js';
 import { eventSource, event_types, saveChatDebounced, saveSettingsDebounced, setExtensionPrompt, extension_prompt_roles, characters, name1 } from '../../../../script.js';
 import { selected_group, groups, editGroup } from '../../../group-chats.js';
+import { user_avatar } from '../../../personas.js';
 import * as ST from '../../../../script.js';
 
 const MODULE_NAME = 'rpg_living_scene';
@@ -77,12 +78,30 @@ const I18N = {
         set_inject_depth: 'Injection depth:',
         set_off_left: 'Left bubbles: offset from message top (px, below the thoughts):',
         set_off_right: 'Right bubbles: offset from message top (px):',
+        set_parts_auto: 'Split every new reply by itself (off — only with the button)',
+        set_parts_style: 'Look of the blocks:', style_glass: 'Glass — small faces, light frames', style_ink: 'Ink — no frames, a coloured line', style_classic: 'As before — big faces',
+        set_parts_anim: 'Text appears:', anim_none: 'at once', anim_fade: 'word by word, fading in', anim_type: 'word by word, typed',
+        set_parts_fonts: 'Each person has their own colour and lettering',
+        set_novel_box: 'The text box:', box_parchment: 'Parchment — light, a thin frame and a pattern', box_glass: 'Glass — half-clear, a thin line', box_dark: 'Dark — as before',
+        set_novel_sprite: 'The characters:', sprite_large: 'full height', sprite_medium: 'smaller', sprite_waist: 'from the waist up, closer',
+        set_novel_face: 'The speaker\'s portrait in the box:', face_always: 'always', face_nosprite: 'only for those without sprites', face_never: 'never',
+        set_novel_hud: 'Buttons over the novel: Map, Diary, Life (those installed)', set_novel_place: 'The place\'s name; a new place comes in with a passage',
+        hud_map: 'Map', hud_diary: 'Diary', hud_life: 'Life', novel_place: 'Place',
+        set_sec_novel: 'Novel', set_novel_btn: 'A ▶ button on each reply opens it in the novel', set_novel_open: 'Open the novel now', novel_btn: 'Play in the novel',
+        set_pass_toast: 'Say in a notice who gets the turn',
+        set_mappres: 'Presence from RPG Map ("Who is where")',
+        roster_map: '🗺 map', roster_map_hint: 'Placed by RPG Map: with you, or in another room. Your switch overrides it.',
+        set_sec_compress: 'Long cards', set_compress: 'Long cards are condensed before they are sent (once, kept)', set_compress_over: 'Condense cards longer than (tokens):',
+        set_faces: 'Split replies by roles', set_sec_cast: 'Who is in the scene', set_sec_roles: 'Replies by roles',
+        set_faces_hint: 'Each person’s lines and actions in their own block, with their face. One side call per reply. Older replies: the button in the message menu.',
+        parts_btn: 'Split by roles', parts_plain: 'Show as plain text', parts_compact: 'Only the spoken lines', parts_full: 'Lines and actions', parts_failed: 'Could not split this reply.', parts_one: 'Nothing to split here.', scene_btn: 'Play as a scene', scene_log: 'Log', scene_close: 'Close', scene_end: 'End of the reply', scene_hint: 'Click, Space or → — next · ← — back · Esc — close', novel_menu: 'Novel mode', novel_exit: 'Back to the chat', novel_say: 'Your line…', novel_send: 'Send', novel_prev: 'Previous version', novel_next: 'Another version', novel_regen: 'Regenerate', novel_stop: 'Stop', novel_busy: 'Wait until the reply is finished.', novel_hint: 'Click or Space — next · ← — back · Enter — send · Esc — back to the chat', novel_return: 'Return to the character', novel_ask: 'Suggest choices', novel_empty: 'Write the first line below.',
         set_autonpc: 'Offer diary NPCs in the roster',
         set_autonpc_hint: 'They are listed so you can let them in with "+" or the switch. Being mentioned is not enough — an NPC nobody invited stays silent.',
         roster_diary: 'From the Diary',
         roster_diary_add: 'Add to the scene',
         roster_diary_none: 'The Diary has no NPCs yet (or the Diary extension is off).',
         roster_auto: 'auto',
+        roster_member_sw: 'On in the group — the same switch as SillyTavern\'s',
         bark_del_title: 'Dismiss',
         bark_regen_title: 'Reroll this line',
         bark_more_title: 'Stir the scene (generate reactions)',
@@ -150,12 +169,30 @@ const I18N = {
         set_inject_depth: 'Глубина вставки:',
         set_off_left: 'Облачка слева: отступ от верха сообщения (px, ниже мыслей):',
         set_off_right: 'Облачка справа: отступ от верха сообщения (px):',
+        set_parts_auto: 'Разбивать каждый новый ответ сам (выкл. — только по кнопке)',
+        set_parts_style: 'Вид блоков:', style_glass: 'Стекло — маленькие лица, лёгкие рамки', style_ink: 'Чернила — без рамок, цветная линия', style_classic: 'Как раньше — крупные лица',
+        set_parts_anim: 'Появление текста:', anim_none: 'сразу', anim_fade: 'по словам, проявляясь', anim_type: 'по словам, как печать',
+        set_parts_fonts: 'У каждого свой цвет и почерк',
+        set_novel_box: 'Окно текста:', box_parchment: 'Пергамент — светлый, тонкая рамка и узор', box_glass: 'Стекло — полупрозрачное, тонкая линия', box_dark: 'Тёмное — как раньше',
+        set_novel_sprite: 'Персонажи:', sprite_large: 'в полный рост', sprite_medium: 'поменьше', sprite_waist: 'по пояс, ближе',
+        set_novel_face: 'Портрет говорящего в окне:', face_always: 'всегда', face_nosprite: 'только у кого нет спрайтов', face_never: 'никогда',
+        set_novel_hud: 'Кнопки поверх новеллы: Карта, Дневник, Жизнь (что установлено)', set_novel_place: 'Название места; новое место — с переходом',
+        hud_map: 'Карта', hud_diary: 'Дневник', hud_life: 'Жизнь', novel_place: 'Место',
+        set_sec_novel: 'Новелла', set_novel_btn: 'Кнопка ▶ на каждом ответе открывает его в новелле', set_novel_open: 'Открыть новеллу сейчас', novel_btn: 'Играть в новелле',
+        set_pass_toast: 'Сообщать уведомлением, к кому перешёл ход',
+        set_mappres: 'Присутствие по карте («Кто где»)',
+        roster_map: '🗺 карта', roster_map_hint: 'Решает RPG Map: с тобой или в другой комнате. Твой переключатель главнее.',
+        set_sec_compress: 'Длинные карточки', set_compress: 'Длинные карточки сжимаются перед отправкой (один раз, запоминается)', set_compress_over: 'Сжимать карточки длиннее (токенов):',
+        set_faces: 'Разбивать ответы по ролям', set_sec_cast: 'Кто в сцене', set_sec_roles: 'Ответы по ролям',
+        set_faces_hint: 'Реплики и действия каждого — в своём блоке, с портретом. Один запрос к боковой модели на ответ. Для старых сообщений — кнопка в меню сообщения.',
+        parts_btn: 'Разбить по ролям', parts_plain: 'Показать обычным текстом', parts_compact: 'Только реплики', parts_full: 'Реплики и действия', parts_failed: 'Не получилось разбить этот ответ.', parts_one: 'Здесь нечего разбивать.', scene_btn: 'Показать сценой', scene_log: 'Журнал', scene_close: 'Закрыть', scene_end: 'Конец ответа', scene_hint: 'Клик, пробел или → — дальше · ← — назад · Esc — закрыть', novel_menu: 'Режим новеллы', novel_exit: 'Вернуться в чат', novel_say: 'Твоя реплика…', novel_send: 'Отправить', novel_prev: 'Предыдущая версия', novel_next: 'Другая версия', novel_regen: 'Перегенерировать', novel_stop: 'Остановить', novel_busy: 'Дождись, пока ответ допишется.', novel_hint: 'Клик или пробел — дальше · ← — назад · Enter — отправить · Esc — в чат', novel_return: 'Вернуться к персонажу', novel_ask: 'Предложить варианты', novel_empty: 'Напиши первую реплику внизу.',
         set_autonpc: 'Показывать NPC из дневника в списке сцены',
         set_autonpc_hint: 'Они появляются в списке, чтобы их можно было впустить кнопкой «+» или переключателем. Одного упоминания мало — неприглашённый NPC молчит.',
         roster_diary: 'Из дневника',
         roster_diary_add: 'Добавить в сцену',
         roster_diary_none: 'В дневнике пока нет NPC (или расширение дневника выключено).',
         roster_auto: 'авто',
+        roster_member_sw: 'Включён в группе — тот же выключатель, что в SillyTavern',
         bark_del_title: 'Убрать',
         bark_regen_title: 'Перегенерировать реплику',
         bark_more_title: 'Оживить сцену (сгенерировать реакции)',
@@ -236,7 +273,25 @@ function loadSettings() {
         passContinue: true,      // nobody new addressed → the current partner answers
         passFallbackRandom: false, // still nobody → a random enabled (unmuted) member answers
         offsetLeft: 250,    // px below the message top on the LEFT (clear of the thought bubbles)
-        offsetRight: 8      // px below the message top on the RIGHT
+        offsetRight: 8,     // px below the message top on the RIGHT
+        lineFaces: true,    // a reply is cut into blocks by who speaks and acts (one side call per reply)
+        partsCompact: false, // the blocks show only the spoken lines
+        novel: false,        // the chat is played as a visual novel (kept between chats and reloads)
+        mapPresence: true,   // RPG Map's "Who is where" decides who is present (your switch still wins)
+        partsAuto: true,     // every new reply is split by itself (off: only with the button, or while the novel is open)
+        partsStyle: 'glass', // the blocks' look: glass | ink | classic
+        partsAnim: 'fade',   // the text of a new block: none | fade | type
+        partsFonts: true,    // each person their own colour and lettering
+        novelBtn: true,      // a ▶ on each reply opens it in the novel
+        novelBox: 'parchment', // the text box: parchment | glass | dark
+        novelSprite: 'large',  // the cast's size: large | medium | waist
+        novelFace: 'nosprite', // the speaker's portrait in the box: always | nosprite | never
+        novelHud: true,        // buttons for RPG Map, the Diary, RPG Life over the novel
+        novelPlace: true,      // the place's name, and a change of place played as a passage
+        passToast: false,    // a notice saying who gets the turn
+        compress: true,      // long cards are condensed once before they go to the side model
+        compressOver: 400,   // …longer than this many tokens
+        briefs: {}           // the condensed cards, kept by card and text
     };
     settings = Object.assign({}, defaults, extension_settings[MODULE_NAME]);
     // heal NaN/garbage from empty number inputs
@@ -248,6 +303,13 @@ function loadSettings() {
     if (!Number.isFinite(settings.injectDepth)) settings.injectDepth = defaults.injectDepth;
     if (!Number.isFinite(settings.offsetLeft)) settings.offsetLeft = defaults.offsetLeft;
     if (!Number.isFinite(settings.offsetRight)) settings.offsetRight = defaults.offsetRight;
+    if (!['glass', 'ink', 'classic'].includes(settings.partsStyle)) settings.partsStyle = defaults.partsStyle;
+    if (!['none', 'fade', 'type'].includes(settings.partsAnim)) settings.partsAnim = defaults.partsAnim;
+    if (!Number.isFinite(settings.compressOver)) settings.compressOver = defaults.compressOver;
+    if (!['parchment', 'glass', 'dark'].includes(settings.novelBox)) settings.novelBox = defaults.novelBox;
+    if (!['large', 'medium', 'waist'].includes(settings.novelSprite)) settings.novelSprite = defaults.novelSprite;
+    if (!['always', 'nosprite', 'never'].includes(settings.novelFace)) settings.novelFace = defaults.novelFace;
+    if (!settings.briefs || typeof settings.briefs !== 'object') settings.briefs = {};
     if (!Number.isFinite(settings.temperature)) settings.temperature = defaults.temperature;
     if (!Number.isFinite(settings.passChain)) settings.passChain = defaults.passChain;
     if (!Number.isFinite(settings.passConfidence)) settings.passConfidence = defaults.passConfidence;
@@ -306,11 +368,92 @@ function groupMembers() {
     return out;
 }
 
+/* RPG Map's "Who is where": with you → in the scene; in another room or far away →
+   not. 'unknown', or a map that is off or not installed, decides nothing. Your own
+   switch in the roster still wins over the map. */
+/* The map knows only its own rooms. When the Scene Card says you are somewhere the map does not
+   have ("Inside a carriage on the road to Yorkshire"), the map's places are of another moment:
+   it decides nothing until you are back in one of its rooms. */
+function mapIsElsewhere() {
+    try {
+        const chat = getContext().chat || [];
+        let loc = '';
+        for (let i = chat.length - 1; i >= 0 && i >= chat.length - 40; i--) { const d = chat[i] && chat[i].extra && chat[i].extra.rpg_info_box; if (d && d.location) { loc = String(d.location); break; } }
+        if (!loc.trim()) return false;                       // no Scene Card: the map is all there is
+        const r = roomNow();
+        if (!r) return false;
+        const low = s0 => String(s0 || '').toLowerCase().replace(/ё/g, 'е');
+        const card = low(loc), cardLat = translit(card);
+        const names = [r.room, r.loc].filter(Boolean).map(low);
+        return !names.some(n => n.length >= 3 && (card.includes(n) || cardLat.includes(translit(n))));
+    } catch (e) { return false; }
+}
+function mapWhere(name) {
+    try {
+        if (settings.mapPresence === false) return null;
+        if (mapIsElsewhere()) return null;
+        const map = window.RPG && window.RPG.map;
+        if (!map || !map.available || typeof map.whereIs !== 'function' || (map.isEnabled && !map.isEnabled())) return null;
+        const w = map.whereIs(name);
+        if (!w) return null;
+        if (w.kind === 'you') return 'here';
+        // placed in a room — the room you are in yourself is "here", any other is away
+        if (w.kind === 'room') {
+            const me = roomNow();
+            if (me && w.room && w.room === me.room && (!w.location || !me.loc || w.location === me.loc)) return 'here';
+            return 'away';
+        }
+        if (w.kind === 'away') return 'away';
+        return null;
+    } catch (e) { return null; }
+}
+
+/* One switch for a group member: SillyTavern's own (the crossed eye in the group panel).
+   Off there — not in the scene at all: no turn, no thought bubbles. On — who is actually
+   near is decided by the map and by mentions, as before. The switch in the roster is the
+   same switch. Living Scene's own "absent" marks are for NPCs only now. */
+function curGroup() { return selected_group ? (groups || []).find(x => x && x.id === selected_group) || null : null; }
+function memberAvatar(name) {
+    const g = curGroup();
+    if (!g || !name) return null;
+    return (g.members || []).find(av => { const c = characters.find(x => x && x.avatar === av); return !!c && c.name === name; }) || null;
+}
+function memberMuted(avatar) { const g = curGroup(); return !!(g && avatar && (g.disabled_members || []).includes(avatar)); }
+async function setMemberMuted(avatar, muted) {
+    const g = curGroup();
+    if (!g || !avatar || !(g.members || []).includes(avatar)) return;
+    if (!Array.isArray(g.disabled_members)) g.disabled_members = [];
+    const i = g.disabled_members.indexOf(avatar);
+    if (muted && i < 0) g.disabled_members.push(avatar);
+    else if (!muted && i >= 0) g.disabled_members.splice(i, 1);
+    else return;
+    // the group panel shows the same state at once, the way its own buttons do
+    $(`.group_member[data-id="${CSS.escape(avatar)}"]`).toggleClass('disabled', !!muted);
+    try { await editGroup(g.id, false, false); } catch (e) { console.warn('[Living Scene] could not save the group', e); }
+}
+// old "absent" marks on group members came from the second switch that is gone — dropped once per chat
+function dropMemberMarks() {
+    try {
+        const g = curGroup();
+        if (!g) return;
+        const st = sceneState();
+        let changed = false;
+        (g.members || []).forEach(av => { const c = characters.find(x => x && x.avatar === av); if (c && c.name && c.name in st.present) { delete st.present[c.name]; changed = true; } });
+        if (changed) { saveScene(); console.log('[Living Scene] the roster now follows the group switches — old marks cleared'); }
+    } catch (e) { /* ignore */ }
+}
+
 // is this character considered "in the scene" right now?
 function isPresent(name) {
     const st = sceneState();
-    if (st.present[name] === true) return true;
-    if (st.present[name] === false) return false;
+    const av = memberAvatar(name);
+    if (av) { if (memberMuted(av)) return false; }
+    else {
+        if (st.present[name] === true) return true;
+        if (st.present[name] === false) return false;
+    }
+    const m = mapWhere(name);
+    if (m) return m === 'here';
     // unset → auto mode: present if mentioned or speaking in the recent messages
     if (!settings.autoPresence) return false;
     const chat = getContext().chat || [];
@@ -338,7 +481,7 @@ function presentCast(excludeName) {
     groupMembers().forEach(m => add(m, isPresent(m.name)));
 
     // NPCs you added yourself with "+": in the scene until you switch them off
-    st.npcs.forEach(n => add({ name: n.name, avatar: null, isNpc: true }, st.present[n.name] !== false));
+    st.npcs.forEach(n => add({ name: n.name, avatar: null, isNpc: true }, st.present[n.name] !== false && !(st.present[n.name] === undefined && mapWhere(n.name) === 'away')));
 
     /* NPCs that live only in the diary are NOT let in by a mention. Being talked
        about is not being in the room: they speak once you let them in — with "+"
@@ -346,7 +489,7 @@ function presentCast(excludeName) {
     if (settings.autoNpc) {
         const added = new Set(st.npcs.map(n => n.name));
         diaryNpcs().forEach(n => add({ name: n.name, avatar: null, isNpc: true },
-            !added.has(n.name) && st.present[n.name] === true));
+            !added.has(n.name) && (st.present[n.name] === true || (st.present[n.name] === undefined && mapWhere(n.name) === 'here'))));
     }
     return cast;
 }
@@ -376,6 +519,9 @@ function normalizeBase(url) {
     if (!/\/v\d+($|\/)/i.test(u)) u += '/v1';
     return u;
 }
+// how long to wait for the side model: a model on your own computer writes slowly (a long reply's
+// split took 50 s on one), so it gets four times as long as a service before the answer is given up on
+function waitFor(ms) { return isLocalEndpoint(apiUrl()) ? ms * 4 : ms; }
 function isLocalEndpoint(url) {
     const u = String(url || '').toLowerCase();
     if (!u) return false;
@@ -420,7 +566,12 @@ function apiUrl() { return normalizeBase(apiConf().url) || 'https://openrouter.a
 function apiModel() { return apiConf().model || ''; }
 function borrowedFrom() { return apiConf().from; }
 
-async function callAI(systemPrompt, userPrompt, timeoutMs = 0) {
+function isJunk(v) {
+    if (v == null || typeof v === 'number' || typeof v === 'boolean') return true;
+    const x = String(v).trim();
+    return !x || /^-?\d+([.,]\d+)?$/.test(x) || /^(null|undefined|nan|none|n\/a|error)$/i.test(x);
+}
+async function callAI(systemPrompt, userPrompt, timeoutMs = 0, maxTokens = 3000) {
     if (!apiKey()) throw new Error('API key is not set');
     const endpointUrl = apiUrl() + '/chat/completions';
     // A side call that never returns used to hold the turn shut for good: every later
@@ -436,6 +587,7 @@ async function callAI(systemPrompt, userPrompt, timeoutMs = 0) {
             model: apiModel(),
             messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
             temperature: settings.temperature,
+            max_tokens: maxTokens,
             ...(wantsStrictJson(endpointUrl) ? { response_format: { type: 'json_object' } } : {})
         })
     });
@@ -444,8 +596,13 @@ async function callAI(systemPrompt, userPrompt, timeoutMs = 0) {
     $('#rls-calls-n').text(apiCallCount);
     const data = await response.json();
     const content = (data.choices?.[0]?.message?.content || '').trim();
+    // the shape is not trusted: JSON inside text, JSON inside a string (sometimes twice)
     const m = content.match(/\{[\s\S]*\}/);
-    return JSON.parse(m ? m[0] : content);
+    let v = m ? m[0] : content;
+    for (let i = 0; i < 3 && typeof v === 'string'; i++) { try { v = JSON.parse(v.trim()); } catch (e) { break; } }
+    if (!v || typeof v !== 'object') { console.warn('[Living Scene] side model: not JSON —', content.slice(0, 600)); const err = new Error('not json'); err.raw = content; throw err; }
+    Object.defineProperty(v, '__raw', { value: content, enumerable: false });
+    return v;
     } finally { if (timer) clearTimeout(timer); }
 }
 
@@ -461,7 +618,45 @@ async function callAI(systemPrompt, userPrompt, timeoutMs = 0) {
 function aliasNamesOf(name) {
     const st = sceneState();
     const meta = (st.meta && st.meta[name]) || {};
-    return [name].concat(String(meta.aliases || '').split(',').map(x => x.trim()).filter(Boolean));
+    // the roster's aliases, then the forms learned from the replies themselves ("William" for «Уильям»),
+    // then RPG Phone's «Also called» for this person, read only
+    const learned = Array.isArray(meta.auto) ? meta.auto.map(x => String(x || '').trim()).filter(Boolean) : [];
+    const k = String(name || '').trim().toLowerCase();
+    const phone = phonePairs().filter(x => x.to.toLowerCase() === k).map(x => x.alias);
+    return [...new Set([name].concat(String(meta.aliases || '').split(',').map(x => x.trim()).filter(Boolean), learned, phone))];
+}
+/* RPG Phone keeps, per card, the people living inside it («Characters inside this card») and the
+   other ways a name is written («Also called»: "Уильям, Уилл" = the card, "Руфус = Rufus" =
+   someone inside). The scene reads both for the cards of this chat; it never writes them. */
+function chatCardNames() {
+    try {
+        const ctx = getContext();
+        if (selected_group) {
+            const g = (groups || []).find(x => x && x.id === selected_group);
+            return (g && g.members || []).map(av => characters.find(c => c && c.avatar === av)).filter(Boolean).map(c => c.name);
+        }
+        return ctx.characterId !== undefined && characters[ctx.characterId] ? [characters[ctx.characterId].name] : [];
+    } catch (e) { return []; }
+}
+function phonePairs() {
+    const ph = extension_settings.rpg_phone;
+    if (!ph || !ph.aliases || typeof ph.aliases !== 'object') return [];
+    const out = [];
+    chatCardNames().forEach(card => {
+        String(ph.aliases[card] || '').split(/[,;\n]/).map(x => x.trim()).filter(Boolean).forEach(x => {
+            const i = x.indexOf('=');
+            if (i < 0) out.push({ alias: x, to: card });
+            else { const a = x.slice(0, i).trim(), b = x.slice(i + 1).trim(); if (a && b) out.push({ alias: a, to: b }); }
+        });
+    });
+    return out;
+}
+function phoneCast() {
+    const ph = extension_settings.rpg_phone;
+    const out = [];
+    chatCardNames().forEach(card => String(ph && ph.cast && ph.cast[card] || '').split(/[,;\n]/).map(x => x.trim()).filter(Boolean).forEach(n => out.push(n)));
+    phonePairs().forEach(x => { if (!chatCardNames().includes(x.to)) out.push(x.to); });
+    return [...new Set(out)];
 }
 function probesOf(name) {
     const probes = new Set();
@@ -525,14 +720,62 @@ function looksLikeEcho(barkText, mesText) {
 /* ============================================================
    SOURCE 2 (one API call): short reactions for the whole cast.
    ============================================================ */
-function personaSnippet(name) {
+/* ---------- who someone is, for the side model: never a card cut off in the middle ----------
+   A long card is condensed once (the same way RPG Map does it, with the same instructions) and the
+   brief is kept until the card's text changes. RPG Map's own brief of that card is used when it has
+   one (read, never written), so a card is never condensed twice. */
+const BRIEF_PROMPT = `Condense the character description below into a compact brief for a writer who will show this character in short, everyday scenes.
+Keep only what the text states — never add, guess or embellish. Keep every name exactly as written.
+Include, where the text gives them: who they are and what they do; their appearance; family and the people close to them, and their relationships with everyone the text mentions (names, and how they feel about each other); their present situation, goals and worries; habits, routine and interests; how they talk.
+Aim for about 250 words, but never drop a relationship or the appearance to make it shorter.
+Plain text, short lines, no headings. Write it in the same language as the description.
+Output strictly JSON: {"brief":"..."}`;
+const estTokens = x => Math.round(String(x || '').length / 4);
+function textHash(x) {
+    let h = 2166136261 >>> 0;
+    const v = String(x || '');
+    for (let i = 0; i < v.length; i++) { h ^= v.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
+    return h.toString(36) + ':' + v.length;
+}
+const cardNorm = d => String(d || '').replace(/[ \t]+/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+const briefBusy = new Map();
+async function cardBrief(ch, text) {
+    const key = `card:${ch.avatar || ch.name}`;
+    // RPG Map's brief of exactly this card
+    try {
+        const mb = extension_settings.rpg_map_engine?.overhear?.briefs?.[`card:${ch.avatar}`];
+        if (ch.avatar && mb && typeof mb.text === 'string' && mb.text.trim() && mb.stamp === textHash(text) + ':v2') return mb.text.trim();
+    } catch (e) { /* not there */ }
+    const own = settings.briefs[key];
+    if (own && own.stamp === textHash(text) && own.text) return own.text;
+    if (briefBusy.has(key)) return briefBusy.get(key);
+    const job = (async () => {
+        try {
+            const res = await callAI(BRIEF_PROMPT, `CHARACTER: ${ch.name}\n\n${text}`, waitFor(60000), 2000);
+            const v = res && typeof res === 'object' ? (res.brief || res.text || res.summary) : res;
+            if (typeof v !== 'string' || isJunk(v)) { console.warn('[Living Scene] brief: no text in the answer —', String(res && res.__raw || '').slice(0, 600)); return ''; }
+            settings.briefs[key] = { text: v.trim(), stamp: textHash(text), name: ch.name, date: new Date().toISOString() };
+            saveSettings();
+            return v.trim();
+        } catch (e) { console.warn('[Living Scene] brief failed', e); return ''; }
+        finally { briefBusy.delete(key); }
+    })();
+    briefBusy.set(key, job);
+    return job;
+}
+async function personaFor(name) {
     const st = sceneState();
     const meta = (st.meta && st.meta[name]) || {};
-    if (meta.note && meta.note.trim()) return String(meta.note).replace(/\s+/g, ' ').slice(0, 220);   // hand-written wins
+    if (meta.note && meta.note.trim()) return String(meta.note).replace(/\s+/g, ' ').trim();   // hand-written wins
     const ch = characters.find(c => c.name === name);
-    if (ch && ch.description) return String(ch.description).replace(/\s+/g, ' ').slice(0, 220);
+    if (ch && (ch.description || ch.personality)) {
+        const text = cardNorm([ch.description, ch.personality].filter(Boolean).join('\n'));
+        let out = text;
+        if (settings.compress !== false && estTokens(text) > (settings.compressOver || 400)) out = (await cardBrief(ch, text)) || text;   // condensing failed: the whole card, not a cut-off half
+        return out.replace(/\s+/g, ' ').trim();
+    }
     const dn = diaryNpcs().find(n => n.name.toLowerCase() === name.toLowerCase());   // the Diary knows them
-    if (dn) { const pers = diaryPersona(dn); if (pers) return pers; }
+    if (dn) { const pers = [dn.role, dn.note, dn.look].filter(Boolean).join('; ').replace(/\s+/g, ' ').trim(); if (pers) return pers; }
     return 'a minor NPC of this story — infer their voice and attitude from the scene itself';
 }
 
@@ -565,10 +808,12 @@ async function generateBarks(messageId, cast, force = false, activeNames = []) {
         && (force || Math.random() * 100 < Math.max(0, Math.min(100, settings.chatterChance)));
     if (!eligible.length && !wantChatterEarly) return [];
 
-    const castLines = cast.map(c => {
+    const personas = await Promise.all(cast.map(c => personaFor(c.name)));
+    if (getContext().chatId !== myChat) return [];
+    const castLines = cast.map((c, k) => {
         const mem = recentBarksOf(c.name, messageId);
         const memTxt = mem.length ? ` | Their recent background lines (continue this running attitude, do NOT repeat): ${mem.map(x => `"${x.slice(0, 80)}"`).join(' / ')}` : '';
-        return `- ${c.name}: ${personaSnippet(c.name)}${memTxt}`;
+        return `- ${c.name}: ${personas[k]}${memTxt}`;
     }).join('\n');
     const tail = chat.slice(Math.max(0, messageId - 3), messageId + 1)
         .filter(m => !m.is_system)
@@ -602,7 +847,7 @@ Given the latest scene below, write 0 to ${maxN} very short reactions — like b
 Output strictly JSON: {"barks":[{"name":"","kind":"say","text":""${settings.allowActions ? ',"action":""' : ''}}]}`;
 
     try {
-        const res = await callAI(sys, `SCENE (latest last):\n${tail}`);
+        const res = await callAI(sys, `SCENE (latest last):\n${tail}`, 0, 2000);
         if (getContext().chatId !== myChat) return [];   // chat changed while the model was thinking
         const mesText = (chat[messageId] && chat[messageId].mes) || '';
         const raw = (Array.isArray(res && res.barks) ? res.barks : [])
@@ -762,6 +1007,8 @@ const rlsBubbles = new Map();   // `${messageId}::${idx}` -> { bubble, messageEl
 function avatarHtml(name) {
     const ch = characters.find(c => c.name === name);
     if (ch && ch.avatar) return `<img class="rls-ava" src="/characters/${escapeHtml(ch.avatar)}" draggable="false">`;
+    // no card of that name: the same faces as the role blocks — the diary's portraits, Phone's people, the persona
+    try { const f = partFace(name); if (f.pic) return `<img class="rls-ava" src="${escapeHtml(f.pic)}" draggable="false" alt="">`; } catch (e) { /* initials below */ }
     const initials = escapeHtml(String(name).trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase());
     let hue = 0; for (const c of name) hue = (hue * 31 + c.charCodeAt(0)) % 360;
     return `<span class="rls-ava rls-ava-npc" style="background:hsl(${hue},45%,38%)">${initials}</span>`;
@@ -1052,17 +1299,77 @@ function turnCast(excludeName) {
     if (!g) return [];
     const muted = new Set(g.disabled_members || []);
     const st = sceneState();
-    return (g.members || [])
+    const members = (g.members || [])
         .filter(avatar => !muted.has(avatar))
         .map(avatar => characters.find(c => c && c.avatar === avatar))
-        .filter(c => c && c.name && c.name !== excludeName && st.present[c.name] !== false)
-        .map(c => ({ name: c.name, avatar: c.avatar, isNpc: false }));
+        .filter(c => c && c.name && c.name !== excludeName);
+    const here = members.filter(c => mapWhere(c.name) !== 'away');   // in another room by the map
+    // the map has everyone somewhere else: it is not left to silence — everyone enabled may answer, as without the map
+    const list = here.length ? here : members;
+    if (!here.length && members.length) turnLog('the map puts everyone in another room — answering as if there were no map');
+    return list.map(c => ({ name: c.name, avatar: c.avatar, isNpc: false }));
 }
 
+// why turnCast came back empty — printed with the "no enabled member" line, so the console says it all
+function turnWhyEmpty() {
+    try {
+        const g = (groups || []).find(x => x && x.id === selected_group);
+        if (!g) return `group ${selected_group || '(none)'} not found`;
+        const muted = new Set(g.disabled_members || []);
+        const st = sceneState();
+        const rows = (g.members || []).map(a => {
+            const c = characters.find(x => x && x.avatar === a);
+            if (!c) return `${a}: no such character`;
+            if (muted.has(a)) return `${c.name}: muted in the group`;
+            return `${c.name}: ok`;
+        });
+        return rows.length ? rows.join(', ') : 'the group has no members';
+    } catch (e) { return 'unknown'; }
+}
+
+/* Exploring alone with RPG Map: the others are not with you, the story is told by a game master.
+   Exactly one member of the group writes it — the one you were talking with last (else the first
+   enabled one), whatever the map says about where they are — and their reply is shown as narration. */
+function mapSolo() {
+    try { const m = window.RPG && window.RPG.map; return !!(m && m.available && typeof m.isSolo === 'function' && (!m.isEnabled || m.isEnabled()) && m.isSolo()); } catch (e) { return false; }
+}
+function soloNarrator() {
+    const g = (groups || []).find(x => x && x.id === selected_group);
+    if (!g) return null;
+    const muted = new Set(g.disabled_members || []);
+    const all = (g.members || []).filter(a => !muted.has(a)).map(a => characters.find(c => c && c.avatar === a)).filter(c => c && c.name)
+        .map(c => ({ name: c.name, avatar: c.avatar, isNpc: false }));
+    return lastPartner(all) || all[0] || null;
+}
+// replies written while exploring alone: noted by the reply's own time when it comes in, so a deleted
+// message never makes a later one at the same number count as the game master's
+function soloMark(id) {
+    try {
+        const m = (getContext().chat || [])[id];
+        if (!m || m.is_user || m.is_system || !mapSolo()) return;
+        const st = sceneState();
+        if (!Array.isArray(st.soloReplies)) st.soloReplies = [];
+        const k = String(m.send_date || '');
+        if (k && !st.soloReplies.includes(k)) { st.soloReplies.push(k); st.soloReplies = st.soloReplies.slice(-300); saveScene(); }
+    } catch (e) { /* nothing to note */ }
+}
+function soloReply(id) {
+    try {
+        const m = (getContext().chat || [])[id];
+        const st = sceneState();
+        return !!m && Array.isArray(st.soloReplies) && st.soloReplies.includes(String(m.send_date || ''));
+    } catch (e) { return false; }
+}
 function reallyHere(name) {
     // In a group the roster already says who is in the room — absent ones are
     // muted there. So everyone enabled counts, unless you marked them absent here.
-    try { return sceneState().present[name] !== false; } catch (e) { return true; }
+    try {
+        const av = memberAvatar(name);
+        if (av && memberMuted(av)) return false;
+        const p = av ? undefined : sceneState().present[name];
+        if (p !== undefined) return p !== false;
+        return mapWhere(name) !== 'away';
+    } catch (e) { return true; }
 }
 
 /** Addressed, merely named, talked about, or absent from the line. */
@@ -1161,7 +1468,35 @@ function lastPartner(cast) {
     return null;
 }
 
+/* A name written in the other alphabet («Уильям», «Луи», «Руфуса» for William, Louis, Rufus):
+   compared by its sound — the consonants in order, whether it starts on a vowel, and at least one
+   vowel in common — so that "лес" is not Louis and "или" is not anyone. The word is put back as the
+   cast name, and the usual reading of the line goes on from there. */
+function soundKey(w) {
+    let x = /[а-яё]/i.test(w) ? translit(w) : String(w || '').toLowerCase();
+    x = x.replace(/w/g, 'u').replace(/y/g, 'i').replace(/(.)\1+/g, '$1');
+    const vowelFirst = /^[aeiou]/.test(x);
+    const cons = x.replace(/[^a-z]/g, '').replace(/[aeiou]/g, '');
+    return { k: (vowelFirst ? 'V' : '') + cons, v: new Set(x.replace(/[^aeiou]/g, '').split('')) };
+}
+function soundsLike(word, name) {
+    if (word.length < 3) return false;
+    const a = soundKey(word), b = soundKey(name);
+    if (!a.k || !b.k) return false;
+    const same = a.k === b.k || a.k.replace(/s$/, '') === b.k.replace(/s$/, '') || (a.k.startsWith(b.k) && a.k.length - b.k.length <= 1 && b.k.length >= 2);
+    return same && [...a.v].some(c => b.v.has(c));
+}
+function turnSpell(text, cast) {
+    const names = cast.map(c => c.name).filter(n => /^[\p{L}-]+$/u.test(String(n).split(/\s+/)[0] || ''));
+    return String(text || '').replace(/[\p{L}]+/gu, w => {
+        const low = w.toLowerCase().replace(/ё/g, 'е');
+        if (cast.some(c => aliasNamesOf(c.name).some(a => normTurn(a) === low))) return w;   // already a name it knows
+        const hit = names.filter(n => soundsLike(w, String(n).split(/\s+/)[0]));
+        return hit.length === 1 ? hit[0] : w;
+    });
+}
 function pickByText(text, cast) {
+    text = turnSpell(text, cast);
     const parts = splitLine(text);
 
     // 1. addressed by name inside speech: "Albert, …" / "…, Albert?"
@@ -1215,7 +1550,7 @@ async function askWhoSpeaks(cast, text) {
     const user = (settings.language === 'ru'
         ? `КТО ПРИСУТСТВУЕТ:\n${roster}\n\nПОСЛЕДНЯЯ РЕПЛИКА:\n${text}\n\nНазови того единственного, чьего ответа действительно ждут: к кому обратились, кого спросили, обвинили, тронули. Если ни на кого конкретно не указывает — верни пустое имя, это нормальный ответ.\nТолько JSON: {"speaker":"","confidence":0.0}`
         : `WHO IS PRESENT:\n${roster}\n\nTHE LAST LINE:\n${text}\n\nName the one character whose reply is genuinely expected — addressed, asked, accused, touched. If nothing points at anyone in particular, return an empty name; that is a normal answer.\nJSON only: {"speaker":"","confidence":0.0}`);
-    const raw = await callAI(sys, user, 20000);
+    const raw = await callAI(sys, user, waitFor(20000), 1000);
     const obj = typeof raw === 'string' ? JSON.parse(raw.slice(raw.indexOf('{'), raw.lastIndexOf('}') + 1)) : raw;
     const want = normTurn(obj && obj.speaker);
     const found = cast.find(c => normTurn(c.name) === want) || (want ? cast.find(c => normTurn(c.name).startsWith(want)) : null);
@@ -1302,15 +1637,18 @@ async function passTheTurn(messageId, fromUser) {
     const msg = chat[messageId];
     if (!msg || msg.is_system) { turnLog(`skipped — message #${messageId} not found`); return null; }
 
-    let cast = turnCast(fromUser ? null : msg.name);
+    // exploring alone: one game master, never a character called from the next room, never two
+    const solo = mapSolo();
+    if (solo && !fromUser) { turnLog('skipped — exploring alone: the game master has answered'); return null; }
+    let cast = solo ? [soloNarrator()].filter(Boolean) : turnCast(fromUser ? null : msg.name);
     if (settings.passNoRepeat && !fromUser && msg.name) cast = cast.filter(c => normTurn(c.name) !== normTurn(msg.name));
-    if (!cast.length) { turnLog('skipped — no enabled member to answer'); return null; }
+    if (!cast.length) { turnLog('skipped — no enabled member to answer · ' + (solo ? 'exploring alone · ' : '') + turnWhyEmpty()); return null; }
     turnLog(`can answer: ${cast.map(c => c.name).join(', ')}`);
 
     turnBusy = true;
     try {
-        let pick = pickByText(String(msg.mes || ''), cast);
-        if (pick.confidence < settings.passConfidence && settings.passAskModel && apiKey()) {
+        let pick = solo ? { name: cast[0].name, isNpc: false, confidence: 1, why: 'exploring alone: the game master' } : pickByText(String(msg.mes || ''), cast);
+        if (!solo && pick.confidence < settings.passConfidence && settings.passAskModel && apiKey()) {
             try { pick = await askWhoSpeaks(cast, String(msg.mes || '').slice(-1200)); }
             catch (e) { console.warn('[Living Scene] turn: side model failed', e); }
         }
@@ -1330,7 +1668,7 @@ async function passTheTurn(messageId, fromUser) {
             }
             return null;
         }
-        soloVoiceNote(pick.name);
+        soloVoiceNote(solo ? '' : pick.name);   // the map's rule says who speaks while exploring; "only as …" would contradict it
         turnChain++;
         const ctx = getContext();
         /* The speech bubble next to a group member calls Generate('normal',
@@ -1397,7 +1735,7 @@ async function passTheTurn(messageId, fromUser) {
         const after = () => { giveDraftBack(); if (turnNoteFor === myNote) soloVoiceNote(''); };
         if (run && started) run.then(after); else after();
         if (!started) { turnLog('the group never started — giving up'); return null; }
-        toastr.info(t('turn_picked', { name: pick.name }));
+        if (settings.passToast) toastr.info(t('turn_picked', { name: pick.name }));
         return pick;
     } finally {
         turnBusy = false;
@@ -1482,7 +1820,8 @@ async function regenOneBark(messageId, i) {
         : settings.allowThoughts
             ? 'a quiet spoken remark (kind "say") or an inner thought (kind "think")'
             : 'a quiet spoken remark (kind "say")';
-    const sys = `You write ONE short ambient background reaction for the character "${b.name}" (${personaSnippet(b.name)}), who is present in the scene but not the current speaker.
+    const persona = await personaFor(b.name);
+    const sys = `You write ONE short ambient background reaction for the character "${b.name}" (${persona}), who is present in the scene but not the current speaker.
 Rules:
 - Exactly ONE line, max 18 words, sharply in their voice, as ${kindTxt}.
 - CONSISTENT with the scene facts; grounded in a concrete detail (an object, a gesture, a spoken word).
@@ -1490,7 +1829,7 @@ Rules:
 - No narration, no asterisks. Language: ${genLang()}.
 Output strictly JSON: {"kind":"say","text":""}`;
     try {
-        const res = await callAI(sys, `SCENE (latest last):\n${tail}`);
+        const res = await callAI(sys, `SCENE (latest last):\n${tail}`, 0, 2000);
         if (getContext().chatId !== myChat) return;   // chat changed while rerolling
         const text = cleanBark(res && res.text, 160);
         const m2 = getContext().chat[messageId];
@@ -1510,6 +1849,7 @@ Output strictly JSON: {"kind":"say","text":""}`;
 }
 
 function restoreOnLoad() {
+    dropMemberMarks();
     if (!settings.enabled) return;
     const chat = getContext().chat || [];
     chat.forEach((m, idx) => {
@@ -1562,16 +1902,19 @@ function renderRoster() {
     const st = sceneState();
     const members = groupMembers();
     const rowHtml = (name, isNpc) => {
-        const on = isPresent(name);
-        const isAuto = st.present[name] === undefined && settings.autoPresence;   // picked by the scene, not by hand
+        const av = isNpc ? null : memberAvatar(name);
+        const on = av ? !memberMuted(av) : isPresent(name);          // a member: the group's own switch
+        const unset = av ? on : st.present[name] === undefined;
+        const byMap = unset ? mapWhere(name) : null;    // placed by RPG Map's "Who is where"
+        const isAuto = !byMap && unset && settings.autoPresence;   // picked by the scene, not by hand
         const meta = (st.meta && st.meta[name]) || {};
         return `<div class="rls-row">
             ${avatarHtml(name)}
             <span class="rls-row-name">${escapeHtml(name)}</span>
-            ${isAuto ? `<span class="rls-auto">${t('roster_auto')}</span>` : ''}
+            ${byMap ? `<span class="rls-auto" title="${escapeHtml(t('roster_map_hint'))}">${t('roster_map')}</span>` : isAuto ? `<span class="rls-auto">${t('roster_auto')}</span>` : ''}
             <i class="fa-solid fa-pen rls-meta-edit" data-name="${escapeHtml(name)}" title="${escapeHtml(t('roster_edit_title'))}"></i>
             ${isNpc ? `<i class="fa-solid fa-trash rls-npc-del" data-name="${escapeHtml(name)}"></i>` : ''}
-            <div class="rls-toggle ${on ? 'on' : ''}" data-name="${escapeHtml(name)}" data-npc="${isNpc ? 1 : 0}"><div class="rls-knob"></div></div>
+            <div class="rls-toggle ${on ? 'on' : ''}" data-name="${escapeHtml(name)}" data-npc="${isNpc ? 1 : 0}"${av ? ` data-member="${escapeHtml(av)}" title="${escapeHtml(t('roster_member_sw'))}"` : ''}><div class="rls-knob"></div></div>
         </div>
         <div class="rls-meta-editor" data-for="${escapeHtml(name)}" style="display:none;">
             <input type="text" class="text_pole rls-meta-alias" placeholder="${escapeHtml(t('meta_aliases_ph'))}" value="${escapeHtml(meta.aliases || '')}">
@@ -1606,8 +1949,10 @@ function renderRoster() {
     </div>`;
     body.html(html);
 
-    body.find('.rls-toggle').on('click', function () {
+    body.find('.rls-toggle').on('click', async function () {
         const nm = $(this).data('name');
+        const av = $(this).attr('data-member');
+        if (av) { await setMemberMuted(av, !memberMuted(av)); renderRoster(); return; }
         const st2 = sceneState();
         st2.present[nm] = !isPresent(nm);
         saveScene();
@@ -1662,104 +2007,98 @@ function renderRoster() {
 /* ============================================================
    SETTINGS DRAWER
    ============================================================ */
-function settingsHtml() { return `
+function settingsHtml() {
+    // open groups in frames, as the Map and Character Lens have them
+    const sub = (title, body) => `
+            <div class="rls-sub">
+                <div class="rls-subhead">${title}</div>${body}
+            </div>`;
+    const num = (label, id, attrs) => `<div class="rls-row"><label for="${id}">${label}</label><input type="number" id="${id}" class="text_pole" ${attrs}></div>`;
+    const hint = key => `<div class="rls-hint">${t(key)}</div>`;
+    return `
 <div class="extension_settings rls-settings">
     <div class="inline-drawer">
         <div class="rls-drawer-toggle inline-drawer-header" style="cursor:pointer;">
             <b><i class="fa-solid fa-masks-theater"></i> ${t('set_header')}</b>
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
-        <div class="inline-drawer-content" id="rls-drawer" style="display:none; padding-top:10px;">
-            <label class="checkbox_label"><input type="checkbox" id="rls-enabled"> ${t('set_enable')}</label>
-            <div class="flex-container alignitemscenter flexgap5 margin-b-10" style="margin-top:8px;">
-                <label>${t('set_lang')}</label>
-                <select id="rls-lang" class="text_pole" style="width:auto;">
+        <div class="inline-drawer-content" id="rls-drawer" style="display:none;">
+            <div class="rls-top">
+                <label class="checkbox_label"><input type="checkbox" id="rls-enabled"> ${t('set_enable')}</label>
+                <select id="rls-lang" class="text_pole" title="${escapeHtml(t('set_lang'))}" aria-label="${escapeHtml(t('set_lang'))}">
                     <option value="en">English</option><option value="ru">Русский</option>
                 </select>
             </div>
-            <hr class="sysHR">
-            <h4>🔌 ${t('set_api')}</h4>
-            <input type="text" id="rls-base" class="text_pole margin-b-10" placeholder="${t('set_url')}" style="width:100%;">
-            <input type="password" id="rls-key" class="text_pole margin-b-10" placeholder="${t('set_key')}" style="width:100%;">
-            <input type="text" id="rls-model" class="text_pole margin-b-10" placeholder="${t('set_model')}" style="width:100%;">
-            <div class="flex-container alignitemscenter flexgap5 margin-b-10">
-                <label>${t('set_temp')}</label>
-                <input type="number" step="0.1" id="rls-temp" class="text_pole" min="0" max="2" style="width:60px;">
-            </div>
-            <div class="rls-calls-line">${t('set_calls')} <b id="rls-calls-n">0</b></div>
-            <hr class="sysHR">
-            <h4>⚙️ ${t('set_logic')}</h4>
-            <div class="flex-container alignitemscenter flexgap5 margin-b-10">
-                <label>${t('set_chance')}</label>
-                <input type="number" id="rls-chance" class="text_pole" min="0" max="100" style="width:60px;">
-            </div>
-            <div class="flex-container alignitemscenter flexgap5 margin-b-10">
-                <label>${t('set_max')}</label>
-                <input type="number" id="rls-max" class="text_pole" min="1" max="4" style="width:50px;">
-            </div>
-            <div class="flex-container alignitemscenter flexgap5 margin-b-10">
-                <label>${t('set_cooldown')}</label>
-                <input type="number" id="rls-cd" class="text_pole" min="0" max="20" style="width:50px;">
-            </div>
-            <label class="checkbox_label"><input type="checkbox" id="rls-react-user"> ${t('set_react_user')}</label>
-            <div class="flex-container alignitemscenter flexgap5 margin-b-10" style="padding-left:20px;">
-                <label>${t('set_react_user_chance')}</label>
-                <input type="number" id="rls-user-chance" class="text_pole" min="0" max="100" style="width:60px;">
-            </div>
-            <label class="checkbox_label"><input type="checkbox" id="rls-thoughts"> ${t('set_thoughts')}</label>
-            <label class="checkbox_label"><input type="checkbox" id="rls-chatter"> ${t('set_chatter')}</label>
-            <div class="flex-container alignitemscenter flexgap5 margin-b-10" style="padding-left:20px;">
-                <label>${t('set_chatter_chance')}</label>
-                <input type="number" id="rls-chatter-chance" class="text_pole" min="0" max="100" style="width:60px;">
-            </div>
-            <hr class="sysHR">
-            <h4>🎬 ${t('set_turn')}</h4>
-            <label class="checkbox_label"><input type="checkbox" id="rls-pass"> <b>${t('set_pass')}</b></label>
-            <div class="rls-hint" style="font-size:.78rem;opacity:.7;line-height:1.5;margin:2px 0 8px 20px;">${t('set_pass_hint')}</div>
-            <div style="padding-left:20px;">
-                <label class="checkbox_label"><input type="checkbox" id="rls-pass-after"> ${t('set_pass_after')}</label>
-                <label class="checkbox_label"><input type="checkbox" id="rls-pass-between"> ${t('set_pass_between')}</label>
-                <label class="checkbox_label"><input type="checkbox" id="rls-pass-norepeat"> ${t('set_pass_norepeat')}</label>
-                <label class="checkbox_label"><input type="checkbox" id="rls-pass-ask"> ${t('set_pass_ask')}</label>
-                <label class="checkbox_label"><input type="checkbox" id="rls-pass-solo"> ${t('set_pass_solo')}</label>
-                <label class="checkbox_label"><input type="checkbox" id="rls-pass-continue"> ${t('set_pass_continue')}</label>
-                <label class="checkbox_label"><input type="checkbox" id="rls-pass-random"> ${t('set_pass_random')}</label>
-                <div class="margin-b-10">
-                    <input type="button" id="rls-pass-manual" class="menu_button" value="${t('turn_btn_manual')}">
-                    <div class="rls-hint" style="font-size:.75rem;opacity:.65;line-height:1.45;margin-top:4px;">${t('turn_btn_hint')}</div>
-                    <div id="rls-pass-state" class="rls-hint" style="font-size:.75rem;opacity:.8;margin-top:4px;"></div>
-                </div>
-                <div class="flex-container alignitemscenter flexgap5 margin-b-10">
-                    <label>${t('set_pass_chain')}</label>
-                    <input type="number" id="rls-pass-chain" class="text_pole" min="0" max="5" style="width:50px;">
-                </div>
-                <div class="flex-container alignitemscenter flexgap5 margin-b-10">
-                    <label>${t('set_pass_conf')}</label>
-                    <input type="number" step="0.05" id="rls-pass-conf" class="text_pole" min="0" max="1" style="width:60px;">
-                </div>
-            </div>
-            <hr class="sysHR">
-            <label class="checkbox_label"><input type="checkbox" id="rls-inject"> ${t('set_inject')}</label>
-            <div class="flex-container alignitemscenter flexgap5 margin-b-10" style="padding-left:20px;">
-                <label>${t('set_inject_depth')}</label>
-                <input type="number" id="rls-inject-depth" class="text_pole" min="0" max="20" style="width:50px;">
-            </div>
-            <label class="checkbox_label"><input type="checkbox" id="rls-quote"> ${t('set_quote_reply')}</label>
-            <label class="checkbox_label"><input type="checkbox" id="rls-actions"> ${t('set_actions')}</label>
-            <label class="checkbox_label"><input type="checkbox" id="rls-autonpc"> ${t('set_autonpc')}</label>
-            <div class="rls-hint" style="font-size:.78rem;opacity:.7;line-height:1.5;margin:2px 0 8px 20px;">${t('set_autonpc_hint')}</div>
-            <div class="flex-container alignitemscenter flexgap5 margin-b-10">
-                <label>${t('set_off_left')}</label>
-                <input type="number" id="rls-off-left" class="text_pole" min="0" max="800" style="width:65px;">
-            </div>
-            <div class="flex-container alignitemscenter flexgap5 margin-b-10">
-                <label>${t('set_off_right')}</label>
-                <input type="number" id="rls-off-right" class="text_pole" min="0" max="800" style="width:65px;">
-            </div>
-            <label class="checkbox_label"><input type="checkbox" id="rls-auto"> ${t('set_auto')}</label>
+            ${sub(`🔌 ${t('set_api')}`, `
+                <input type="text" id="rls-base" class="text_pole" placeholder="${t('set_url')}" aria-label="${t('set_url')}">
+                <input type="password" id="rls-key" class="text_pole" placeholder="${t('set_key')}" aria-label="${t('set_key')}">
+                <input type="text" id="rls-model" class="text_pole" placeholder="${t('set_model')}" aria-label="${t('set_model')}">
+                ${num(t('set_temp'), 'rls-temp', 'step="0.1" min="0" max="2"')}
+                <div class="rls-calls-line">${t('set_calls')} <b id="rls-calls-n">0</b></div>`)}
+            ${sub(`💬 ${t('set_logic')}`, `
+                ${num(t('set_chance'), 'rls-chance', 'min="0" max="100"')}
+                ${num(t('set_max'), 'rls-max', 'min="1" max="4"')}
+                ${num(t('set_cooldown'), 'rls-cd', 'min="0" max="20"')}
+                <label class="checkbox_label"><input type="checkbox" id="rls-react-user"> ${t('set_react_user')}</label>
+                <div class="rls-in">${num(t('set_react_user_chance'), 'rls-user-chance', 'min="0" max="100"')}</div>
+                <label class="checkbox_label"><input type="checkbox" id="rls-thoughts"> ${t('set_thoughts')}</label>
+                <label class="checkbox_label"><input type="checkbox" id="rls-chatter"> ${t('set_chatter')}</label>
+                <div class="rls-in">${num(t('set_chatter_chance'), 'rls-chatter-chance', 'min="0" max="100"')}</div>
+                <label class="checkbox_label"><input type="checkbox" id="rls-actions"> ${t('set_actions')}</label>
+                <label class="checkbox_label"><input type="checkbox" id="rls-quote"> ${t('set_quote_reply')}</label>
+                <label class="checkbox_label"><input type="checkbox" id="rls-inject"> ${t('set_inject')}</label>
+                <div class="rls-in">${num(t('set_inject_depth'), 'rls-inject-depth', 'min="0" max="20"')}</div>
+                ${num(t('set_off_left'), 'rls-off-left', 'min="0" max="800"')}
+                ${num(t('set_off_right'), 'rls-off-right', 'min="0" max="800"')}`)}
+            ${sub(`🎬 ${t('set_turn')}`, `
+                <label class="checkbox_label"><input type="checkbox" id="rls-pass"> <b>${t('set_pass')}</b></label>
+                ${hint('set_pass_hint')}
+                <div class="rls-in">
+                    <label class="checkbox_label"><input type="checkbox" id="rls-pass-after"> ${t('set_pass_after')}</label>
+                    <label class="checkbox_label"><input type="checkbox" id="rls-pass-between"> ${t('set_pass_between')}</label>
+                    <label class="checkbox_label"><input type="checkbox" id="rls-pass-norepeat"> ${t('set_pass_norepeat')}</label>
+                    <label class="checkbox_label"><input type="checkbox" id="rls-pass-ask"> ${t('set_pass_ask')}</label>
+                    <label class="checkbox_label"><input type="checkbox" id="rls-pass-solo"> ${t('set_pass_solo')}</label>
+                    <label class="checkbox_label"><input type="checkbox" id="rls-pass-continue"> ${t('set_pass_continue')}</label>
+                    <label class="checkbox_label"><input type="checkbox" id="rls-pass-random"> ${t('set_pass_random')}</label>
+                    <label class="checkbox_label"><input type="checkbox" id="rls-pass-toast"> ${t('set_pass_toast')}</label>
+                    ${num(t('set_pass_chain'), 'rls-pass-chain', 'min="0" max="5"')}
+                    ${num(t('set_pass_conf'), 'rls-pass-conf', 'step="0.05" min="0" max="1"')}
+                    <div class="rls-manual">
+                        <input type="button" id="rls-pass-manual" class="menu_button" value="${t('turn_btn_manual')}">
+                        <div class="rls-hint">${t('turn_btn_hint')}</div>
+                        <div id="rls-pass-state" class="rls-hint rls-state"></div>
+                    </div>
+                </div>`)}
+            ${sub(`👥 ${t('set_sec_cast')}`, `
+                <label class="checkbox_label"><input type="checkbox" id="rls-auto"> ${t('set_auto')}</label>
+                <label class="checkbox_label"><input type="checkbox" id="rls-mappres"> ${t('set_mappres')}</label>
+                <label class="checkbox_label"><input type="checkbox" id="rls-autonpc"> ${t('set_autonpc')}</label>
+                ${hint('set_autonpc_hint')}`)}
+            ${sub(`🎭 ${t('set_sec_roles')}`, `
+                <label class="checkbox_label"><input type="checkbox" id="rls-faces"> ${t('set_faces')}</label>
+                ${hint('set_faces_hint')}
+                <div class="rls-in">
+                    <label class="checkbox_label"><input type="checkbox" id="rls-parts-auto"> ${t('set_parts_auto')}</label>
+                    <div class="rls-row stack"><label for="rls-parts-style">${t('set_parts_style')}</label><select id="rls-parts-style" class="text_pole"><option value="glass">${t('style_glass')}</option><option value="ink">${t('style_ink')}</option><option value="classic">${t('style_classic')}</option></select></div>
+                    <div class="rls-row stack"><label for="rls-parts-anim">${t('set_parts_anim')}</label><select id="rls-parts-anim" class="text_pole"><option value="none">${t('anim_none')}</option><option value="fade">${t('anim_fade')}</option><option value="type">${t('anim_type')}</option></select></div>
+                    <label class="checkbox_label"><input type="checkbox" id="rls-parts-fonts"> ${t('set_parts_fonts')}</label>
+                </div>`)}
+            ${sub(`📖 ${t('set_sec_novel')}`, `
+                <label class="checkbox_label"><input type="checkbox" id="rls-novel-btn"> ${t('set_novel_btn')}</label>
+                <div class="rls-row stack"><label for="rls-novel-box">${t('set_novel_box')}</label><select id="rls-novel-box" class="text_pole"><option value="parchment">${t('box_parchment')}</option><option value="glass">${t('box_glass')}</option><option value="dark">${t('box_dark')}</option></select></div>
+                <div class="rls-row stack"><label for="rls-novel-sprite">${t('set_novel_sprite')}</label><select id="rls-novel-sprite" class="text_pole"><option value="large">${t('sprite_large')}</option><option value="medium">${t('sprite_medium')}</option><option value="waist">${t('sprite_waist')}</option></select></div>
+                <div class="rls-row stack"><label for="rls-novel-face">${t('set_novel_face')}</label><select id="rls-novel-face" class="text_pole"><option value="nosprite">${t('face_nosprite')}</option><option value="always">${t('face_always')}</option><option value="never">${t('face_never')}</option></select></div>
+                <label class="checkbox_label"><input type="checkbox" id="rls-novel-hud"> ${t('set_novel_hud')}</label>
+                <label class="checkbox_label"><input type="checkbox" id="rls-novel-place"> ${t('set_novel_place')}</label>
+                <input type="button" id="rls-novel-open" class="menu_button" value="${t('set_novel_open')}">`)}
+            ${sub(`🗜 ${t('set_sec_compress')}`, `
+                <label class="checkbox_label"><input type="checkbox" id="rls-compress"> ${t('set_compress')}</label>
+                ${num(t('set_compress_over'), 'rls-compress-over', 'min="100" max="4000" step="50"')}`)}
         </div>
     </div>
-</div>`; }
+</div>`;
+}
 
 function setupUI() {
     $('.rls-settings').remove();
@@ -1771,12 +2110,14 @@ function setupUI() {
     $('#rls-enabled').prop('checked', settings.enabled).on('change', function () {
         settings.enabled = this.checked; saveSettings();
         renderRosterButton();
+        if (!this.checked) closeNovel();
         if (this.checked) restoreOnLoad();
         else { clearAllBubbles(); updateInjection(); }
     });
     $('#rls-lang').val(settings.language || 'en').on('change', function () {
         settings.language = $(this).val(); saveSettings();
         setupUI();
+        novelMenuItem();
         $('#rls-drawer').show();
         $('.rls-settings .inline-drawer-icon').removeClass('down').addClass('up');
         renderRosterButton();
@@ -1824,20 +2165,1388 @@ function setupUI() {
     $('#rls-quote').prop('checked', settings.quoteReply).on('change', function () { settings.quoteReply = this.checked; saveSettings(); });
     $('#rls-actions').prop('checked', settings.allowActions).on('change', function () { settings.allowActions = this.checked; saveSettings(); });
     $('#rls-autonpc').prop('checked', settings.autoNpc).on('change', function () { settings.autoNpc = this.checked; saveSettings(); });
+    $('#rls-faces').prop('checked', settings.lineFaces !== false).on('change', function () { settings.lineFaces = this.checked; saveSettings(); renderAllParts(); });
     $('#rls-off-left').val(settings.offsetLeft).on('change', function () { settings.offsetLeft = Math.max(0, parseInt($(this).val()) || 0); $(this).val(settings.offsetLeft); saveSettings(); syncBubbles(); });
     $('#rls-off-right').val(settings.offsetRight).on('change', function () { settings.offsetRight = Math.max(0, parseInt($(this).val()) || 0); $(this).val(settings.offsetRight); saveSettings(); syncBubbles(); });
+    $('#rls-parts-auto').prop('checked', settings.partsAuto !== false).on('change', function () { settings.partsAuto = this.checked; saveSettings(); });
+    $('#rls-parts-style').val(settings.partsStyle).on('change', function () { settings.partsStyle = this.value; saveSettings(); renderAllParts(); });
+    $('#rls-parts-anim').val(settings.partsAnim).on('change', function () { settings.partsAnim = this.value; saveSettings(); });
+    $('#rls-parts-fonts').prop('checked', settings.partsFonts !== false).on('change', function () { settings.partsFonts = this.checked; saveSettings(); renderAllParts(); });
+    $('#rls-novel-btn').prop('checked', settings.novelBtn !== false).on('change', function () { settings.novelBtn = this.checked; saveSettings(); renderAllParts(); });
+    const novelLook = () => { if (novel && novel.look) novel.look(); };
+    $('#rls-novel-box').val(settings.novelBox).on('change', function () { settings.novelBox = this.value; saveSettings(); novelLook(); });
+    $('#rls-novel-sprite').val(settings.novelSprite).on('change', function () { settings.novelSprite = this.value; saveSettings(); novelLook(); });
+    $('#rls-novel-face').val(settings.novelFace).on('change', function () { settings.novelFace = this.value; saveSettings(); novelLook(); });
+    $('#rls-novel-hud').prop('checked', settings.novelHud !== false).on('change', function () { settings.novelHud = this.checked; saveSettings(); novelLook(); });
+    $('#rls-novel-place').prop('checked', settings.novelPlace !== false).on('change', function () { settings.novelPlace = this.checked; saveSettings(); novelLook(); });
+    $('#rls-novel-open').on('click', () => { if (!settings.enabled) { toastr.info(t('set_enable')); return; } if (isChatOpen()) openNovel(); });
+    $('#rls-pass-toast').prop('checked', !!settings.passToast).on('change', function () { settings.passToast = this.checked; saveSettings(); });
+    $('#rls-compress').prop('checked', settings.compress !== false).on('change', function () { settings.compress = this.checked; saveSettings(); });
+    $('#rls-compress-over').val(settings.compressOver).on('change', function () { const v = parseInt(this.value, 10); settings.compressOver = Number.isFinite(v) ? Math.max(100, Math.min(4000, v)) : 400; this.value = settings.compressOver; saveSettings(); });
+    $('#rls-mappres').prop('checked', settings.mapPresence !== false).on('change', function () { settings.mapPresence = this.checked; saveSettings(); });
     $('#rls-auto').prop('checked', settings.autoPresence).on('change', function () { settings.autoPresence = this.checked; saveSettings(); });
 }
 
 /* ============================================================
    INIT
    ============================================================ */
+/* ============================================================
+   THE SCENE BY ROLES — a reply cut into blocks, one per person
+   The side model reads the reply split into small pieces (each line in
+   quotes, each sentence of narration, each dash line) and says whose
+   each piece is. The pieces of one person in a row become one block with
+   their face, on the left or the right, in the bubbles' glass. The
+   message itself is never changed: the blocks are drawn in its place and
+   the text comes back with one click, on edit, or with the switch off.
+   The answer is kept on the message, per swipe (extra.rls_parts).
+   ============================================================ */
+const PARTS_MAX = 70;
+function partsHash(text) { let h = 0; const s0 = String(text || ''); for (let i = 0; i < s0.length; i++) h = (h * 31 + s0.charCodeAt(i)) | 0; return String(h); }
+// pieces of the raw text: { s, e, kind: 'say' | 'act' }, in order
+// a piece as it is drawn: one cut inside *…* is closed and reopened, so the italics stay italics
+function pieceText(text, s0, e0) {
+    let piece = text.slice(s0, e0);
+    const paraStart = text.lastIndexOf('\n', s0 - 1) + 1;
+    const before = (text.slice(paraStart, s0).match(/(?<!\*)\*(?!\*)/g) || []).length;
+    if (before % 2 === 1 && !/^\s*\*/.test(piece)) piece = '*' + piece.replace(/^\s+/, '');
+    const inside = (piece.match(/(?<!\*)\*(?!\*)/g) || []).length;
+    if (inside % 2 === 1) piece = /\*\s*$/.test(piece) && before % 2 === 0 && !/^\s*\*/.test(text.slice(s0, e0)) ? piece : piece.replace(/\s+$/, '') + '*';
+    return piece;
+}
+function splitPieces(mes) {
+    const text = String(mes || '').replace(/\r\n?/g, '\n');
+    const out = [];
+    const push = (s0, e0, kind) => {
+        while (s0 < e0 && /\s/.test(text[s0])) s0++;
+        while (e0 > s0 && /\s/.test(text[e0 - 1])) e0--;
+        if (e0 > s0) out.push({ s: s0, e: e0, kind });
+    };
+    // narration: sentence by sentence — inside *…* too (a whole paragraph in italics is several people's
+    // sentences); a piece cut inside the italics gets its asterisks back when it is drawn (pieceText)
+    const narr = (s0, e0) => {
+        const chunk = text.slice(s0, e0);
+        const re = /[^.!?…]+(?:[.!?…]+["»”*]*|$)/g;
+        let m;
+        while ((m = re.exec(chunk)) && m[0]) {
+            const ps = s0 + m.index, pe = ps + m[0].length;
+            push(ps, pe, 'act');
+        }
+    };
+    let at = 0;
+    text.split('\n').forEach(line => {
+        const ls = at; at += line.length + 1;
+        if (!line.trim()) return;
+        if (/^[\s ]*[—–]/.test(line) && !/[«"“]/.test(line)) {
+            // a dash dialogue line: speech and the author's words take turns, split at " — "
+            const re = /[\s ][—–][\s ]/g;
+            let last = ls, m, speech = true;
+            while ((m = re.exec(line))) { push(last, ls + m.index, speech ? 'say' : 'act'); last = ls + m.index + 1; speech = !speech; }
+            push(last, ls + line.length, speech ? 'say' : 'act');
+            return;
+        }
+        const qre = /«[^»\n]*»|"[^"\n]*"|“[^”\n]*”|„[^“”\n]*[“”]/g;
+        let last = ls, m;
+        while ((m = qre.exec(line))) {
+            narr(last, ls + m.index);
+            push(ls + m.index, ls + m.index + m[0].length, 'say');
+            last = ls + m.index + m[0].length;
+        }
+        narr(last, ls + line.length);
+    });
+    // a very long reply: neighbouring narration in one paragraph is asked about together
+    while (out.length > PARTS_MAX) {
+        let merged = false;
+        for (let i = out.length - 2; i >= 0 && out.length > PARTS_MAX; i--) {
+            const a0 = out[i], b0 = out[i + 1];
+            if (a0.kind === 'act' && b0.kind === 'act' && !text.slice(a0.e, b0.s).includes('\n')) { a0.e = b0.e; out.splice(i + 1, 1); merged = true; }
+        }
+        if (!merged) break;
+    }
+    return { text, pieces: out };
+}
+function partsSys() {
+    return `You read one roleplay reply that has been cut into numbered pieces. For EACH piece say whose it is:
+- a spoken line: the person who says it;
+- an action, a gesture, a look, an inner state: the person it is about;
+- narration about the place, the weather, several people at once, or nobody in particular: "-".
+Use the names exactly as listed under CAST when it is one of them (aliases count as that person). The player is "${getContext().name1 || name1 || 'User'}".
+Someone new who is not in the cast: use the name the text gives them; if the text never names them, a short label from the text (for example "the girl") — the same label every time.
+Follow who is meant by "he", "she", "they" from the pieces around and from the earlier messages.
+A sentence about another person inside someone's paragraph ("Megumin, however, was already asleep") is that other person's.
+Never guess who is behind something nobody is named or meant in ("The hallway door clicks open behind you" with no one seen): that is "-".
+A spoken line is never "-": somebody says it. A line and its tag ("…," he began / «…», — сказал он) belong to the same person, and so do the lines one person says in a row.
+If you truly cannot tell, "?".
+Also say how each cast member who appears is actually written in this reply, if it differs from the cast name (a card named «Уильям» may be "William" in an English reply).
+For every spoken piece also say how the speaker feels saying it, one word from this list: ${spriteLabels().join(', ')}.
+Answer with JSON only: the number of every piece and whose it is, the written forms, and the feelings —
+{"who":{"0":"Name","1":"-","2":"?",...},"forms":{"Cast name":["form as written"]},"feel":{"1":"joy",...}}`;
+}
+function partsUser(messageId, pieces, text) {
+    const ctx = getContext();
+    const st = sceneState();
+    const cast = faceCandidates().filter(c => c.kind !== 'user').map(c => {
+        const al = String((st.meta && st.meta[c.name] && st.meta[c.name].aliases) || '').trim();
+        return `- ${c.name}${al ? ` (also: ${al})` : ''}`;
+    });
+    const prev = (ctx.chat || []).slice(Math.max(0, messageId - 2), messageId)
+        .filter(m => m && !m.is_system).map(m => `${m.name}: ${String(m.mes || '').replace(/\s+/g, ' ').slice(-600)}`).join('\n');
+    const lines = pieces.map((p, i) => `[${i}] ${text.slice(p.s, p.e).replace(/\s+/g, ' ').slice(0, 300)}`).join('\n');
+    return `CAST:\n${cast.join('\n') || '- (nobody listed)'}\n\nEARLIER:\n${prev || '(none)'}\n\nTHE REPLY (written as ${ctx.chat[messageId]?.name || ''}):\n${lines}\n\n{"who":{...}} with every number from 0 to ${pieces.length - 1}.`;
+}
+// the model's names, checked: someone in the cast, the player, or a name that is really in the text
+function partsClean(who, pieces, text, messageId) {
+    const cands = faceCandidates();
+    const ctx = getContext();
+    const near = (ctx.chat || []).slice(Math.max(0, messageId - 3), messageId).map(m => m.mes || '').join(' ') + ' ' + text;
+    const known = new Map();
+    return pieces.map((p, i) => {
+        let w = String((Array.isArray(who) ? who[i] : '') ?? '').trim().slice(0, 60);
+        if (!w || w === '-' || w === '?') return w === '?' ? '?' : '-';
+        if (known.has(w.toLowerCase())) return known.get(w.toLowerCase());
+        const hit = cands.find(c => c.name.toLowerCase() === w.toLowerCase()) || onlyOne(namesIn(w, cands));
+        let out = hit ? hit.name : '';
+        if (!out) {
+            // someone new: their name (or the label) must be in the text, so nothing is made up
+            const hay = near.toLowerCase().replace(/ё/g, 'е');
+            // (articles and little words do not count: "The Cook" is not in the text because "the" is)
+            out = w.split(/\s+/).filter(part => !SMALL_WORDS.has(part.toLowerCase())).some(part => { const pr = nameStem(part).replace(/ё/g, 'е'); return pr.length >= 3 && hay.includes(pr); }) ? w : '?';
+        }
+        known.set(w.toLowerCase(), out);
+        return out;
+    });
+}
+/* how a cast member is written in the replies, as the model reported it: kept as quiet aliases
+   (scene meta "auto"), but only forms that are really in the reply, a few per person */
+function learnForms(forms, text) {
+    if (!forms || typeof forms !== 'object' || Array.isArray(forms)) return;
+    const cands = faceCandidates();
+    const st = sceneState();
+    const low = String(text || '').toLowerCase();
+    let changed = false;
+    Object.keys(forms).forEach(key => {
+        const c = cands.find(x => x.name.toLowerCase() === String(key).trim().toLowerCase());
+        if (!c || c.kind === 'user') return;
+        const list = (Array.isArray(forms[key]) ? forms[key] : [forms[key]]).map(x => String(x || '').trim()).filter(x => x.length >= 3 && x.length <= 40);
+        list.forEach(f => {
+            const first = f.split(/\s+/)[0];
+            if (!first || first.length < 3 || !low.includes(first.toLowerCase())) return;   // only what is really written there
+            if (aliasNamesOf(c.name).some(a => a.toLowerCase() === f.toLowerCase())) return;
+            const meta = st.meta[c.name] || (st.meta[c.name] = {});
+            meta.auto = (Array.isArray(meta.auto) ? meta.auto : []).concat(f).slice(-6);
+            changed = true;
+        });
+    });
+    if (changed) { candCache = null; saveScene(); }
+}
+const SMALL_WORDS = new Set(['the', 'a', 'an', 'of', 'and', 'old', 'young', 'little', 'big', 'his', 'her', 'their', 'my', 'your', 'mr', 'mrs', 'ms', 'miss', 'sir', 'lady', 'lord', 'и', 'в', 'на', 'с', 'у', 'его', 'её', 'ее', 'их', 'мой', 'твой', 'старый', 'старая', 'молодой', 'молодая']);
+// "he", "she", "they" may mean anyone; "you" in a reply means the player and nobody else
+const SCENE_STARTS = new Set(['it', 'there', 'this', 'that', 'then', 'suddenly', 'somewhere', 'outside', 'inside', 'behind', 'above', 'below', 'nearby', 'silence', 'вдруг', 'где-то', 'снаружи', 'внутри', 'там', 'тут', 'это', 'затем', 'потом', 'за', 'под', 'над', 'тишина', 'издалека', 'снова']);
+const PERSON_WORDS = /(?<![\p{L}])(he|she|him|her|his|hers|they|them|their|i|me|my|we|us|our|он|она|его|её|ее|ему|ей|им|ими|они|их|я|мне|меня|мой|моя|мы|нас)(?![\p{L}])/iu;
+const YOU_WORDS = /(?<![\p{L}])(you|your|yours|ты|тебя|тебе|тобой|твой|твоя|твоё|вы|вас|вам|ваш)(?![\p{L}])/iu;
+const partsBusy = new Set();
+async function askParts(messageId, manual = false) {
+    const ctx = getContext();
+    const myChat = ctx.chatId;
+    const msg = ctx.chat[messageId];
+    if (!msg || msg.is_user || msg.is_system) return;
+    if (!settings.enabled || settings.lineFaces === false) return;
+    if (!apiKey()) { if (manual) toastr.warning(t('gen_nokey')); return; }
+    const swipeId = msg.swipe_id ?? 0;
+    const key = `${myChat}#${messageId}#${swipeId}`;
+    if (partsBusy.has(key)) return;
+    const { text, pieces } = splitPieces(msg.mes);
+    if (pieces.length < 2) { if (manual) toastr.info(t('parts_one')); return; }
+    partsBusy.add(key);
+    markPartsBusy(messageId, true);
+    try {
+        let res;
+        try { res = await callAI(partsSys(), partsUser(messageId, pieces, text), waitFor(60000)); }
+        catch (e) {
+            // a model on your own computer sometimes breaks its JSON with a stray line in the middle;
+            // the numbered answers themselves are still there and are read one by one
+            res = e && e.raw ? salvageParts(e.raw, pieces.length) : null;
+            if (!res) throw e;
+            console.warn('[Living Scene] roles: the answer was not clean JSON — read line by line');
+        }
+        if (getContext().chatId !== myChat) return;
+        const now = getContext().chat[messageId];
+        if (!now || (now.swipe_id ?? 0) !== swipeId || now.mes !== msg.mes) return;   // the reply changed meanwhile
+        // numbered answers: a skipped or merged piece can no longer shift every name after it
+        let raw = null;
+        const w0 = res && (res.who ?? res);
+        if (Array.isArray(w0)) raw = w0.length === pieces.length ? w0 : null;   // a list is trusted only when it has them all
+        else if (w0 && typeof w0 === 'object') raw = pieces.map((_, i) => w0[i] ?? w0[String(i)] ?? '?');
+        if (!raw) { console.warn('[Living Scene] roles: no "who" in', res); if (manual) toastr.warning(t('parts_failed')); return; }
+        learnForms(res && res.forms, text);
+        const who = partsClean(raw, pieces, text, messageId);
+        if (!now.extra) now.extra = {};
+        if (!now.extra.rls_parts || typeof now.extra.rls_parts !== 'object') now.extra.rls_parts = {};
+        now.extra.rls_parts[swipeId] = { h: partsHash(now.mes), p: pieces.map(x => [x.s, x.e, x.kind === 'say' ? 's' : 'a']), w: who, f: partsFeel(res && res.feel, pieces.length) };
+        saveScene();
+        partsJustSplit.add(`${messageId}#${swipeId}`);   // its words may come in one by one — once, now
+        renderParts(messageId);
+        if (novel && novel.refresh) novel.refresh(null);
+        if (manual && !document.querySelector(`#chat .mes[mesid="${messageId}"] .rls-parts`)) toastr.info(t('parts_one'));
+    } catch (e) {
+        console.warn('[Living Scene] roles', e);
+        if (manual) toastr.warning(t('parts_failed'));
+    } finally { partsBusy.delete(key); markPartsBusy(messageId, false); }
+}
+// the numbered pairs of a broken answer: "who" (and "feel") read as "N": "text" lines; most of the numbers must be there
+function salvageParts(raw, count) {
+    const section = (name, stops) => {
+        const at = raw.search(new RegExp(`"${name}"\\s*:\\s*\\{`));
+        if (at < 0) return '';
+        let end = raw.length;
+        stops.forEach(st => { const k = raw.indexOf(`"${st}"`, at + 4); if (k > at && k < end) end = k; });
+        return raw.slice(at, end);
+    };
+    const pairs = txt => { const o = {}; const re = /"(\d+)"\s*:\s*"([^"\n]*)"/g; let m; while ((m = re.exec(txt))) if (!(m[1] in o)) o[m[1]] = m[2]; return o; };
+    const who = pairs(section('who', ['forms', 'feel']));
+    const got = Object.keys(who).filter(k => Number(k) < count).length;
+    if (!count || got < Math.ceil(count * 0.8)) return null;
+    return { who, feel: pairs(section('feel', ['who', 'forms'])) };
+}
+function markPartsBusy(messageId, on) {
+    const el = document.querySelector(`#chat .mes[mesid="${messageId}"] .rls-split-btn`);
+    if (el) el.classList.toggle('busy', !!on);
+}
+/* What the model left open is settled from the text itself, so a block never starts in the
+   middle of a sentence and a spoken line never drops out between two blocks of its speaker:
+   '"What the fuck," | he began, …' — the line and its tag are one person. */
+function settleParts(items, text) {
+    const said = it => /^[«"“„—–]/.test(text.slice(it.s, it.e).trim());
+    const open = w => !w || w === '?' || w === '-';
+    const para = it => (text.slice(0, it.s).match(/\n/g) || []).length;
+    // the kind is kept with the split; older splits fall back to the first character
+    items.forEach(it => { it.say = it.k ? it.k === 's' : said(it); it.p = para(it); if (it.say && it.w === '-') it.w = '?'; });
+    // narration that opens with someone's name is about them ("Megumin, however, was already gone…"),
+    // whoever's paragraph it stands in
+    const cands = faceCandidates();
+    items.forEach(it => {
+        if (it.say) return;
+        const piece = text.slice(it.s, it.e).replace(/^[\s*_"«“]+/, '');
+        const first = namesIn(piece.slice(0, 40), cands).find(h => h.at === 0);
+        if (first && first.c.name !== it.w) {
+            const two = namesIn(piece, cands).filter(h => h.c.name !== first.c.name);
+            if (!two.length || two[0].at > 25) { it.w = first.c.name; it.subj = true; }
+        }
+    });
+    // narration that names nobody and points at nobody ("The hallway door clicks open") is nobody's,
+    // unless it sits inside a run of one person's pieces in the same paragraph
+    items.forEach((it, i) => {
+        if (it.say || it.subj || it.w === '-' || it.w === '?') return;
+        const piece = text.slice(it.s, it.e);
+        // only a sentence that opens on a thing or a place ("The door…", "Somewhere…") — one that opens on
+        // a capital word may well be a name the scene has not learned yet ("Уильям даже не поднял…")
+        const first = (piece.replace(/^[\s*_"«“]+/, '').match(/^[\p{L}-]+/u) || [''])[0].toLowerCase();
+        if (!SMALL_WORDS.has(first) && !SCENE_STARTS.has(first)) return;
+        const isMe = String(it.w).toLowerCase() === String(getContext().name1 || name1 || '').toLowerCase();
+        if (namesIn(piece, cands).length || PERSON_WORDS.test(piece) || (isMe && YOU_WORDS.test(piece)) || piece.toLowerCase().includes(String(it.w).toLowerCase().split(/\s+/).pop())) return;
+        const prev = items[i - 1], next = items[i + 1];
+        const inRun = (prev && prev.p === it.p && prev.w === it.w) || (next && next.p === it.p && next.w === it.w);
+        if (!inRun) it.w = '-';
+    });
+    // "He pushed himself off the wall." right after a sentence that opened with a name is still that person
+    items.forEach((it, i) => {
+        const prev = items[i - 1];
+        if (it.say || it.subj || !prev || !prev.subj || prev.p !== it.p) return;
+        if (/^[\s*_]*(he|she|they|his|her|their|him|он|она|они|его|её|ее|их)(?=[\s,.!?…])/iu.test(text.slice(it.s, it.e))) { it.w = prev.w; it.subj = true; }
+    });
+    for (let pass = 0; pass < 2; pass++) {
+        items.forEach((it, i) => {
+            const prev = items[i - 1], next = items[i + 1];
+            const piece = text.slice(it.s, it.e).trim();
+            // a piece that starts small ("he began, …") goes on the sentence before it
+            if (prev && prev.p === it.p && /^[\p{Ll},;:)]/u.test(piece)) {
+                if (open(prev.w) && !open(it.w)) prev.w = it.w;
+                else if (open(it.w) && !open(prev.w)) it.w = prev.w;
+            }
+            if (!it.say || !open(it.w)) return;
+            // a line that runs on into its tag ("…," he said) is the tag's person
+            if (next && next.p === it.p && !open(next.w) && /[,—–-]\s*["»”“]?$/.test(piece)) { it.w = next.w; return; }
+            // otherwise the nearest known voice in the same paragraph
+            let k = 1;
+            while (i - k >= 0 || i + k < items.length) {
+                const a0 = items[i - k], b0 = items[i + k];
+                if (a0 && a0.p === it.p && !open(a0.w)) { it.w = a0.w; return; }
+                if (b0 && b0.p === it.p && !open(b0.w)) { it.w = b0.w; return; }
+                k++;
+            }
+            // a line on its own between two blocks of one person is theirs
+            let a1 = i - 1; while (a1 >= 0 && open(items[a1].w)) a1--;
+            let b1 = i + 1; while (b1 < items.length && open(items[b1].w)) b1++;
+            if (a1 >= 0 && b1 < items.length && items[a1].w === items[b1].w) it.w = items[a1].w;
+        });
+    }
+    items.forEach(it => { if (open(it.w)) it.w = '-'; });
+    return items;
+}
+const partsShowText = new Set();   // messages switched back to plain text, this session
+function partFace(name) {
+    let c = faceCandidates().find(x => x.name === name);
+    if (!c || !c.pic) {
+        // someone the scene met only now ("Minjun") may be in the diary under a fuller or Russian name («Ким Минджун»)
+        const me = { probes: probesFor(name) };
+        const pics = diaryNpcs().filter(n => typeof n.portrait === 'string' && n.portrait);
+        const d = pics.find(n => String(n.name).trim().toLowerCase() === String(name).trim().toLowerCase())
+            || onlyOne(pics.filter(n => namesIn(n.name, [me]).length && namesIn(name, [{ probes: probesFor(n.name) }]).length).map(n => ({ c: n })));
+        if (d) c = { name, pic: d.portrait, kind: (c && c.kind) || 'npc' };
+    }
+    let hue = 0; for (const ch of String(name)) hue = (hue * 31 + ch.charCodeAt(0)) % 360;
+    const ini = escapeHtml(String(name).trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase());
+    return { hue, pic: (c && c.pic) || '', html: c && c.pic ? `<img src="${escapeHtml(c.pic)}" alt="" draggable="false" loading="lazy">` : `<span class="rls-part-ini">${ini}</span>`, me: !!(c && c.kind === 'user') };
+}
+// the stored split of a reply, settled and grouped into blocks — what the chat draws and the novel plays
+function partsView(messageId) {
+    const msg = getContext().chat[messageId];
+    if (!msg || msg.is_user || msg.is_system) return null;
+    const saved = msg.extra && msg.extra.rls_parts && msg.extra.rls_parts[msg.swipe_id ?? 0];
+    if (!saved || saved.h !== partsHash(msg.mes) || !Array.isArray(saved.p) || !Array.isArray(saved.w)) return null;
+    const text = String(msg.mes || '').replace(/\r\n?/g, '\n');
+    // pieces of one person in a row are one block; a short bit of narration between two pieces of the same person stays inside
+    const items = settleParts(saved.p.map((x, i) => ({ s: x[0], e: x[1], k: x[2], w: saved.w[i], i })), text);
+    if (soloReply(messageId)) items.forEach(it => { if (it.w === msg.name) it.w = '-'; });   // exploring alone: the card wrote as the game master
+    for (let i = 1; i < items.length - 1; i++) if (items[i].w === '-' && items[i - 1].w !== '-' && items[i - 1].w === items[i + 1].w && items[i].e - items[i].s < 140 && !text.slice(items[i - 1].e, items[i + 1].s).includes('\n\n')) items[i].w = items[i - 1].w;
+    const blocks = [];
+    items.forEach(it => {
+        const b = blocks[blocks.length - 1];
+        if (b && b.w === it.w) b.items.push(it); else blocks.push({ w: it.w, items: [it] });
+    });
+    const me = getContext().name1 || name1;
+    const order = [];
+    blocks.forEach(b => { if (b.w !== '-' && b.w !== me && !order.includes(b.w)) order.push(b.w); });
+    return { messageId, text, blocks, me, order, saved, feel: (saved.f && typeof saved.f === 'object') ? saved.f : {}, fmt: piecesFormatter(msg, messageId) };
+}
+// each piece formatted on its own (a piece never cuts through *…*), so actions and lines can be told apart
+function piecesFormatter(msg, messageId) {
+    return x => {
+        let h;
+        try { h = ST.messageFormatting(String(x).trim(), msg.name, false, false, messageId); } catch (e) { h = escapeHtml(x); }
+        return String(h).trim().replace(/^<p>([\s\S]*)<\/p>$/i, '$1');
+    };
+}
+function renderParts(messageId) {
+    try {
+        const mesEl = document.querySelector(`#chat .mes[mesid="${messageId}"]`);
+        if (!mesEl) return;
+        const mesText = mesEl.querySelector('.mes_text');
+        const old = mesEl.querySelector('.rls-parts');
+        if (old) old.remove();
+        if (mesText) mesText.classList.remove('rls-hidden');
+        const msg = getContext().chat[messageId];
+        if (!msg || msg.is_user || msg.is_system || !mesText) return;
+        addSplitButton(mesEl, messageId);
+        addNovelButton(mesEl, messageId);
+        if (!settings.enabled || settings.lineFaces === false || partsShowText.has(messageId)) return;
+        if (mesEl.classList.contains('editing') || mesText.querySelector('textarea')) return;
+        const v = partsView(messageId);
+        if (!v) return;
+        const { text, blocks, me, order, fmt, saved } = v;
+        // nobody identified, or the whole reply is one block of one person (all of it Minjun's):
+        // there is nothing to tell apart, the plain text is better. One person with narration around
+        // them (the hallway, then William) is told apart, and can be played as a scene
+        if (!blocks.some(b => b.w !== '-') || blocks.length < 2) return;
+        const piecesHtml = list => list.map((it, k) => {
+            const gap = k ? text.slice(list[k - 1].e, it.s) : '';
+            const sep = k ? (gap.includes('\n') ? '<br>' : ' ') : '';
+            return `${sep}<span class="rls-pp ${it.say ? 'say' : 'act'}">${fmt(pieceText(text, it.s, it.e))}</span>`;
+        }).join('');
+        const key = `${messageId}#${msg.swipe_id ?? 0}#${saved.h}`;
+        const fresh = !partsAnimated.has(key);
+        partsAnimated.add(key);
+        let n = 0;
+        const html = blocks.map(b => {
+            const body = piecesHtml(b.items);
+            if (!body.trim()) return '';
+            const dl = fresh ? `${(n++ * 0.09).toFixed(2)}s` : '';
+            const delay = dl ? ` style="animation-delay:${dl}"` : '';
+            if (b.w === '-') {
+                const len = b.items.reduce((a0, it) => a0 + it.e - it.s, 0);
+                return `<div class="rls-part narr${len < 170 ? ' short' : ''}"${delay}><span class="rls-narr-line"></span><span class="rls-narr-text">${body}</span><span class="rls-narr-line"></span></div>`;
+            }
+            const f = partFace(b.w);
+            const side = b.w === me ? 'r' : (order.indexOf(b.w) % 2 ? 'r' : 'l');
+            const nosay = !b.items.some(it => it.say);
+            return `<div class="rls-part who ${side} hand${f.hue % 4}${f.me ? ' me' : ''}${nosay ? ' nosay' : ''}" style="--rls-hue:${f.hue}${dl ? `;animation-delay:${dl}` : ''}" data-dl="${dl ? parseFloat(dl) : 0}">
+                <div class="rls-part-ava" title="${escapeHtml(b.w)}">${f.html}</div>
+                <div class="rls-part-box"><div class="rls-part-name"><span class="rls-part-mini">${f.html}</span><span>${escapeHtml(b.w)}</span></div><div class="rls-part-text">${body}</div></div>
+            </div>`;
+        }).join('');
+        const wrap = document.createElement('div');
+        wrap.className = `rls-parts st-${settings.partsStyle || 'glass'}${settings.partsFonts !== false ? ' fonts' : ''}${fresh ? ' anim' : ''}${settings.partsCompact ? ' compact' : ''}`;
+        wrap.innerHTML = html + `<div class="rls-parts-tools">
+            <button type="button" class="rls-parts-compact${settings.partsCompact ? ' on' : ''}" title="${escapeHtml(t(settings.partsCompact ? 'parts_full' : 'parts_compact'))}" aria-label="${escapeHtml(t(settings.partsCompact ? 'parts_full' : 'parts_compact'))}"><i class="fa-solid fa-comment-dots"></i></button>
+            <button type="button" class="rls-parts-plain" title="${escapeHtml(t('parts_plain'))}" aria-label="${escapeHtml(t('parts_plain'))}">¶</button>
+        </div>`;
+        wrap.querySelector('.rls-parts-plain').addEventListener('click', e => { e.stopPropagation(); partsShowText.add(messageId); renderParts(messageId); });
+        wrap.querySelector('.rls-parts-compact').addEventListener('click', e => {
+            e.stopPropagation();
+            settings.partsCompact = !settings.partsCompact;
+            saveSettings();
+            renderAllParts();
+        });
+        // a click on someone's block quiets the others; again, and everyone is back
+        wrap.addEventListener('click', e => {
+            const blk = e.target.closest('.rls-part.who');
+            if (!blk || e.target.closest('a, button')) return;
+            const sel = window.getSelection && window.getSelection();
+            if (sel && String(sel).trim()) return;   // selecting text is not a click
+            const was = blk.classList.contains('focus');
+            wrap.querySelectorAll('.rls-part.focus').forEach(x => x.classList.remove('focus'));
+            if (!was) blk.classList.add('focus');
+            wrap.classList.toggle('has-focus', !was);
+        });
+        // the words come in one by one only for a reply split just now — never for the whole history
+        // drawn when a chat opens (hundreds of animated words at once made the page heavy)
+        const just = `${messageId}#${msg.swipe_id ?? 0}`;
+        if (partsJustSplit.has(just)) {
+            partsJustSplit.delete(just);
+            if (fresh && settings.partsAnim && settings.partsAnim !== 'none') inkWords(wrap, settings.partsAnim);
+        }
+        mesText.classList.add('rls-hidden');
+        // before the text: what other extensions keep inside the text (RPG Map's choices) stays visible below the blocks
+        mesText.before(wrap);
+    } catch (e) { console.warn('[Living Scene] roles: draw', e); }
+}
+const partsAnimated = new Set();   // a block slides in once, not on every redraw
+const partsJustSplit = new Set();  // replies split a moment ago (their words may come in one by one)
+// a new block's words appear one after another (once, never on a redraw); the markup inside is kept
+function inkWords(wrap, mode) {
+    const step = mode === 'type' ? 0.045 : 0.028;
+    wrap.classList.add('ink-' + mode);
+    let longest = 0;
+    wrap.querySelectorAll('.rls-part').forEach(blk => {
+        const base = Number(blk.dataset.dl || blk.style.animationDelay.replace('s', '') || 0) + 0.15;
+        const box = blk.querySelector('.rls-part-text, .rls-narr-text');
+        if (!box) return;
+        const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT);
+        const nodes = [];
+        while (walker.nextNode()) if (walker.currentNode.nodeValue.trim()) nodes.push(walker.currentNode);
+        let k = 0;
+        nodes.forEach(node => {
+            const frag = document.createDocumentFragment();
+            node.nodeValue.split(/(\s+)/).forEach(w => {
+                if (!w) return;
+                if (/^\s+$/.test(w)) { frag.appendChild(document.createTextNode(w)); return; }
+                const sp = document.createElement('span');
+                sp.className = 'rls-w';
+                const d = base + Math.min(k, 120) * step;
+                if (d > longest) longest = d;
+                sp.style.animationDelay = `${d.toFixed(3)}s`;
+                sp.textContent = w;
+                frag.appendChild(sp);
+                k++;
+            });
+            node.parentNode.replaceChild(frag, node);
+        });
+    });
+    setTimeout(() => wrap.classList.remove('ink-' + mode), (longest + 0.6) * 1000);
+}
+
+/* ---------- the reply played as a visual-novel scene, with the sprites of Character Expressions ----------
+   Sprites are SillyTavern's own: the folder of a card (or its "sprite folder override"), and for someone
+   living inside a card, the card's subfolder of that name («William/Rufus») or a folder of their own.
+   Whoever has no sprites is simply not drawn — their name and words still are. */
+const SPRITE_LABELS = ['admiration', 'amusement', 'anger', 'annoyance', 'approval', 'caring', 'confusion', 'curiosity', 'desire', 'disappointment', 'disapproval', 'disgust', 'embarrassment', 'excitement', 'fear', 'gratitude', 'grief', 'joy', 'love', 'nervousness', 'optimism', 'pride', 'realization', 'relief', 'remorse', 'sadness', 'surprise', 'neutral'];
+function spriteLabels() {
+    const custom = Array.isArray(extension_settings.expressions?.custom) ? extension_settings.expressions.custom.map(x => String(x || '').trim().toLowerCase()).filter(Boolean) : [];
+    return [...new Set(SPRITE_LABELS.concat(custom))];
+}
+// the model's feelings, checked: only spoken pieces' numbers, only known labels
+function partsFeel(feel, count) {
+    const out = {};
+    if (!feel || typeof feel !== 'object' || Array.isArray(feel)) return out;
+    const ok = new Set(spriteLabels());
+    Object.keys(feel).forEach(k => {
+        const i = Number(k), v = String(feel[k] || '').trim().toLowerCase();
+        if (Number.isInteger(i) && i >= 0 && i < count && ok.has(v)) out[i] = v;
+    });
+    return out;
+}
+const spriteCache = new Map();   // folder -> Promise<[{label, path}]>
+function spriteList(folder) {
+    if (!folder || folder.length > 200) return Promise.resolve([]);
+    if (!spriteCache.has(folder)) {
+        spriteCache.set(folder, fetch(`/api/sprites/get?name=${encodeURIComponent(folder)}`)
+            .then(r => (r.ok ? r.json() : []))
+            .then(list => (Array.isArray(list) ? list.filter(x => x && typeof x.path === 'string' && typeof x.label === 'string') : []))
+            .catch(() => []));
+    }
+    return spriteCache.get(folder);
+}
+// the folders that may hold this person's sprites, best first
+function spriteFolders(name) {
+    const n = String(name || '').trim();
+    if (!n || /^(the|a|an)\s/i.test(n)) return [];   // "The Cook" is a description, not someone's folder
+    const overrides = Array.isArray(extension_settings.expressionOverrides) ? extension_settings.expressionOverrides : [];
+    const folderOf = c => { const o = overrides.find(x => x && x.name === String(c.avatar || '').replace(/\.[^/.]+$/, '')); return (o && o.path) || c.name; };
+    const cards = chatCardNames().map(nm => characters.find(x => x && x.name === nm)).filter(Boolean);
+    const out = [];
+    const card = cards.find(c => c.name.toLowerCase() === n.toLowerCase());
+    if (card) out.push(folderOf(card));
+    // «Руфус» may keep his sprites in a folder named Rufus, and the other way round
+    const cap = x => x.split(/(\s+|-)/).map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join('');
+    const names = [];
+    aliasNamesOf(n).filter(a => !/[\/\\]/.test(a)).slice(0, 3).forEach(a => {
+        names.push(a);
+        const tr = translit(a);
+        if (tr && tr !== a.toLowerCase()) { names.push(cap(tr)); const alt = tr.replace(/dzh|dz/g, 'j'); if (alt !== tr) names.push(cap(alt)); }
+    });
+    cards.forEach(c => names.forEach(a => { if (a.toLowerCase() !== c.name.toLowerCase()) out.push(`${folderOf(c)}/${a}`); }));
+    if (!card) names.forEach(a => out.push(a));
+    return [...new Set(out)].slice(0, 12);
+}
+const spritePeople = new Map();   // name -> Promise<[{label, path}]>, for this chat
+async function spritesOf(name) {
+    const key = `${getContext().chatId}|${name}`;
+    if (!spritePeople.has(key)) spritePeople.set(key, (async () => {
+        for (const f of spriteFolders(name)) { const list = await spriteList(f); if (list.length) return list; }
+        return [];
+    })());
+    return spritePeople.get(key);
+}
+// a feeling told by the words around a line ("…," she laughed / — рявкнул он); nothing clear — none
+const FEEL_WORDS = [
+    ['anger', /(ярост|злоб|злост|разозл|рявк|прорычал|взбесил|в бешенств|angr|furious|\brage|snarl|growl|snapped|shout)/i],
+    ['amusement', /(смеё|смея|засмея|хохоч|хохот|усмехн|ухмыл|хихик|laugh|chuckl|giggl|grin|smirk)/i],
+    ['sadness', /(плач|слёз|слез|всхлип|грустн|печальн|тоскл|\bвздохн|\bsigh|\btear|\bcries|\bcried|\bsob|sorrow|sadly)/i],
+    ['fear', /(испуган|испуг|страх|дрожащ|задрожал|побледн|afraid|\bfear|trembl|scared|terrified|pale)/i],
+    ['surprise', /(удивлён|удивлен|удивлённо|изумл|ахнул|опешил|surpris|gasp|astonish|wide-eyed)/i],
+    ['embarrassment', /(смущ|покраснел|зарумян|потупил|blush|embarrass|flush)/i],
+    ['annoyance', /(раздраж|поморщ|закатил глаза|фыркнул|annoy|irritat|rolled (his|her|their) eyes|scoff)/i],
+    ['caring', /(нежно|ласково|мягко сказал|tender|gently|softly|kindly)/i],
+    ['joy', /(радостн|просиял|сиял|счастлив|beam(ed|ing)|joyful|happily|cheerful)/i],
+];
+function guessFeel(text) {
+    const x = String(text || '');
+    for (const [label, re] of FEEL_WORDS) if (re.test(x)) return label;
+    if (/\?["»”]?\s*$/.test(x.trim()) || /\?\s*["»”]/.test(x)) return 'curiosity';
+    return '';
+}
+function pickSprite(list, feel) {
+    if (!list || !list.length) return '';
+    const fallback = String(extension_settings.expressions?.fallback_expression || 'joy').toLowerCase();
+    const hit = (feel && list.find(x => x.label === feel)) || list.find(x => x.label === 'neutral') || list.find(x => x.label === fallback) || list[0];
+    return hit.path;
+}
+// the steps of the scene: one per spoken line, with the words around it ("…," he said) on the same step;
+// someone's actions with no line are one step, narration is its own
+function sceneSteps(view) {
+    const steps = [];
+    view.blocks.forEach(b => {
+        let cur = null;
+        b.items.forEach(it => {
+            const piece = pieceText(view.text, it.s, it.e);
+            if (!piece.trim()) return;
+            // a new spoken line opens a new step, unless this step has no line yet
+            if (!cur || (it.say && cur.say)) { cur = { who: b.w, parts: [], say: false, feel: '' }; steps.push(cur); }
+            cur.parts.push({ text: piece, say: !!it.say });
+            if (it.say) { cur.say = true; cur.feel = view.feel[it.i] || cur.feel; }
+        });
+    });
+    // no feeling from the model (an older split, a model that left it out): read it from the words themselves
+    steps.forEach(st0 => { if (st0.say && !st0.feel) st0.feel = guessFeel(st0.parts.map(x => x.text).join(' ')); });
+    // a line with no feeling of its own keeps the speaker's last one
+    const last = {};
+    steps.forEach(st0 => { st0.kind = st0.who === '-' ? 'narr' : (st0.say ? 'say' : 'act'); if (st0.feel) last[st0.who] = st0.feel; else st0.feel = last[st0.who] || ''; });
+    return steps;
+}
+// the stage: the room RPG Map is showing (its picture over the chat), else the chat's own background
+// the room picture RPG Map is showing over the chat right now, if it shows one
+function mapShownRoom() {
+    try {
+        const room = document.getElementById('rpg-room-bg');
+        if (!room || getComputedStyle(room).opacity === '0') return '';
+        const layers = [...room.querySelectorAll('.rpg-bg-layer')].filter(l => l.style.backgroundImage && l.style.backgroundImage !== 'none');
+        const front = layers.find(l => getComputedStyle(l).opacity !== '0') || layers[0];
+        return front ? front.style.backgroundImage : '';
+    } catch (e) { return ''; }
+}
+function sceneBackdrop() {
+    try {
+        const room = document.getElementById('rpg-room-bg');
+        if (room && getComputedStyle(room).opacity !== '0') {
+            const layers = [...room.querySelectorAll('.rpg-bg-layer')].filter(l => l.style.backgroundImage && l.style.backgroundImage !== 'none');
+            const front = layers.find(l => getComputedStyle(l).opacity !== '0') || layers[0];
+            if (front) return front.style.backgroundImage;
+        }
+        for (const id of ['bg_custom', 'bg1']) {
+            const el = document.getElementById(id);
+            const img = el ? getComputedStyle(el).backgroundImage : '';
+            if (img && img !== 'none') return img;
+        }
+    } catch (e) { /* the default dusk below */ }
+    return '';
+}
+let sceneOpen = null;
+function stepHtml(st0, fmt) {
+    const f = st0.fmt || fmt || (x => escapeHtml(x));
+    return st0.parts.map(x => `<span class="rls-pp ${x.say ? 'say' : 'act'}">${f(x.text)}</span>`).join(' ');
+}
+/* The stage at step k, worked out from the steps alone, so going back or jumping from the log
+   shows exactly who was there then. Whoever has sprites stands in a row in the order they came in
+   (five at most: the one silent longest steps out); the speaker comes forward, the rest wait
+   dimmed; a sharp feeling makes a little hop, a heavy one a little sink.
+   Returns where the speaker stands (% from the left), or null. */
+const STAGE_MAX = 5;
+const HOP_FEELS = new Set(['anger', 'surprise', 'excitement', 'fear', 'amusement', 'joy', 'realization', 'annoyance']);
+const SINK_FEELS = new Set(['sadness', 'grief', 'remorse', 'disappointment', 'embarrassment', 'nervousness']);
+function stageTo(stage, steps, k, sprites, me) {
+    const first = new Map(), last = new Map(), feel = new Map();
+    for (let j = 0; j <= k && j < steps.length; j++) {
+        const w = steps[j].who;
+        if (w === '-' || w === me || !(sprites[w] && sprites[w].length)) continue;
+        if (!first.has(w)) first.set(w, j);
+        last.set(w, j);
+        if (steps[j].feel) feel.set(w, steps[j].feel);
+    }
+    let cast = [...first.keys()];
+    if (cast.length > STAGE_MAX) cast = cast.sort((a, b) => last.get(b) - last.get(a)).slice(0, STAGE_MAX);
+    cast.sort((a, b) => first.get(a) - first.get(b));
+    const cur = steps[k] || {};
+    const speaking = cur.who !== '-' && cast.includes(cur.who) ? cur.who : '';
+    const n = cast.length;
+    // gone: step out
+    stage.querySelectorAll('.rls-vn-actor').forEach(el => {
+        if (cast.includes(el.dataset.who) || el.classList.contains('gone')) return;
+        el.classList.add('gone');
+        setTimeout(() => { if (el.classList.contains('gone')) el.remove(); }, 450);
+    });
+    let at = null;
+    cast.forEach((w, idx) => {
+        let el = [...stage.querySelectorAll('.rls-vn-actor')].find(x => x.dataset.who === w);
+        if (el && el.classList.contains('gone')) { el.remove(); el = null; }
+        const isNew = !el;
+        if (isNew) {
+            el = document.createElement('div');
+            el.className = 'rls-vn-actor in';
+            el.dataset.who = w;
+            el.style.setProperty('--breath-delay', `${(-idx * 1.3).toFixed(1)}s`);
+            el.innerHTML = '<img alt="" draggable="false">';
+            el.querySelector('img').title = w;
+            stage.appendChild(el);
+            setTimeout(() => el.classList.remove('in'), 600);
+        }
+        // a pair stands close, like people talking; the more there are, the wider the row (two: 30% and 70%)
+        const span = Math.min(76, 16 * n + 8);
+        const x = n === 1 ? 50 : (50 - span / 2) + (span * idx) / (n - 1);
+        el.style.left = `${x.toFixed(2)}%`;
+        el.style.setProperty('--slot', `${Math.min(46, Math.max(22, 150 / Math.max(n, 1))).toFixed(1)}%`);
+        el.style.zIndex = String(w === speaking ? 20 : 10 - Math.round(Math.abs(x - 50) / 10));   // the middle in front, the edges behind
+        const img = el.querySelector('img');
+        const src = pickSprite(sprites[w], feel.get(w) || '');
+        if (img.getAttribute('src') !== src) {
+            img.setAttribute('src', src);
+            if (!isNew) { img.classList.remove('swap'); void img.offsetWidth; img.classList.add('swap'); }
+        }
+        const was = el.classList.contains('lit');
+        el.classList.toggle('lit', w === speaking);
+        if (w === speaking) {
+            at = x;
+            // the feeling shows in the body for a moment, when it changes or the speaker turns
+            const f = feel.get(w) || '';
+            if (!isNew && (!was || el.dataset.feel !== f)) {
+                const mv = HOP_FEELS.has(f) ? 'hop' : SINK_FEELS.has(f) ? 'sink' : '';
+                el.classList.remove('hop', 'sink');
+                if (mv) { void el.offsetWidth; el.classList.add(mv); }
+            }
+            el.dataset.feel = f;
+            if (!isNew && !el.classList.contains('hop') && !el.classList.contains('sink')) { el.classList.remove('talk'); void el.offsetWidth; el.classList.add('talk'); }
+        }
+    });
+    return at;
+}
+function closeScene() {
+    if (!sceneOpen) return;
+    const { el, off, returnTo } = sceneOpen;
+    sceneOpen = null;
+    off();
+    el.classList.add('out');
+    setTimeout(() => el.remove(), 220);
+    try { if (returnTo && returnTo.isConnected) returnTo.focus({ preventScroll: true }); } catch (e) { /* nothing to return to */ }
+}
+
+/* ---------- the novel: the whole chat played as a visual novel, with a line to answer in ----------
+   It sits over SillyTavern and does everything through SillyTavern's own controls (send, swipes,
+   regenerate, stop), so nothing about how a reply is made changes. A new reply is played once its
+   split by roles is in; a reply that is not split is told paragraph by paragraph. While exploring
+   alone with RPG Map, the words stand in the middle of the screen and Map's choices are buttons. */
+/* ---------- where each line was said: RPG Map's room, noted when the message comes ----------
+   Kept by the message's own time in this chat's scene state, so going back in the novel shows the
+   room of that moment, and a change of room is played as a passage. The map is read, never written. */
+function mapStateNow() {
+    try { const ms = extension_settings.rpg_map_engine?.mapStates?.[getContext().chatId]; return ms && typeof ms === 'object' ? ms : null; } catch (e) { return null; }
+}
+function roomNow() {
+    try {
+        const m = window.RPG && window.RPG.map;
+        if (!m || !m.available || typeof m.getCurrent !== 'function' || (m.isEnabled && !m.isEnabled())) return null;
+        const c = m.getCurrent();
+        if (!c || !c.room) return null;
+        // the building the room is in, for the place's name
+        let loc = '';
+        const ms = mapStateNow();
+        const maps = (ms && Array.isArray(ms.maps)) ? ms.maps : [];
+        for (const mp of maps) for (const b of (mp.blocks || [])) {
+            if ((b.name || '') !== (c.block || '')) continue;
+            for (const l of (b.locations || [])) if ((l.sublocs || []).some(x => x && x.name === c.room)) { loc = l.name || ''; break; }
+            if (loc) break;
+        }
+        return { key: `${c.block || ''}|${loc}|${c.room}`, block: String(c.block || ''), loc: String(loc), room: String(c.room) };
+    } catch (e) { return null; }
+}
+function roomMark(id) {
+    if (!settings.enabled) return;
+    try {
+        const m = (getContext().chat || [])[id];
+        if (!m || m.is_system) return;
+        const r = roomNow();
+        if (!r) return;
+        const st = sceneState();
+        if (!st.rooms || typeof st.rooms !== 'object') st.rooms = {};
+        const k = String(m.send_date || '');
+        if (!k) return;
+        st.rooms[k] = r;
+        const keys = Object.keys(st.rooms);
+        if (keys.length > 400) keys.slice(0, keys.length - 400).forEach(x => delete st.rooms[x]);
+        saveScene();
+    } catch (e) { /* nothing to note */ }
+}
+// the room of a message: its own note, else the nearest one before it
+function roomOfMid(mid) {
+    try {
+        const st = sceneState();
+        if (!st.rooms) return null;
+        const chat = getContext().chat || [];
+        for (let i = mid; i >= 0 && i >= mid - 60; i--) { const r = chat[i] && st.rooms[String(chat[i].send_date || '')]; if (r) return r; }
+    } catch (e) { /* none */ }
+    return null;
+}
+const roomPicCache = new Map();
+function mapIdbImage(key) {
+    return new Promise(resolve => {
+        let req;
+        try { req = indexedDB.open('rpgMapImages'); } catch (e) { resolve(''); return; }
+        req.onupgradeneeded = () => { try { req.transaction.abort(); } catch (e) { /* not ours to create */ } };
+        req.onerror = () => resolve(''); req.onblocked = () => resolve('');
+        req.onsuccess = () => {
+            const db = req.result;
+            try {
+                if (!db.objectStoreNames.contains('imgs')) { db.close(); resolve(''); return; }
+                const rq = db.transaction('imgs', 'readonly').objectStore('imgs').get(key);
+                rq.onsuccess = () => { db.close(); resolve(typeof rq.result === 'string' ? rq.result : ''); };
+                rq.onerror = () => { db.close(); resolve(''); };
+            } catch (e) { try { db.close(); } catch (x) { /* closed */ } resolve(''); }
+        };
+    });
+}
+// the picture of a noted room, as RPG Map keeps it (its own picture, or a background file)
+async function roomPicture(r) {
+    if (!r) return '';
+    if (roomPicCache.has(r.key)) return roomPicCache.get(r.key);
+    let url = '';
+    try {
+        const ms = mapStateNow();
+        let sub = null;
+        for (const mp of (ms && ms.maps) || []) for (const b of (mp.blocks || [])) {
+            if ((b.name || '') !== r.block) continue;
+            for (const l of (b.locations || [])) { if (r.loc && (l.name || '') !== r.loc) continue; const x = (l.sublocs || []).find(y => y && y.name === r.room); if (x) { sub = x; break; } }
+            if (sub) break;
+        }
+        if (sub && typeof sub.image === 'string' && sub.image) url = sub.image.startsWith('idb:') ? await mapIdbImage(sub.image.slice(4)) : sub.image;
+        if (!url && sub && typeof sub.bgFile === 'string' && sub.bgFile) url = 'backgrounds/' + encodeURIComponent(sub.bgFile);
+        if (url && !/^(data:image\/|blob:|https?:|\/|backgrounds\/)/i.test(url)) url = '';
+    } catch (e) { url = ''; }
+    const css = url ? `url("${url.replace(/"/g, '%22')}")` : '';
+    roomPicCache.set(r.key, css);
+    if (roomPicCache.size > 40) roomPicCache.delete(roomPicCache.keys().next().value);
+    return css;
+}
+/* ---------- buttons over the novel: the suite's own windows, opened over it ----------
+   Each opens through what that extension itself offers (its button, its bridge), only when it is
+   installed. While one of them is open the novel steps back under it, and comes forward again after. */
+const HUD = [
+    { id: 'map', icon: 'fa-map-location-dot', key: 'hud_map', ok: () => !!document.getElementById('rpg-map-btn'), go: () => document.getElementById('rpg-map-btn').click() },
+    { id: 'diary', icon: 'fa-book', key: 'hud_diary', ok: () => !!document.getElementById('rpg-diary-btn'), go: () => document.getElementById('rpg-diary-btn').click() },
+    { id: 'life', icon: 'fa-house-chimney', key: 'hud_life', ok: () => !!(window.RPG && window.RPG.life && typeof window.RPG.life.open === 'function'), go: () => window.RPG.life.open() },
+];
+const HUD_OPEN = ['#rpg-map-modal.visible', '#rpg-diary-modal.visible', '#rpg-life-host.open'];
+const hudSomethingOpen = () => HUD_OPEN.some(sel => { const el = document.querySelector(sel); return !!el && getComputedStyle(el).display !== 'none'; });
+const NOVEL_BACK = 24;   // messages taken into the novel's timeline
+let novel = null;
+function exploring() {
+    const bar = document.getElementById('rpg-solo-bar');
+    if (!bar || getComputedStyle(bar).display === 'none') return null;
+    return { where: (bar.querySelector('.rpg-solo-loc b') || {}).textContent || '' };
+}
+function novelStepsFor(id) {
+    const ctx = getContext();
+    const m = ctx.chat[id];
+    if (!m || m.is_system) return [];
+    const me = ctx.name1 || name1;
+    if (m.is_user) {
+        const t0 = String(m.mes || '').trim();
+        return t0 ? [{ who: me, kind: 'say', parts: [{ text: t0, say: true }], feel: '', mid: id, user: true, fmt: piecesFormatter(m, id) }] : [];
+    }
+    const v = (settings.enabled && settings.lineFaces !== false) ? partsView(id) : null;
+    let steps;
+    if (v && v.blocks.length) steps = sceneSteps(v).map(x => Object.assign(x, { fmt: v.fmt }));
+    else {
+        // not split (yet, or never): the reply by paragraphs, in the narrator's box
+        const fmt = piecesFormatter(m, id);
+        steps = String(m.mes || '').replace(/\r\n?/g, '\n').split(/\n{2,}/).map(x => x.trim()).filter(Boolean)
+            .map(x => ({ who: '-', kind: 'narr', parts: [{ text: x, say: false }], feel: '', fmt }));
+    }
+    steps.forEach(x => { x.mid = id; });
+    return steps;
+}
+function novelTimeline() {
+    const chat = getContext().chat || [];
+    const steps = [], start = new Map();
+    for (let id = Math.max(0, chat.length - NOVEL_BACK); id < chat.length; id++) {
+        const st0 = novelStepsFor(id);
+        if (!st0.length) continue;
+        start.set(id, steps.length);
+        steps.push(...st0);
+    }
+    return { steps, start };
+}
+function lastReplyId() {
+    const chat = getContext().chat || [];
+    for (let i = chat.length - 1; i >= 0; i--) if (chat[i] && !chat[i].is_user && !chat[i].is_system) return i;
+    return -1;
+}
+function openNovel(fromId = null) {
+    if (novel) return;
+    closeScene();
+    const ov = document.createElement('div');
+    ov.className = 'rls-vn novel';
+    ov.setAttribute('role', 'dialog');
+    ov.setAttribute('aria-label', t('novel_menu'));
+    const B = (cls, icon, key) => `<button type="button" class="${cls}" title="${escapeHtml(t(key))}" aria-label="${escapeHtml(t(key))}"><i class="fa-solid ${icon}"></i></button>`;
+    ov.innerHTML = `<div class="rls-vn-bg"></div><div class="rls-vn-shade"></div>
+        <div class="rls-vn-stage"></div>
+        <div class="rls-vn-veil"></div>
+        <div class="rls-vn-card" aria-live="polite"></div>
+        <div class="rls-vn-place"></div>
+        <div class="rls-vn-where"></div>
+        <div class="rls-vn-top">
+            <span class="rls-vn-hud"></span>
+            ${B('rls-vn-solo', 'fa-arrow-left-long', 'novel_return')}
+            ${B('rls-vn-prev', 'fa-chevron-left', 'novel_prev')}
+            ${B('rls-vn-next2', 'fa-chevron-right', 'novel_next')}
+            ${B('rls-vn-regen', 'fa-rotate-right', 'novel_regen')}
+            ${B('rls-vn-stop', 'fa-stop', 'novel_stop')}
+            <button type="button" class="rls-vn-logbtn">${escapeHtml(t('scene_log'))}</button>
+            ${B('rls-vn-close', 'fa-xmark', 'novel_exit')}
+        </div>
+        <div class="rls-vn-choices" hidden></div>
+        <button type="button" class="rls-vn-box">
+            <span class="rls-vn-orn" aria-hidden="true"></span>
+            <span class="rls-vn-plate"></span>
+            <span class="rls-vn-face" aria-hidden="true"></span>
+            <span class="rls-vn-text"></span>
+            <span class="rls-vn-foot"><span class="rls-vn-count"></span><span class="rls-vn-next">▼</span></span>
+        </button>
+        <form class="rls-vn-say">
+            <textarea rows="1" class="rls-vn-input" placeholder="${escapeHtml(t('novel_say'))}" aria-label="${escapeHtml(t('novel_say'))}"></textarea>
+            <button type="submit" class="rls-vn-send" title="${escapeHtml(t('novel_send'))}" aria-label="${escapeHtml(t('novel_send'))}"><i class="fa-solid fa-paper-plane"></i></button>
+        </form>
+        <div class="rls-vn-log" hidden><div class="rls-vn-logtitle">${escapeHtml(t('scene_log'))}</div><div class="rls-vn-loglist"></div></div>
+        <div class="rls-vn-hint">${escapeHtml(t('novel_hint'))}</div>`;
+    const $q = sel => ov.querySelector(sel);
+    const box = $q('.rls-vn-box'), plate = $q('.rls-vn-plate'), txt = $q('.rls-vn-text'), count = $q('.rls-vn-count');
+    const stage = $q('.rls-vn-stage'), input = $q('.rls-vn-input'), choices = $q('.rls-vn-choices'), log = $q('.rls-vn-log'), list = $q('.rls-vn-loglist');
+    // follow: the reader is with the newest message, so a new one is played as it comes;
+    // reading back in the log or with ← stops that until they come back to the newest
+    const N = novel = { ov, steps: [], start: new Map(), idx: -1, sprites: {}, bg: '', timer: null, follow: true };
+    const me = () => getContext().name1 || name1;
+    const loadSprites = async () => {
+        const people = [...new Set(N.steps.filter(x => x.who !== '-' && x.who !== me()).map(x => x.who))].filter(w => !(w in N.sprites));
+        if (!people.length) return;
+        await Promise.all(people.map(async w => { N.sprites[w] = await spritesOf(w); }));
+        if (novel === N) show(N.idx, true);
+    };
+    // the stage counts the people of this reply and the one before it, so the cast does not grow forever
+    const windowStart = k => {
+        const mid = N.steps[k] && N.steps[k].mid;
+        const ids = [...N.start.keys()];
+        const at = ids.indexOf(mid);
+        return at > 0 ? N.start.get(ids[at - 1]) : 0;
+    };
+    const setBg = bg => {
+        if (bg === N.bg) return;
+        N.bg = bg;
+        $q('.rls-vn-bg').style.backgroundImage = bg && bg !== 'none' ? bg : '';
+    };
+    // the room of the line on screen; the live backdrop when that is the room you are in now
+    const syncBg = () => {
+        if (N.room) {
+            const live = roomNow();
+            if (live && N.room.key !== live.key) return;           // reading back: that moment's room stays
+            if (!mapShownRoom() && roomPicCache.get(N.room.key)) return;   // the map shows nothing: the room's own picture stays
+        }
+        setBg(sceneBackdrop());
+    };
+    const placeText = r => r ? [r.room, r.loc && r.loc !== r.room ? r.loc : ''].filter(Boolean).join(' · ') : '';
+    const showPlace = () => {
+        const el = $q('.rls-vn-place');
+        const txt = settings.novelPlace !== false && N.room ? placeText(N.room) : '';
+        el.innerHTML = txt ? `<em>${escapeHtml(t('novel_place'))}</em><span>${escapeHtml(txt)}</span>` : '';
+    };
+    // a new place: the screen darkens, the picture changes, the name comes up for a moment
+    const goToRoom = async (r, passage) => {
+        N.room = r;
+        const live = roomNow();
+        const tok = N.roomTok = (N.roomTok || 0) + 1;
+        if (!passage || settings.novelPlace === false) {
+            const here = live && live.key === r.key;
+            setBg((here && mapShownRoom()) || (await roomPicture(r)) || (here ? sceneBackdrop() : N.bg));
+            showPlace();
+            return;
+        }
+        ov.classList.add('travel');
+        const here = live && live.key === r.key;
+        const pic = (here && mapShownRoom()) || (await roomPicture(r)) || (here ? sceneBackdrop() : '');
+        await new Promise(res => setTimeout(res, 480));
+        if (novel !== N || tok !== N.roomTok) return;
+        if (pic) setBg(pic);
+        showPlace();
+        const card = $q('.rls-vn-card');
+        card.innerHTML = `${r.loc && r.loc !== r.room ? `<div class="rls-vn-card-place">${escapeHtml(r.loc)}</div>` : ''}<div class="rls-vn-card-name">${escapeHtml(r.room)}</div><div class="rls-vn-card-line"></div>`;
+        card.classList.remove('show'); void card.offsetWidth; card.classList.add('show');
+        setTimeout(() => { if (tok === N.roomTok) ov.classList.remove('travel'); }, 160);
+        clearTimeout(N.cardTimer);
+        N.cardTimer = setTimeout(() => card.classList.remove('show'), 2400);
+    };
+    const roomFor = k => {
+        const st0 = N.steps[k];
+        if (!st0) return;
+        const r = roomOfMid(st0.mid);
+        if (!r) { if (!N.room) showPlace(); return; }
+        if (!N.room) { goToRoom(r, false); return; }
+        if (r.key !== N.room.key) goToRoom(r, true);
+    };
+    // the speaker's portrait in the box: for those without sprites, or always
+    const faceFor = st0 => {
+        const el = $q('.rls-vn-face');
+        let pic = '';
+        if (st0 && st0.who !== '-' && settings.novelFace !== 'never') {
+            const hasSprite = !!(N.sprites[st0.who] && N.sprites[st0.who].length);
+            if (settings.novelFace === 'always' || !hasSprite) {
+                if (st0.user) pic = user_avatar ? `/thumbnail?type=persona&file=${encodeURIComponent(user_avatar)}` : '';
+                else pic = partFace(st0.who).pic || '';
+            }
+        }
+        box.classList.toggle('face', !!pic);
+        if (!pic) { el.innerHTML = ''; delete el.dataset.src; return; }
+        if (el.dataset.src !== pic) { el.dataset.src = pic; el.innerHTML = `<img src="${escapeHtml(pic)}" alt="" draggable="false">`; }
+    };
+    // the suite's windows over the novel; while one is open the novel waits under it
+    const hudBuild = () => {
+        const bar = $q('.rls-vn-hud');
+        const list = settings.novelHud !== false ? HUD.filter(h => { try { return h.ok(); } catch (e) { return false; } }) : [];
+        const sig = list.map(h => h.id).join(',');
+        if (bar.dataset.sig === sig) return;
+        bar.dataset.sig = sig;
+        bar.innerHTML = list.map(h => `<button type="button" class="rls-vn-hudbtn" data-hud="${h.id}" title="${escapeHtml(t(h.key))}" aria-label="${escapeHtml(t(h.key))}"><i class="fa-solid ${h.icon}"></i><span>${escapeHtml(t(h.key))}</span></button>`).join('');
+    };
+    $q('.rls-vn-hud').addEventListener('click', e => {
+        const b0 = e.target.closest('[data-hud]');
+        if (!b0) return;
+        e.stopPropagation();
+        const h = HUD.find(x => x.id === b0.dataset.hud);
+        if (!h) return;
+        ov.classList.add('under');
+        try { h.go(); } catch (err) { console.warn('[Living Scene] novel: open', err); }
+        let seen = false, ticks = 0;
+        clearInterval(N.underTimer);
+        N.underTimer = setInterval(() => {
+            ticks++;
+            const open = hudSomethingOpen();
+            if (open) seen = true;
+            if ((seen && !open) || (!seen && ticks > 6) || novel !== N) {
+                clearInterval(N.underTimer);
+                if (novel === N) { ov.classList.remove('under'); syncBg(); box.focus({ preventScroll: true }); }
+            }
+        }, 400);
+    });
+    N.look = () => {
+        ov.className = ov.className.replace(/\b(box|size)-\S+/g, '').trim();
+        ov.classList.add(`box-${settings.novelBox || 'parchment'}`, `size-${settings.novelSprite || 'large'}`);
+        hudBuild(); showPlace(); faceFor(N.steps[N.idx]);
+    };
+    const syncChoices = () => {
+        const atEnd = N.idx >= N.steps.length - 1;
+        const id = (getContext().chat || []).length - 1;
+        const panel = atEnd && !stBusy() ? document.querySelector(`#chat .mes[mesid="${id}"] .rpg-choices`) : null;
+        const opts = panel ? [...panel.querySelectorAll('.rpg-choice:not([disabled])')] : [];
+        const ask = panel ? panel.querySelector('.rpg-choices-ask') : null;
+        const sig = opts.map(o => o.textContent.trim()).join('|') + (ask ? '|ask' : '');
+        if (choices.dataset.sig === sig && (!!sig === !choices.hidden)) return;
+        choices.dataset.sig = sig;
+        choices.innerHTML = '';
+        opts.forEach(o => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'rls-vn-choice';
+            const key = o.querySelector('.rpg-choice-key'), text = o.querySelector('.rpg-choice-text');
+            b.innerHTML = `<span class="k">${escapeHtml(key ? key.textContent : '')}</span><span>${escapeHtml(text ? text.textContent : o.textContent)}</span>`;
+            b.addEventListener('click', e => { e.stopPropagation(); if (stBusy()) { toastr.info(t('novel_busy')); return; } o.click(); choices.hidden = true; });
+            choices.appendChild(b);
+        });
+        if (!opts.length && ask) {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.className = 'rls-vn-choice ask';
+            b.innerHTML = `<i class="fa-solid fa-shoe-prints"></i> <span>${escapeHtml(t('novel_ask'))}</span>`;
+            b.addEventListener('click', e => { e.stopPropagation(); ask.click(); });
+            choices.appendChild(b);
+        }
+        choices.hidden = !choices.children.length;
+    };
+    const syncBar = () => {
+        hudBuild();
+        const busy = stBusy();
+        const ex = exploring();
+        ov.classList.toggle('explore', !!ex);
+        $q('.rls-vn-where').textContent = ex ? ex.where : '';
+        $q('.rls-vn-solo').hidden = !ex;
+        $q('.rls-vn-stop').hidden = !busy;
+        const lastId = lastReplyId(), lastMes = (getContext().chat || []).length - 1;
+        const canSwipe = !busy && lastId >= 0 && lastId === lastMes && !getContext().chat[lastId].is_user;
+        $q('.rls-vn-prev').hidden = !canSwipe || !((getContext().chat[lastId].swipe_id || 0) > 0);
+        $q('.rls-vn-next2').hidden = !canSwipe;
+        $q('.rls-vn-regen').hidden = busy || lastMes < 0;
+        $q('.rls-vn-send').disabled = busy;
+    };
+    const show = (k, quiet = false, byHand = false) => {
+        syncBg(); syncBar();
+        if (!N.steps.length) {
+            N.idx = -1;
+            plate.textContent = '…';
+            txt.className = 'rls-vn-text narr';
+            txt.textContent = stBusy() ? '' : t('novel_empty');
+            count.textContent = '';
+            ov.classList.add('narr');
+            box.classList.toggle('waiting', stBusy());
+            syncChoices();
+            return;
+        }
+        k = Math.max(0, Math.min(k, N.steps.length - 1));
+        const moved = k !== N.idx;
+        N.idx = k;
+        if (byHand) N.follow = N.steps[k].mid === N.steps[N.steps.length - 1].mid;
+        const st0 = N.steps[k];
+        const narr = st0.who === '-';
+        const ws = windowStart(k);
+        const at = stageTo(stage, N.steps.slice(ws, k + 1), k - ws, N.sprites, me());
+        let hue = 0; for (const ch of String(st0.who)) hue = (hue * 31 + ch.charCodeAt(0)) % 360;
+        ov.style.setProperty('--rls-hue', hue);
+        ov.classList.toggle('narr', narr);
+        ov.classList.toggle('mine', !!st0.user);
+        box.classList.toggle('r', !narr && (st0.user || (at != null && at > 55)));
+        plate.textContent = narr ? '…' : st0.who;
+        txt.className = `rls-vn-text ${st0.kind}`;
+        txt.innerHTML = stepHtml(st0);
+        if (moved && !quiet) { txt.classList.remove('in'); void txt.offsetWidth; txt.classList.add('in'); }
+        faceFor(st0);
+        roomFor(k);
+        const end = k === N.steps.length - 1;
+        box.classList.toggle('waiting', end && stBusy());
+        box.classList.toggle('end', end);
+        count.textContent = end ? '' : `${k + 1} / ${N.steps.length}`;
+        list.querySelectorAll('.rls-vn-logrow.cur').forEach(x => x.classList.remove('cur'));
+        const row = list.querySelector(`[data-k="${k}"]`); if (row) row.classList.add('cur');
+        syncChoices();
+    };
+    // rebuild from the chat; `playFrom` starts a reply from its beginning when the reader was waiting at the end
+    const refresh = (playFrom = null) => {
+        if (novel !== N) return;
+        const cur = N.steps[N.idx];
+        const curMid = cur ? cur.mid : null, curOff = cur ? N.idx - N.start.get(cur.mid) : 0;
+        const tl = novelTimeline();
+        N.steps = tl.steps; N.start = tl.start;
+        list.innerHTML = N.steps.map((st0, k) => `<button type="button" class="rls-vn-logrow ${st0.kind}${st0.user ? ' mine' : ''}" data-k="${k}"><span class="rls-vn-logwho">${escapeHtml(st0.who === '-' ? '—' : st0.who)}</span><span class="rls-vn-logtext">${stepHtml(st0)}</span></button>`).join('');
+        let k;
+        if (playFrom != null && N.start.has(playFrom) && (N.follow || N.idx < 0)) k = N.start.get(playFrom);
+        else if (curMid != null && N.start.has(curMid)) k = Math.min(N.start.get(curMid) + curOff, N.steps.length - 1);
+        else k = N.steps.length - 1;
+        show(k, playFrom == null && k === N.idx);
+        loadSprites();
+    };
+    N.refresh = refresh;
+    const next = () => { if (!log.hidden) return; if (N.idx < N.steps.length - 1) show(N.idx + 1, false, true); else { N.follow = true; syncChoices(); if (choices.hidden) input.focus({ preventScroll: true }); } };   // never scroll SillyTavern's page under the novel
+    const prev = () => { if (!log.hidden) return; if (N.idx > 0) show(N.idx - 1, false, true); };
+    const toggleLog = on => { log.hidden = !on; $q('.rls-vn-logbtn').classList.toggle('on', on); if (on) { const row = list.querySelector('.cur'); if (row) row.scrollIntoView({ block: 'center' }); } };
+    list.addEventListener('click', e => { const row = e.target.closest('.rls-vn-logrow'); if (!row) return; toggleLog(false); show(Number(row.dataset.k), false, true); box.focus(); });
+    $q('.rls-vn-logbtn').addEventListener('click', e => { e.stopPropagation(); toggleLog(log.hidden); });
+    $q('.rls-vn-close').addEventListener('click', e => { e.stopPropagation(); closeNovel(true); });
+    $q('.rls-vn-solo').addEventListener('click', e => { e.stopPropagation(); document.getElementById('rpg-end-solo')?.click(); });
+    const lastMesEl = () => document.querySelector('#chat .mes.last_mes') || [...document.querySelectorAll('#chat .mes')].pop();
+    $q('.rls-vn-prev').addEventListener('click', e => { e.stopPropagation(); lastMesEl()?.querySelector('.swipe_left')?.click(); });
+    $q('.rls-vn-next2').addEventListener('click', e => { e.stopPropagation(); lastMesEl()?.querySelector('.swipe_right')?.click(); });
+    $q('.rls-vn-regen').addEventListener('click', e => { e.stopPropagation(); if (stBusy()) return; document.getElementById('option_regenerate')?.click(); });
+    $q('.rls-vn-stop').addEventListener('click', e => { e.stopPropagation(); document.getElementById('mes_stop')?.click(); });
+    box.addEventListener('click', e => { if (e.target.closest('a')) return; next(); });
+    stage.addEventListener('click', next);
+    // a line of your own: SillyTavern's own box and button send it, as if typed there
+    const fit = () => { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 140) + 'px'; };
+    input.addEventListener('input', fit);
+    $q('.rls-vn-say').addEventListener('submit', e => {
+        e.preventDefault();
+        const words = input.value.trim();
+        if (!words) { next(); return; }
+        if (stBusy()) { toastr.info(t('novel_busy')); return; }
+        const ta = document.getElementById('send_textarea'), send = document.getElementById('send_but');
+        if (!ta || !send) return;
+        N.follow = true;
+        $(ta).val(words).trigger('input');
+        send.click();
+        input.value = ''; fit();
+        box.focus({ preventScroll: true });
+    });
+    input.addEventListener('keydown', e => {
+        if (e.key === 'Enter' && !e.shiftKey && !e.isComposing) { e.preventDefault(); $q('.rls-vn-say').requestSubmit(); }
+    });
+    const onKey = e => {
+        if (novel !== N) return;
+        const typing = e.target && (e.target === input || e.target.closest?.('input, textarea, select, [contenteditable="true"]'));
+        if (e.key === 'Escape') { e.preventDefault(); if (!log.hidden) toggleLog(false); else if (typing) input.blur(); else closeNovel(true); return; }
+        if (typing || !log.hidden || !ov.contains(document.activeElement) && document.activeElement !== document.body) return;
+        if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter' || e.key === 'PageDown') { e.preventDefault(); e.stopPropagation(); next(); }
+        else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); e.stopPropagation(); prev(); }
+    };
+    document.addEventListener('keydown', onKey, true);
+    N.off = () => document.removeEventListener('keydown', onKey, true);
+    // what changes outside the chat's events: the room, Map's choices arriving, the stop button
+    N.timer = setInterval(() => { if (novel === N && !document.hidden) { syncBg(); syncBar(); syncChoices(); box.classList.toggle('waiting', N.idx >= N.steps.length - 1 && stBusy()); } }, 700);
+    // older browsers without overflow: clip — whatever scrolls the stage is put back
+    ov.addEventListener('scroll', () => { if (ov.scrollTop || ov.scrollLeft) { ov.scrollTop = 0; ov.scrollLeft = 0; } });
+    N.look();
+    document.body.appendChild(ov);
+    document.body.classList.add('rls-novel-on');
+    N.idx = -1;
+    // a reply chosen with its ▶: from its first line; else the newest reply
+    N.goto = id => { refresh(null); if (N.start.has(id)) show(N.start.get(id), false, true); };
+    if (fromId != null) { refresh(null); if (N.start.has(fromId)) show(N.start.get(fromId), false, true); }
+    else refresh(lastReplyId() >= 0 ? lastReplyId() : null);
+    box.focus({ preventScroll: true });
+    if (!settings.novel) { settings.novel = true; saveSettings(); }
+}
+function closeNovel(byHand = false) {
+    if (!novel) return;
+    const N = novel;
+    novel = null;
+    N.off && N.off();
+    clearInterval(N.timer);
+    clearInterval(N.underTimer);
+    clearTimeout(N.cardTimer);
+    N.ov.classList.add('out');
+    setTimeout(() => N.ov.remove(), 220);
+    document.body.classList.remove('rls-novel-on');
+    if (byHand && settings.novel) { settings.novel = false; saveSettings(); }
+}
+// a reply that has just come: played once its split by roles is in (or given up on)
+async function novelOnReply(id) {
+    if (!novel) return;
+    const N = novel;
+    N.refresh(null);
+    await new Promise(r => setTimeout(r, 700));   // the split is asked for 300 ms after the reply
+    const ctx = getContext();
+    const until = Date.now() + waitFor(60000) + 5000;   // as long as the split itself may take
+    while (novel === N && Date.now() < until) {
+        const m = ctx.chat[id];
+        const key = `${ctx.chatId}#${id}#${m ? (m.swipe_id ?? 0) : 0}`;
+        if (!partsBusy.has(key)) break;
+        await new Promise(r => setTimeout(r, 300));
+    }
+    if (novel === N) N.refresh(id);
+}
+function novelMenuItem() {
+    if (document.getElementById('rls-novel-wand')) { $('#rls-novel-wand span').text(t('novel_menu')); return; }
+    const menu = document.getElementById('extensionsMenu');
+    if (!menu) return;
+    const it = document.createElement('div');
+    it.id = 'rls-novel-wand';
+    it.className = 'list-group-item flex-container flexGap5';
+    it.innerHTML = `<div class="fa-solid fa-book-open extensionsMenuExtensionButton"></div><span>${escapeHtml(t('novel_menu'))}</span>`;
+    it.addEventListener('click', () => { if (!settings.enabled) return; if (novel) closeNovel(true); else if (isChatOpen()) openNovel(); });
+    menu.appendChild(it);
+}
+
+// "split by roles" in the message's own menu: for older replies, or to ask again
+function addSplitButton(mesEl, messageId) {
+    const bar = mesEl.querySelector('.extraMesButtons');
+    if (!bar) return;
+    let b = bar.querySelector('.rls-split-btn');
+    if (!settings.enabled || settings.lineFaces === false) { if (b) b.remove(); return; }
+    if (!b) {
+        b = document.createElement('div');
+        b.className = 'mes_button rls-split-btn fa-solid fa-people-arrows';
+        b.addEventListener('click', e => {
+            e.stopPropagation();
+            const id = Number(b.closest('.mes')?.getAttribute('mesid'));
+            if (!Number.isFinite(id)) return;
+            if (partsShowText.has(id)) { partsShowText.delete(id); const m = getContext().chat[id]; const sv = m && m.extra && m.extra.rls_parts && m.extra.rls_parts[m.swipe_id ?? 0]; if (sv && sv.h === partsHash(m.mes)) { renderParts(id); return; } }
+            askParts(id, true);
+        });
+        bar.prepend(b);
+    }
+    b.title = t('parts_btn');
+}
+// ▶ on a reply: that reply in the novel — split first if it is not yet, the novel opened if it is not yet
+function addNovelButton(mesEl, messageId) {
+    const bar = mesEl.querySelector('.mes_buttons');
+    if (!bar) return;
+    let b = bar.querySelector('.rls-novel-btn');
+    if (!settings.enabled || settings.novelBtn === false) { if (b) b.remove(); return; }
+    if (!b) {
+        b = document.createElement('div');
+        b.className = 'mes_button rls-novel-btn fa-solid fa-play';
+        b.setAttribute('role', 'button');
+        b.tabIndex = 0;
+        const go = e => {
+            e.stopPropagation();
+            const id = Number(b.closest('.mes')?.getAttribute('mesid'));
+            if (Number.isFinite(id)) playInNovel(id);
+        };
+        b.addEventListener('click', go);
+        b.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(e); } });
+        const extra = bar.querySelector('.extraMesButtonsHint');
+        if (extra) extra.before(b); else bar.prepend(b);
+    }
+    b.title = t('novel_btn');
+    b.setAttribute('aria-label', t('novel_btn'));
+}
+async function playInNovel(id) {
+    if (!settings.enabled || !isChatOpen()) return;
+    const msg = getContext().chat[id];
+    if (!msg || msg.is_system) return;
+    // not split yet: split it first (one call), then play
+    if (!msg.is_user && settings.lineFaces !== false && !partsView(id) && apiKey()) {
+        const btn = document.querySelector(`#chat .mes[mesid="${id}"] .rls-novel-btn`);
+        if (btn) btn.classList.add('busy');
+        try { await askParts(id, false); } finally { if (btn) btn.classList.remove('busy'); }
+    }
+    if (!novel) openNovel(id);
+    else if (novel.goto) novel.goto(id);
+}
+function renderAllParts() {
+    const chat = getContext().chat || [];
+    document.querySelectorAll('#chat .mes[mesid]').forEach(el => { const id = Number(el.getAttribute('mesid')); if (chat[id] && !chat[id].is_user) renderParts(id); });
+}
+// Cyrillic ⇄ Latin, so a card named in Russian is found in an English reply (Мегумин / Megumin)
+const TR_CYR = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya' };
+const TR_LAT = [['sch', 'щ'], ['sh', 'ш'], ['ch', 'ч'], ['zh', 'ж'], ['ts', 'ц'], ['yu', 'ю'], ['ya', 'я'], ['kh', 'х'], ['a', 'а'], ['b', 'б'], ['c', 'к'], ['d', 'д'], ['e', 'е'], ['f', 'ф'], ['g', 'г'], ['h', 'х'], ['i', 'и'], ['j', 'дж'], ['k', 'к'], ['l', 'л'], ['m', 'м'], ['n', 'н'], ['o', 'о'], ['p', 'п'], ['q', 'к'], ['r', 'р'], ['s', 'с'], ['t', 'т'], ['u', 'у'], ['v', 'в'], ['w', 'в'], ['x', 'кс'], ['y', 'й'], ['z', 'з']];
+function translit(x) {
+    const low = String(x || '').toLowerCase();
+    if (/[а-яё]/.test(low)) return low.split('').map(ch => TR_CYR[ch] ?? ch).join('');
+    let out = '', i = 0;
+    while (i < low.length) { const hit = TR_LAT.find(([l]) => low.startsWith(l, i)); if (hit) { out += hit[1]; i += hit[0].length; } else { out += low[i]; i++; } }
+    return out;
+}
+// how a name can be found in the text, in either alphabet
+function probesFor(n) {
+    // "The Cook" is found by "Cook", never by "the"
+    const pr = probesOf(n).filter(x => !SMALL_WORDS.has(x));
+    aliasNamesOf(n).forEach(a0 => { const words = String(a0).trim().split(/\s+/); if (words.length > 1 && SMALL_WORDS.has(words[0].toLowerCase())) { const st0 = nameStem(words[1]); if (st0.length >= 3) pr.push(st0); } });
+    // the other words of a full name count too: «Ким Минджун» is called Minjun, William James Moriarty is Moriarty
+    aliasNamesOf(n).forEach(a0 => String(a0).trim().split(/\s+/).slice(1).forEach(wd => { if (SMALL_WORDS.has(wd.toLowerCase())) return; const st1 = nameStem(wd); if (st1.length >= 4) pr.push(st1); }));
+    pr.slice().forEach(x => {
+        const tr = translit(x);
+        if (!tr || tr === x || tr.length < 3) return;
+        pr.push(tr);
+        // «Минджун» is Minjun, «Джон» is Jon, «Сэйдзи» is Seiji: дж and дз are also written j, й also i
+        const alt = tr.replace(/dzh|dz/g, 'j').replace(/y(?=[^aeiouy]|$)/g, 'i');
+        if (alt !== tr && alt.length >= 3) pr.push(alt);
+    });
+    return [...new Set(pr)];
+}
+// portraits and names the scene knows: the chat's cards, the roster's NPCs, the diary's people, the player
+let candCache = null;
+function faceCandidates() {
+    // asked for every block of a redraw: the answer is kept for a moment
+    const key = `${getContext().chatId}|${selected_group || ''}`;
+    if (candCache && candCache.key === key && Date.now() - candCache.at < 400) return candCache.list;
+    const list = buildCandidates();
+    candCache = { key, at: Date.now(), list };
+    return list;
+}
+function buildCandidates() {
+    const ctx = getContext();
+    const out = [], seen = new Set();
+    const add = (name, pic, kind) => {
+        const n = String(name || '').trim();
+        if (!n) return;
+        if (seen.has(n.toLowerCase())) {
+            // the same person from another source: their picture fills a gap, never replaces one
+            const had = out.find(x => x.name.toLowerCase() === n.toLowerCase());
+            if (had && !had.pic && pic) had.pic = pic;
+            return;
+        }
+        const cand = { name: n, pic: pic || '', kind, probes: probesFor(n) };
+        // the same person written another way ("Megumin" in the diary, «Мегумин» in the roster):
+        // one entry, the first name stays; both names have to find each other, so Ann is not Anna
+        const twin = kind !== 'user' && out.find(x => x.kind !== 'user' && namesIn(n, [x]).length && namesIn(x.name, [cand]).length);
+        if (twin) { if (!twin.pic && pic) twin.pic = pic; seen.add(n.toLowerCase()); return; }
+        seen.add(n.toLowerCase());
+        out.push(cand);
+    };
+    try {
+        // a card of the same name lends its face — but not to a description like "The Cook", which many cards share
+        const cardPic = nm => { if (/^(the|a|an)\s/i.test(String(nm || '').trim())) return ''; const c = characters.find(x => x && x.name === nm); return c && c.avatar ? `/thumbnail?type=avatar&file=${encodeURIComponent(c.avatar)}` : ''; };
+        if (selected_group) {
+            const g = (groups || []).find(x => x && x.id === selected_group);
+            (g && g.members || []).forEach(av => { const c = characters.find(x => x && x.avatar === av); if (c) add(c.name, cardPic(c.name), 'card'); });
+        } else if (ctx.characterId !== undefined && characters[ctx.characterId]) add(characters[ctx.characterId].name, cardPic(characters[ctx.characterId].name), 'card');
+        const st = sceneState();
+        st.npcs.forEach(n => add(n.name, cardPic(n.name), 'npc'));
+        diaryNpcs().forEach(n => add(n.name, (typeof n.portrait === 'string' && n.portrait) || cardPic(n.name), 'npc'));
+        phoneCast().forEach(n => add(n, cardPic(n), 'npc'));   // the people inside the card, as RPG Phone lists them
+        add(ctx.name1 || name1, user_avatar ? `/thumbnail?type=persona&file=${encodeURIComponent(user_avatar)}` : '', 'user');
+        // still no face: a diary portrait or a card of the same person under another written name
+        // ("Аква" in the roster, "Aqua" in the diary — aliases, Phone's «Also called» and learned forms count)
+        const npcs = diaryNpcs().filter(n => typeof n.portrait === 'string' && n.portrait);
+        out.forEach(c => {
+            if (c.pic || c.kind === 'user') return;
+            const d = npcs.find(n => namesIn(n.name, [c]).length);
+            if (d) { c.pic = d.portrait; return; }
+            const card = characters.find(x => x && x.avatar && x.name && namesIn(x.name, [c]).length);
+            if (card) c.pic = `/thumbnail?type=avatar&file=${encodeURIComponent(card.avatar)}`;
+        });
+    } catch (e) { console.warn('[Living Scene] roles: cast', e); }
+    return out.filter(c => c.probes.length);
+}
+// where each name stands in a piece of text: [{ c, at }]
+function namesIn(text, cands) {
+    const low = String(text || '').toLowerCase().replace(/ё/g, 'е');
+    const hits = [];
+    cands.forEach(c => c.probes.forEach(pr => {
+        const p = pr.replace(/ё/g, 'е');
+        let i = low.indexOf(p);
+        while (i !== -1) {
+            if (!/[\p{L}\p{N}]/u.test(i > 0 ? low[i - 1] : ' ')) hits.push({ c, at: i });
+            i = low.indexOf(p, i + 1);
+        }
+    }));
+    return hits.sort((a, b) => a.at - b.at);
+}
+function onlyOne(hits) {
+    const names = [...new Set(hits.map(h => h.c.name))];
+    return names.length === 1 ? hits[0].c : null;
+}
+
 jQuery(() => {
     loadSettings();
     console.log(`[Living Scene] loaded — who speaks next: ${settings.passEnabled ? 'ON' : 'OFF'}, fallback to a random enabled member: ${settings.passFallbackRandom ? 'ON' : 'OFF'}`);
     setupUI();
     renderRosterButton();
     initLayer();
+    novelMenuItem();   // the wand menu: "Novel mode" (SillyTavern builds that menu late: again once the app is ready)
+    if (event_types.APP_READY) eventSource.on(event_types.APP_READY, novelMenuItem);
+    setTimeout(novelMenuItem, 1500);
 
     // keep the floating bubbles glued to their messages (same trio as the thought bubbles)
     const chatElement = document.getElementById('chat');
@@ -1869,6 +3578,7 @@ jQuery(() => {
     });
 
     eventSource.on(event_types.MESSAGE_SENT, (messageId) => {
+        roomMark(messageId);
         turnChain = 0;                       // the player wrote: the chain starts over
         if (settings.reactToUser) setTimeout(() => processMessage(messageId), 60);
         if (hasWrapperEvents && selected_group) {
@@ -1924,5 +3634,42 @@ jQuery(() => {
     eventSource.on(event_types.MESSAGE_EDITED, (messageId) => {
         const m = getContext().chat[messageId];
         if (m && m.extra && Array.isArray(m.extra.rls_barks)) renderBarks(messageId);
+    });
+
+    // the scene by roles: drawn whenever SillyTavern draws a message's text again
+    eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, (messageId) => renderParts(messageId));
+    ['MESSAGE_UPDATED', 'MESSAGE_SWIPED', 'MESSAGE_EDITED'].forEach(k => {
+        if (event_types[k]) eventSource.on(event_types[k], (messageId) => setTimeout(() => renderParts(messageId), 30));
+    });
+    eventSource.on(event_types.CHAT_CHANGED, () => {
+        partsShowText.clear(); closeScene(); spritePeople.clear(); setTimeout(renderAllParts, 400);
+        // the novel stays the way you left it: open in the next chat too
+        setTimeout(() => {
+            if (!settings.enabled || !settings.novel || !isChatOpen()) { closeNovel(); return; }
+            if (novel) { novel.idx = -1; novel.sprites = {}; novel.refresh(lastReplyId()); } else openNovel();
+        }, 500);
+    });
+    eventSource.on(event_types.MESSAGE_RECEIVED, id => { if (novel) novelOnReply(Number(id)); });
+    // your own message: shown at once (it is yours, nothing to wait for)
+    [event_types.MESSAGE_SENT, event_types.USER_MESSAGE_RENDERED].forEach(ev => { if (ev) eventSource.on(ev, () => setTimeout(() => { if (!novel) return; const chat = getContext().chat || []; const last = chat.length - 1; if (last >= 0 && chat[last].is_user) novel.refresh(last); }, 30)); });
+    [event_types.MESSAGE_SWIPED].forEach(ev => { if (ev) eventSource.on(ev, id => { if (novel) { novel.follow = true; setTimeout(() => novel && novel.refresh(Number(id)), 40); } }); });
+    [event_types.MESSAGE_DELETED, event_types.MESSAGE_EDITED, event_types.MESSAGE_UPDATED, event_types.GENERATION_STARTED, event_types.GENERATION_ENDED, event_types.GENERATION_STOPPED].forEach(ev => { if (ev) eventSource.on(ev, () => { if (novel) setTimeout(() => novel && novel.refresh(null), 40); }); });
+    // a portrait put into the diary shows on the blocks already drawn, not only on the next reply
+    let diaryFaces = '';
+    eventSource.on(event_types.SETTINGS_UPDATED, () => {
+        const sig = diaryNpcs().map(n => `${n.name}:${typeof n.portrait === 'string' ? n.portrait.length : 0}`).join('|');
+        if (sig === diaryFaces) return;
+        const first = !diaryFaces && !sig;
+        diaryFaces = sig;
+        if (!first && document.querySelector('#chat .rls-parts')) { candCache = null; renderAllParts(); }
+    });
+    // a finished reply is read once, after the bubbles have had their turn
+    eventSource.on(event_types.MESSAGE_RECEIVED, (messageId) => { soloMark(messageId); roomMark(messageId); setTimeout(() => { if (settings.partsAuto !== false || novel) askParts(messageId); }, 300); });
+    // editing needs the real text: the blocks step aside while the editor is open
+    $(document).on('click', '.mes_edit', function () {
+        const mes = this.closest('.mes');
+        if (!mes) return;
+        const p = mes.querySelector('.rls-parts'); if (p) p.remove();
+        const tx = mes.querySelector('.mes_text'); if (tx) tx.classList.remove('rls-hidden');
     });
 });
