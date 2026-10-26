@@ -2854,7 +2854,8 @@ async function askParts(messageId, manual = false, again = false) {
     const swipeId = msg.swipe_id ?? 0;
     const key = `${myChat}#${messageId}#${swipeId}`;
     if (partsBusy.has(key)) return;
-    const { text, pieces } = splitPieces(msg.mes);
+    const mes0 = String(msg.mes || '');     // the text as it was asked about (another extension may rewrite it meanwhile)
+    const { text, pieces } = splitPieces(mes0);
     if (pieces.length < 2) { if (manual) toastr.info(t('parts_one')); return; }
     /* The text's own signs first — a name opening a sentence, "he said" after a line, an action
        beat before it, "you…" for the player, a room with nobody in it. What they settle for sure is
@@ -2888,7 +2889,10 @@ async function askParts(messageId, manual = false, again = false) {
         }
         if (getContext().chatId !== myChat) return;
         const now = getContext().chat[messageId];
-        if (!now || (now.swipe_id ?? 0) !== swipeId || now.mes !== msg.mes) return;   // the reply changed meanwhile
+        if (!now || (now.swipe_id ?? 0) !== swipeId) return;   // another swipe now: its own split comes with it
+        // the reply was rewritten meanwhile (an extension tidying it, a continue): the answer was about the
+        // old text — the new text is read once more instead of the split being dropped without a word
+        if (String(now.mes || '') !== mes0) { if (!again) { console.log('[Living Scene] roles: the reply changed while it was read — reading the new text'); retry = true; } return; }
         // numbered answers: a skipped or merged piece can no longer shift every name after it
         let raw = null;
         const w0 = res && (res.who ?? res);
@@ -2904,7 +2908,7 @@ async function askParts(messageId, manual = false, again = false) {
         if (local) who.forEach((w, i) => { if (w === '?' && local[i] && local[i].w) who[i] = local[i].w; });
         if (!now.extra) now.extra = {};
         if (!now.extra.rls_parts || typeof now.extra.rls_parts !== 'object') now.extra.rls_parts = {};
-        now.extra.rls_parts[swipeId] = { h: partsHash(now.mes), p: pieces.map(x => [x.s, x.e, x.kind === 'say' ? 's' : 'a']), w: who, f: partsFeel(res && res.feel, pieces.length) };
+        now.extra.rls_parts[swipeId] = { h: partsHash(mes0), p: pieces.map(x => [x.s, x.e, x.kind === 'say' ? 's' : 'a']), w: who, f: partsFeel(res && res.feel, pieces.length) };
         rememberPeople(who);
         saveScene();
         if (mayRetry) {
@@ -4385,6 +4389,22 @@ jQuery(() => {
     });
     // a finished reply is read once, after the bubbles have had their turn
     eventSource.on(event_types.MESSAGE_RECEIVED, (messageId) => { soloMark(messageId); roomMark(messageId); setTimeout(() => { if (settings.partsAuto !== false || novel) askParts(messageId); }, 300); });
+    /* a split reply whose text changed afterwards (you edited it, an extension rewrote it): its blocks no
+       longer fit and it fell back to plain text — with the split on by itself, it is read again */
+    const restale = {};
+    ['MESSAGE_UPDATED', 'MESSAGE_EDITED'].forEach(k => {
+        if (event_types[k]) eventSource.on(event_types[k], messageId => {
+            const id = Number(messageId);
+            clearTimeout(restale[id]);
+            restale[id] = setTimeout(() => {
+                if (!(settings.partsAuto !== false || novel)) return;
+                const m = getContext().chat[id];
+                if (!m || m.is_user || m.is_system) return;
+                const sv = m.extra && m.extra.rls_parts && m.extra.rls_parts[m.swipe_id ?? 0];
+                if (sv && sv.h !== partsHash(m.mes) && !document.querySelector(`#chat .mes[mesid="${id}"] .mes_text textarea`)) askParts(id);
+            }, 500);
+        });
+    });
     // editing needs the real text: the blocks step aside while the editor is open
     $(document).on('click', '.mes_edit', function () {
         const mes = this.closest('.mes');
