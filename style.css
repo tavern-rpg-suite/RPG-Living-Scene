@@ -368,9 +368,13 @@
    and the whole row of icons used to jump left and back when it came and went */
 .mes_buttons .rls-split-btn, .mes_buttons .rls-novel-btn { box-sizing: content-box; width: 1.25em; text-align: center; }
 .rls-split-btn.busy, .rls-novel-btn.busy { opacity: .7; pointer-events: none; }
-.rls-split-btn.busy::before, .rls-novel-btn.busy::before { content: '\f110'; display: inline-block; width: 1em; height: 1em; line-height: 1em; vertical-align: -0.125em; text-align: center; animation: rls-spin 1s linear infinite; transform-origin: 50% 50%; }
-@keyframes rls-spin { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .rls-parts.anim .rls-part, .rls-split-btn.busy::before, .rls-novel-btn.busy::before { animation: none; } .rls-part.who:hover { transform: none; } }
+/* busy: the button keeps its own icon (made invisible) so the row does not move by a pixel,
+   and a round ring turns over it, centred on the button — a circle has no edge to wobble */
+.rls-split-btn.busy, .rls-novel-btn.busy { position: relative; }
+.rls-split-btn.busy::before, .rls-novel-btn.busy::before { color: transparent; }
+.rls-ring { position: absolute; left: 50%; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; box-sizing: border-box; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; opacity: .9; pointer-events: none; animation: rls-ring .8s linear infinite; will-change: transform; }
+@keyframes rls-ring { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .rls-parts.anim .rls-part { animation: none; } .rls-ring { animation-duration: 2.4s; } .rls-part.who:hover { transform: none; } }
 @media (max-width: 600px) { .rls-part.who { max-width: 100%; } .rls-part-ava { width: 36px; height: 36px; } }
 /* the theme's own colours for quotes and italics, as in the message itself */
 .rls-parts q { color: var(--SmartThemeQuoteColor); }
@@ -703,3 +707,17 @@
 .rls-parts-fold { display: flex; justify-content: flex-end; margin: 2px 0 0; }
 .rls-parts-fold .rls-unfold { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border: 1px solid color-mix(in srgb, var(--SmartThemeBodyColor, #ddd) 18%, transparent); border-radius: 999px; background: transparent; color: var(--SmartThemeBodyColor, #ddd); opacity: .45; font-size: .78em; cursor: pointer; transition: opacity .15s; }
 .rls-parts-fold .rls-unfold:hover, .rls-parts-fold .rls-unfold:focus-visible { opacity: .9; }
+
+/* "whose is this?" — a small menu at the pointer (right-click or a long press on a block) */
+#rls-fixmenu { position: fixed; z-index: 4000; min-width: 200px; max-width: 280px; max-height: 60vh; overflow-y: auto; padding: 6px; border-radius: 12px; background: rgba(28, 22, 30, .97); border: 1px solid rgba(232, 200, 130, .28); box-shadow: 0 14px 34px rgba(0, 0, 0, .5); color: #eee3d0; font-size: 14px; animation: rls-gl-in .16s ease-out; }
+#rls-fixmenu .rls-fix-title { padding: 4px 8px 6px; font-size: 12px; letter-spacing: .06em; opacity: .65; }
+#rls-fixmenu .rls-fix-item { display: flex; align-items: center; gap: 9px; width: 100%; min-height: 36px; padding: 4px 8px; border: 0; border-radius: 8px; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+#rls-fixmenu .rls-fix-item:hover, #rls-fixmenu .rls-fix-item:focus-visible { background: rgba(232, 200, 130, .12); outline: none; }
+#rls-fixmenu .rls-fix-item.on { background: rgba(232, 200, 130, .2); }
+#rls-fixmenu .rls-fix-item img, #rls-fixmenu .rls-fix-item .rls-part-ini { width: 24px; display: grid; place-items: center; background: rgba(232,200,130,.18); height: 24px; border-radius: 50%; object-fit: cover; flex: none; font-size: 10px; }
+#rls-fixmenu .rls-fix-item > span:last-child { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+#rls-fixmenu .rls-fix-narr { width: 24px; height: 24px; flex: none; display: grid; place-items: center; border-radius: 50%; border: 1px solid rgba(232, 200, 130, .3); font-size: 13px; opacity: .8; }
+#rls-fixmenu .rls-fix-new { display: flex; gap: 6px; padding: 6px 4px 2px; border-top: 1px solid rgba(232, 200, 130, .14); margin-top: 4px; }
+#rls-fixmenu .rls-fix-new input { flex: 1; min-width: 0; height: 32px; padding: 0 8px; border-radius: 7px; border: 1px solid rgba(232, 200, 130, .25); background: rgba(255, 255, 255, .06); color: inherit; font: inherit; }
+#rls-fixmenu .rls-fix-new button { height: 32px; padding: 0 12px; border-radius: 7px; border: 1px solid rgba(232, 200, 130, .35); background: rgba(232, 200, 130, .15); color: inherit; font: inherit; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { #rls-fixmenu { animation: none; } }

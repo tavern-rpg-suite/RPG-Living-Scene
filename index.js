@@ -80,6 +80,8 @@ const I18N = {
         set_off_right: 'Right bubbles: offset from message top (px):',
         set_parts_auto: 'Split every new reply by itself (off — only with the button)',
         set_parts_fold: 'Older replies as plain text with a “By roles” button (the last 3 stay in blocks)', parts_unfold: 'By roles',
+        set_parts_code: 'Rules first: the model is asked only about what the text does not show', set_parts_solo: 'Show a reply of one character as a block too (portrait and name)', parts_fix_hint: 'Right-click or hold a block to say whose it is.',
+        fix_title: 'Whose is this?', fix_narr: 'Narration', fix_new: 'Someone else…', fix_ph: 'Name', fix_ok: 'OK',
         set_parts_style: 'Look of the blocks:', style_glass: 'Glass — small faces, light frames', style_ink: 'Ink — no frames, a coloured line', style_classic: 'As before — big faces',
         set_parts_anim: 'Text appears:', anim_none: 'at once', anim_fade: 'word by word, fading in', anim_type: 'word by word, typed',
         set_parts_fonts: 'Each person has their own colour and lettering',
@@ -172,6 +174,8 @@ const I18N = {
         set_off_right: 'Облачка справа: отступ от верха сообщения (px):',
         set_parts_auto: 'Разбивать каждый новый ответ сам (выкл. — только по кнопке)',
         set_parts_fold: 'Старые ответы — обычным текстом с кнопкой «По ролям» (последние 3 остаются блоками)', parts_unfold: 'По ролям',
+        set_parts_code: 'Сначала правила: модель спрашивается только о том, чего не видно из текста', set_parts_solo: 'Показывать блоком и ответ одного персонажа (портрет и имя)', parts_fix_hint: 'Правый клик или долгое нажатие по блоку — выбрать, чей он.',
+        fix_title: 'Чьё это?', fix_narr: 'Повествование', fix_new: 'Кто-то другой…', fix_ph: 'Имя', fix_ok: 'OK',
         set_parts_style: 'Вид блоков:', style_glass: 'Стекло — маленькие лица, лёгкие рамки', style_ink: 'Чернила — без рамок, цветная линия', style_classic: 'Как раньше — крупные лица',
         set_parts_anim: 'Появление текста:', anim_none: 'сразу', anim_fade: 'по словам, проявляясь', anim_type: 'по словам, как печать',
         set_parts_fonts: 'У каждого свой цвет и почерк',
@@ -282,6 +286,8 @@ function loadSettings() {
         mapPresence: true,   // RPG Map's "Who is where" decides who is present (your switch still wins)
         partsAuto: true,     // every new reply is split by itself (off: only with the button, or while the novel is open)
         partsFold: true,     // older replies show their plain text with a "by roles" button; the last few stay in blocks
+        partsCodeFirst: true, // the text's own signs settle what they can; the model is asked only about the rest
+        partsSolo: false,     // a reply where one character does everything: shown as one block too
         partsStyle: 'glass', // the blocks' look: glass | ink | classic
         partsAnim: 'fade',   // the text of a new block: none | fade | type
         partsFonts: true,    // each person their own colour and lettering
@@ -2084,6 +2090,9 @@ function settingsHtml() {
                 <div class="rls-in">
                     <label class="checkbox_label"><input type="checkbox" id="rls-parts-auto"> ${t('set_parts_auto')}</label>
                     <label class="checkbox_label"><input type="checkbox" id="rls-parts-fold"> ${t('set_parts_fold')}</label>
+                    <label class="checkbox_label"><input type="checkbox" id="rls-parts-code"> ${t('set_parts_code')}</label>
+                    <label class="checkbox_label"><input type="checkbox" id="rls-parts-solo"> ${t('set_parts_solo')}</label>
+                    <small class="rls-hint">${t('parts_fix_hint')}</small>
                     <div class="rls-row stack"><label for="rls-parts-style">${t('set_parts_style')}</label><select id="rls-parts-style" class="text_pole"><option value="glass">${t('style_glass')}</option><option value="ink">${t('style_ink')}</option><option value="classic">${t('style_classic')}</option></select></div>
                     <div class="rls-row stack"><label for="rls-parts-anim">${t('set_parts_anim')}</label><select id="rls-parts-anim" class="text_pole"><option value="none">${t('anim_none')}</option><option value="fade">${t('anim_fade')}</option><option value="type">${t('anim_type')}</option></select></div>
                     <label class="checkbox_label"><input type="checkbox" id="rls-parts-fonts"> ${t('set_parts_fonts')}</label>
@@ -2176,6 +2185,8 @@ function setupUI() {
     $('#rls-parts-style').val(settings.partsStyle).on('change', function () { settings.partsStyle = this.value; saveSettings(); renderAllParts(); });
     $('#rls-parts-anim').val(settings.partsAnim).on('change', function () { settings.partsAnim = this.value; saveSettings(); });
     $('#rls-parts-fold').prop('checked', settings.partsFold !== false).on('change', function () { settings.partsFold = this.checked; saveSettings(); renderAllParts(); });
+    $('#rls-parts-code').prop('checked', settings.partsCodeFirst !== false).on('change', function () { settings.partsCodeFirst = this.checked; saveSettings(); });
+    $('#rls-parts-solo').prop('checked', settings.partsSolo === true).on('change', function () { settings.partsSolo = this.checked; saveSettings(); renderAllParts(); });
     $('#rls-parts-fonts').prop('checked', settings.partsFonts !== false).on('change', function () { settings.partsFonts = this.checked; saveSettings(); renderAllParts(); });
     $('#rls-novel-btn').prop('checked', settings.novelBtn !== false).on('change', function () { settings.novelBtn = this.checked; saveSettings(); renderAllParts(); });
     const novelLook = () => { if (novel && novel.look) novel.look(); };
@@ -2225,6 +2236,7 @@ const THINK_RE = /<(think|thinking|reasoning|reflection)\b[^>]*>[\s\S]*?<\/\1\s*
 function blankThinking(text) {
     return String(text).replace(THINK_RE, m => m.replace(/[^\n]/g, ' '));
 }
+const ABBR_END = /(?:^|[\s(«"“*_])(?:Mr|Mrs|Ms|Mx|Dr|Prof|St|Sr|Jr|Sgt|Lt|Capt|Col|Gen|Rev|Fr|Mt|vs|etc|e\.g|i\.e|\p{Lu}|г|гг|т|тт|ул|им|проф|св|др|см)\.$/u;
 function splitPieces(mes) {
     const text = String(mes || '').replace(/\r\n?/g, '\n');
     const scan = blankThinking(text);   // what is cut: the text with the thinking blanked out
@@ -2239,11 +2251,16 @@ function splitPieces(mes) {
     const narr = (s0, e0) => {
         const chunk = scan.slice(s0, e0);
         const re = /[^.!?…]+(?:[.!?…]+["»”*]*|$)/g;
-        let m;
+        let m, from = -1;
         while ((m = re.exec(chunk)) && m[0]) {
             const ps = s0 + m.index, pe = ps + m[0].length;
-            push(ps, pe, 'act');
+            if (from < 0) from = ps;
+            // "Mr. Han", "Dr. Voss", "J. R. Smith": a title or an initial ends with a dot but not the sentence
+            if (pe < e0 && ABBR_END.test(m[0])) continue;
+            push(from, pe, 'act');
+            from = -1;
         }
+        if (from >= 0) push(from, e0, 'act');
     };
     let at = 0;
     scan.split('\n').forEach(line => {
@@ -2292,22 +2309,23 @@ A sentence about another person inside someone's paragraph ("Megumin, however, w
 Never guess who is behind something nobody is named or meant in ("The hallway door clicks open behind you" with no one seen): that is "-".
 A spoken line is never "-": somebody says it. A line and its tag ("…," he began / «…», — сказал он) belong to the same person, and so do the lines one person says in a row.
 If you truly cannot tell, "?".
+A piece that ends in "→ Name" is already settled by the text itself: give it that name (you may leave it out of the answer).
 Also say how each cast member who appears is actually written in this reply, if it differs from the cast name (a card named «Уильям» may be "William" in an English reply).
 For every spoken piece also say how the speaker feels saying it, one word from this list: ${spriteLabels().join(', ')}.
 Answer with JSON only: the number of every piece and whose it is, the written forms, and the feelings —
 {"who":{"0":"Name","1":"-","2":"?",...},"forms":{"Cast name":["form as written"]},"feel":{"1":"joy",...}}`;
 }
-function partsUser(messageId, pieces, text) {
+function partsUser(messageId, pieces, text, settled = null) {
     const ctx = getContext();
     const st = sceneState();
-    const cast = faceCandidates().filter(c => c.kind !== 'user').map(c => {
+    const cast = faceCandidates().filter(c => c.kind !== 'user' && !(c.kind === 'card' && isWorldCard(c.name))).map(c => {
         const al = String((st.meta && st.meta[c.name] && st.meta[c.name].aliases) || '').trim();
         return `- ${c.name}${al ? ` (also: ${al})` : ''}`;
     });
     // the earlier replies without the model's thinking in them: it is not the story, and it is tokens
     const prev = (ctx.chat || []).slice(Math.max(0, messageId - 2), messageId)
         .filter(m => m && !m.is_system).map(m => `${m.name}: ${blankThinking(String(m.mes || '')).replace(/\s+/g, ' ').trim().slice(-600)}`).join('\n');
-    const lines = pieces.map((p, i) => `[${i}] ${text.slice(p.s, p.e).replace(/\s+/g, ' ').slice(0, 300)}`).join('\n');
+    const lines = pieces.map((p, i) => `[${i}] ${text.slice(p.s, p.e).replace(/\s+/g, ' ').slice(0, 300)}${settled && settled[i] ? `  → ${settled[i]}` : ''}`).join('\n');
     // two short facts instead of more history: who the Scene Card has in the scene, and the labels already given
     const present = presentNowFor(messageId);
     const labelled = labelsBefore(messageId);
@@ -2324,6 +2342,8 @@ function partsClean(who, pieces, text, messageId) {
         if (!w || w === '-' || w === '?') return w === '?' ? '?' : '-';
         if (known.has(w.toLowerCase())) return known.get(w.toLowerCase());
         const hit = cands.find(c => c.name.toLowerCase() === w.toLowerCase()) || onlyOne(namesIn(w, cands));
+        // a world card ("… Manor & Atelier", «Академия …») is nobody — unless this reply writes its whole name
+        if (hit && hit.kind === 'card' && isWorldCard(hit.name) && !text.toLowerCase().includes(hit.name.toLowerCase())) return p.kind === 'say' ? '?' : '-';   // the world's own telling is narration
         let out = hit ? hit.name : '';
         if (!out) {
             // someone new: their name (or the label) must be in the text, so nothing is made up
@@ -2332,6 +2352,8 @@ function partsClean(who, pieces, text, messageId) {
             out = w.split(/\s+/).filter(part => !SMALL_WORDS.has(part.toLowerCase())).some(part => { const pr = nameStem(part).replace(/ё/g, 'е'); return pr.length >= 3 && hay.includes(pr); }) ? w : '?';
             // the same stranger as in the replies before ("the young servant girl" then "the servant girl"): one label
             if (out !== '?') out = sameStranger(out, messageId) || out;
+            // a label the story already tied to a name ("the teacher" → Mr. Han): the name
+            if (out !== '?' && /^(the |a |an )?[\p{Ll}]/u.test(out)) out = labelName(out, messageId, text) || out;
         }
         known.set(w.toLowerCase(), out);
         return out;
@@ -2394,6 +2416,23 @@ function sameStranger(label, messageId) {
 }
 /* how a cast member is written in the replies, as the model reported it: kept as quiet aliases
    (scene meta "auto"), but only forms that are really in the reply, a few per person */
+/* A card named like a place, a school, a company or a service ("The Nocturne Manor & Atelier (N.M.A.) -
+   Fantasy Butler Service", «Академия Красный Завет») is the world the story happens in, not someone in
+   it. It is not offered to the model as a person, and a piece the model gives it anyway is left open. */
+const WORLD_EN = /\b(manor|academy|academia|atelier|service|services|school|college|university|institute|hall|castle|palace|tower|towers|estate|mansion|company|corporation|agency|guild|club|hotel|inn|tavern|cafe|café|kingdom|empire|realm|world|city|town|village|island|station|hospital|clinic|prison|asylum|orphanage|church|temple|monastery|order|society|household|family|rpg|simulator|scenario|adventure|chronicles?)\b/i;
+const WORLD_RU = /(?<![\p{L}])(академи[яиюей]|школ[аыеуой]|колледж[аеу]?|университет[аеу]?|институт[аеу]?|особняк[аеу]?|поместь[еяю]|замок|замка|замке|дворец|дворца|дворце|башн[яиею]|компани[яию]|агентств[оае]|гильди[яию]|клуб[ае]?|отел[ьяе]|гостиниц[аые]|таверн[аые]|трактир[ае]?|кафе|королевств[оае]|импери[яию]|мир|мире|город[ае]?|деревн[яие]|остров[ае]?|станци[яи]|больниц[аые]|клиник[аие]|тюрьм[аые]|приют[ае]?|храм[ае]?|монастыр[ьяе]|орден[ае]?|обществ[оае]|семейств[оае]|сценари[йя]|приключени[ея]|хроник[аи])(?![\p{L}])/iu;
+function isWorldCard(name) {
+    const n = String(name || '').trim();
+    if (!n) return false;
+    // the name itself, without its subtitle: "Kai (Yandere)" and "Kai - your neighbour" are still Kai
+    const main = n.split(/\s[-–—:|]\s|[(\[]/)[0].trim();
+    if (/&/.test(main)) return true;                                   // "Manor & Atelier": two things, not a person
+    // "Ren the Hotel Manager" is a person: a word for someone in the name keeps it a person
+    if (main.toLowerCase().replace(/ё/g, 'е').split(/[^\p{L}-]+/u).some(w => PERSON_NOUNS.has(w) || /^(manager|owner|keeper|master|mistress|headmaster|director|principal|maid|butler|управляющ\p{L}*|хозя\p{L}*|директор\p{L}*)$/u.test(w))) return false;
+    if (WORLD_EN.test(main) || WORLD_RU.test(main)) return true;
+    const words = main.split(/\s+/).filter(w => !SMALL_WORDS.has(w.toLowerCase()));
+    return words.length >= 4;                                          // a title, not a name
+}
 /* A card that is a world, not a person ("Академия Красный Завет", a narrator card): its name is
    never written in the story, and a small model hands it every piece of the reply, then reports
    the real speaker as "how the card is written" — forms: { "Академия…": ["the student", "Lev"] }.
@@ -2419,6 +2458,18 @@ function worldCardFix(raw, forms, text, messageId) {
                 return first.length >= 2 && /^\p{Lu}/u.test(first) && !SMALL_WORDS.has(first.toLowerCase()) && !PERSON_WORDS.test(first) && !YOU_WORDS.test(first)
                     && first.toLowerCase() !== me && new RegExp(`(?<![\\p{L}])${first.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'iu').test(low);
             });
+            // a world card has no name of its own to fall back on: the model's label for the person
+            // ("the student", «камердинер»), when the reply really says it, is better than the card
+            const label = !person && isWorldCard(c.name) ? list.find(f => {
+                const word = (f.toLowerCase().replace(/ё/g, 'е').split(/\s+/).filter(x => !SMALL_WORDS.has(x)).pop() || '');
+                return f.length >= 3 && f.length <= 40 && word.length >= 3 && low.replace(/ё/g, 'е').includes(nameStem(word));
+            }) : null;
+            if (label) {
+                for (let i = 0; i < raw.length; i++) if (String(raw[i] || '').trim().toLowerCase() === c.name.toLowerCase()) raw[i] = label;
+                delete out[key];
+                console.log(`[Living Scene] roles: "${c.name}" is a place, not a person — its pieces go to "${label}", as the model called them`);
+                return;
+            }
             if (!person) return;
             for (let i = 0; i < raw.length; i++) if (String(raw[i] || '').trim().toLowerCase() === c.name.toLowerCase()) raw[i] = person;
             delete out[key];
@@ -2453,24 +2504,307 @@ const SMALL_WORDS = new Set(['the', 'a', 'an', 'of', 'and', 'old', 'young', 'lit
 const SCENE_STARTS = new Set(['it', 'there', 'this', 'that', 'then', 'suddenly', 'somewhere', 'outside', 'inside', 'behind', 'above', 'below', 'nearby', 'silence', 'вдруг', 'где-то', 'снаружи', 'внутри', 'там', 'тут', 'это', 'затем', 'потом', 'за', 'под', 'над', 'тишина', 'издалека', 'снова']);
 const PERSON_WORDS = /(?<![\p{L}])(he|she|him|her|his|hers|they|them|their|i|me|my|we|us|our|он|она|его|её|ее|ему|ей|им|ими|они|их|я|мне|меня|мой|моя|мы|нас)(?![\p{L}])/iu;
 const YOU_WORDS = /(?<![\p{L}])(you|your|yours|ты|тебя|тебе|тобой|твой|твоя|твоё|вы|вас|вам|ваш)(?![\p{L}])/iu;
+/* ---- reading the reply by its own signs (no model) ----
+   Each piece gets a name and how sure that is, or nothing. Sure means the text says it:
+   - a sentence that opens with someone's name ("Kai's eyes widen…", "Уильям даже не поднял…");
+   - "you…" / «вы…» opening it: the player;
+   - "he/she…" opening it: the person last named in this or the paragraph before, if that person
+     has not been called the other "he/she" in this reply;
+   - a line with its tag in the same paragraph ("…," he murmurs / «…», — сказал он), or an action
+     beat right before it ("Kai folded his arms. 'Fine.'"); lines one after another in a paragraph;
+   - only one character of the chat in the scene and nobody else named: every line is theirs;
+   - a sentence about a thing or a place with no person in it: narration.
+   Anything else is left for the model. */
+const PRON_M = /^(he|him|his|он|его|ему|им)$/i, PRON_F = /^(she|her|hers|она|её|ее|ей)$/i;
+// words for "somebody" that say nothing about who: never made into a label by rule
+const VAGUE_PEOPLE = new Set(['figure', 'voice', 'someone', 'somebody', 'crowd', 'people', 'men', 'women', 'shape', 'silhouette', 'фигура', 'голос', 'кто-то', 'толпа', 'люди', 'силуэт']);
+// people a sentence can open with when nobody is named ("A maid…", «Незнакомец…»): never narration by rule
+const PERSON_NOUNS = new Set(('man woman girl boy child kid maid servant guard figure stranger lady gentleman butler valet footman soldier knight priest doctor nurse '
+    + 'waiter waitress merchant driver coachman voice someone somebody crowd people men women officer clerk student master mistress king queen prince princess '
+    + 'lord duke duchess count countess captain sailor maiden youth elder hunter thief assassin mage wizard witch healer cook housekeeper governess nanny boss '
+    + 'teacher professor instructor tutor pupil classmate janitor librarian curator director headmaster headmistress principal guardsman bartender innkeeper '
+    + 'учитель учительница преподаватель профессор ученик ученица студентка директор библиотекарь смотритель смотрительница уборщик бармен трактирщик '
+    + 'мужчина женщина девушка парень служанка слуга стражник стража фигура незнакомец незнакомка ребенок дама господин госпожа дворецкий камердинер лакей '
+    + 'солдат рыцарь священник доктор врач медсестра официант официантка торговец кучер голос кто-то толпа люди офицер студент хозяин хозяйка король королева '
+    + 'принц принцесса горничная мальчик девочка старик старуха юноша капитан матрос охотник вор маг ведьма лекарь повар экономка гувернантка няня').split(' '));
+/* "The teacher's mug clinks…" / "A maid curtsied…" / «Незнакомец шагнул…»: the label "the teacher",
+   "the maid", «незнакомец» — unless a character of the chat is called that (their name or aliases). */
+function strangerAtStart(raw, cands) {
+    const orig = String(raw || '').replace(/^[\s*_"«“„—–-]+/, '').split(/[^\p{L}'’-]+/u).filter(Boolean).slice(0, 5);
+    const words = orig.map(w => w.toLowerCase().replace(/ё/g, 'е')).slice(0, 4);
+    if (!words.length) return null;
+    const art = /^(the|a|an)$/.test(words[0]);
+    const from = art ? 1 : 0;
+    for (let k = from; k < Math.min(words.length, from + 3); k++) {
+        const w = words[k].replace(/['’]s$/, '');
+        const isP = x => PERSON_NOUNS.has(x) && !VAGUE_PEOPLE.has(x);
+        const base = isP(w) ? w : isP(w.replace(/s$/, '')) ? w.replace(/s$/, '') : null;
+        if (!base && (VAGUE_PEOPLE.has(w) || VAGUE_PEOPLE.has(w.replace(/s$/, '')))) return null;   // "A figure…" — who it is comes later
+        if (!base) { if (!art) return null; continue; }   // Russian: the person word comes first; English: adjectives may stand before it
+        if (cands.some(c => aliasNamesOf(c.name).some(a => String(a).toLowerCase().replace(/ё/g, 'е').split(/\s+/).includes(base)))) return null;
+        if (orig[k + 1] && /^\p{Lu}/u.test(orig[k + 1])) return null;     // "Teacher Kim…", «Профессор Восс…»: a name follows — not a stranger
+        return art ? `the ${base}` : base;
+    }
+    return null;
+}
+/* "The teacher" of this reply is the "Mr. Han, the computer science teacher" of the one before:
+   a label is given the name the story tied it to — "Name, the … teacher", "the teacher, Name",
+   "teacher Name", «Лев, учитель информатики», «учитель Хан» — in the narration of this reply or the
+   six before it (never inside spoken lines, where people are only addressed). */
+const NAME_RE = String.raw`((?:(?:Mr|Mrs|Ms|Miss|Dr|Prof|Professor|Sir|Lady|Lord|Master|Madam|Madame|Mister)\.?\s+)?\p{Lu}[\p{L}'’-]+(?:\s+\p{Lu}[\p{L}'’-]+)?)`;
+function labelName(label, messageId, text) {
+    try {
+        const base = String(label || '').toLowerCase().split(/\s+/).pop();
+        if (!base || base.length < 3) return null;
+        const ctx = getContext();
+        const me = String(ctx.name1 || name1 || '').toLowerCase();
+        const noQuotes = x => blankThinking(String(x || '')).replace(/["“«„][^"”»\n]*["”»]/g, m => ' '.repeat(m.length)).replace(/(^|\n)\s*[—–][^\n]*/g, m => ' '.repeat(m.length));
+        const stem = /[а-яё]/i.test(base) ? nameStem(base).replace(/ё/g, 'е') : base;
+        const noun = /[а-яё]/i.test(base) ? `${stem}\\p{L}*` : `${base}s?`;
+        const pats = [
+            new RegExp(`${NAME_RE},\\s+(?:(?:the|a|an|his|her|their|our)\\s+)?(?:[\\p{L}-]+\\s+){0,3}${noun}(?![\\p{L}])`, 'gu'),
+            new RegExp(`(?<![\\p{L}])(?:the\\s+)?(?:[\\p{L}-]+\\s+){0,2}${noun},\\s+${NAME_RE}`, 'giu'),
+            new RegExp(`(?<![\\p{L}])${noun}\\s+${NAME_RE}`, 'giu'),
+        ];
+        const ok = n => {
+            const first = n.replace(/^(?:Mr|Mrs|Ms|Miss|Dr|Prof|Professor|Sir|Lady|Lord|Master|Madam|Madame|Mister)\.?\s+/, '').split(/\s+/)[0].toLowerCase().replace(/ё/g, 'е');
+            return first.length >= 2 && !SMALL_WORDS.has(first) && !OPENER_WORDS.has(first) && !SCENE_STARTS.has(first) && !PRON_M.test(first) && !PRON_F.test(first) && !YOU_WORDS.test(first) && first !== me && !(me && n.toLowerCase().includes(me));
+        };
+        const chat = ctx.chat || [];
+        const texts = [text].concat(chat.slice(Math.max(0, messageId - 6), messageId).reverse().filter(m => m && !m.is_system).map(m => m.mes));
+        for (const tx of texts) {
+            const hay = noQuotes(tx);
+            for (const re of pats) {
+                re.lastIndex = 0;
+                let m;
+                while ((m = re.exec(hay))) {
+                    // in the second and third shapes the name may be followed by a small word picked up by the
+                    // case-blind match ("teacher Han and"): keep only the capitalised words
+                    const n = String(m[1]).split(/\s+/).filter((w, i) => i === 0 || /^\p{Lu}/u.test(w)).join(' ');
+                    if (/^\p{Lu}/u.test(n) && ok(n)) return n;
+                }
+            }
+        }
+    } catch (e) { /* no name for it */ }
+    return null;
+}
+/* People the story names who are in no list (Lysander, Lev): a capitalised word that opens a sentence
+   with a verb after it and comes back at least twice in the reply or the two before it, or that the
+   Scene Card lists as present. Used only by the text's own reading below. */
+// a name in Latin letters, the way it sounds: «Уильям» → "uilyam", "William" → "uilliam"
+function latinOf(name) {
+    const T = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya' };
+    return String(name || '').toLowerCase().split('').map(ch => T[ch] ?? ch).join('').replace(/w/g, 'u').replace(/[^a-z]/g, '');
+}
+// close enough to be the same name in two alphabets (only between different alphabets' spellings)
+function sameSound(a, b) {
+    if (!a || !b || a.length < 3 || b.length < 3) return false;
+    const d = (() => { const m = a.length, n = b.length; let prev = Array.from({ length: n + 1 }, (_, j) => j); for (let i = 1; i <= m; i++) { const cur = [i]; for (let j = 1; j <= n; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); prev = cur; } return prev[n]; })();
+    return a[0] === b[0] && d / Math.max(a.length, b.length) <= 0.4;
+}
+const OPENER_WORDS = new Set(('not never nothing nobody none instead yet still again once twice finally almost already always perhaps maybe probably surely really well okay ok oh ah hmm uh um good fine right sorry thanks please funny strange lost silence however meanwhile somewhere someone something everyone everything anyone anything another other each every both all most some many few one two three first last next later soon too also either neither whatever whoever outside inside across around between beyond under over through toward towards against along beside besides despite until unless though although because since whether once '
+    + 'не нет ни ничего никто ничто вместо всё все весь вся снова опять наконец почти уже всегда наверное конечно ладно хорошо спасибо пожалуйста странно тишина однако кто-то что-то кто-нибудь где-то никогда каждый другой один одна два три сначала потом позже скоро тоже также или хотя потому пока сквозь через между над под вокруг рядом против').split(/\s+/));
+function namesFromText(text, messageId, cands) {
+    try {
+        const ctx = getContext();
+        const around = blankThinking(((ctx.chat || []).slice(Math.max(0, messageId - 2), messageId).map(m => (m && m.mes) || '').join('\n')) + '\n' + text);
+        const known = cands.flatMap(c => c.probes);
+        // a cast member written in another alphabet («Уильям» for William) is someone we know, not a new person
+        const cyr = x => /[а-яё]/i.test(x);
+        const castFirst = cands.flatMap(c => [c.name].concat(aliasNamesOf(c.name))).map(n => String(n).split(/\s+/)[0]);
+        const isKnown = w => known.some(pr => w.toLowerCase().replace(/ё/g, 'е').startsWith(pr.slice(0, Math.max(3, pr.length - 1))))
+            || castFirst.some(n => cyr(n) !== cyr(w) && sameSound(latinOf(w), latinOf(n)));
+        const count = new Map();
+        const re = /(?:^|[.!?…]\s+|\n\s*|[*_]\s*|["«“]\s*)(\p{Lu}[\p{Ll}'’]{2,})(?:['’]s)?\s+\p{Ll}/gu;
+        let m;
+        while ((m = re.exec(around))) {
+            const w = m[1];
+            const low = w.toLowerCase().replace(/ё/g, 'е');
+            if (SMALL_WORDS.has(low) || SCENE_STARTS.has(low) || PRON_M.test(low) || PRON_F.test(low) || PERSON_NOUNS.has(low) || /^(i|you|your|we|they|this|that|these|those|there|here|what|when|where|why|how|yes|no|but|and|then|still|even|just|only|now|so|if|as|for|with|without|after|before|while|maybe|perhaps|вы|ты|мы|они|это|эта|этот|когда|где|как|что|почему|да|нет|но|и|а|вдруг|похоже|кажется|может|только|даже|теперь|потом|затем|здесь|там|тут|если|пока|уже|еще|ещё|время|время)$/.test(low)) continue;
+            if (isKnown(w)) continue;
+            // a word that opens sentences but is not a name ("Not yet.", "Instead, he…", «Тихо стало»):
+            // the list below, an English adverb in -ly, or the same word written small somewhere around
+            if (OPENER_WORDS.has(low) || /^\p{L}{3,}ly$/u.test(low) || new RegExp(`(?<![\\p{L}])${low}(?![\\p{L}])`, 'u').test(around)) continue;
+            count.set(w, (count.get(w) || 0) + 1);
+        }
+        const present = new Set(presentNowFor(messageId).map(x => String(x).toLowerCase()));
+        // twice opening a sentence, or once opening one and once more anywhere ("Felix turned…" … "Felix, stop")
+        const anywhere = w => (around.match(new RegExp(`(?<![\\p{L}])${w}(?![\\p{L}])`, 'gu')) || []).length;
+        const found = [...count.entries()].filter(([w, n]) => n >= 2 || anywhere(w) >= 2 || present.has(w.toLowerCase())).map(([w]) => w);
+        // someone the story introduces: "It is Mr. Han, the computer science teacher", «Это был Лев, староста»,
+        // "Lev, the student…" — a name next to a word for a person is a person, even said once
+        const intro = new RegExp(`${NAME_RE},\\s+(?:(?:the|a|an|his|her|their|our)\\s+)?(?:[\\p{L}-]+\\s+){0,3}([\\p{L}-]+)`, 'gu');
+        const plain = around.replace(/["“«„][^"”»\n]*["”»]/g, m => ' '.repeat(m.length));
+        let k;
+        while ((k = intro.exec(plain))) {
+            const n = k[1], noun = k[2].toLowerCase().replace(/ё/g, 'е');
+            const isPerson = PERSON_NOUNS.has(noun) || PERSON_NOUNS.has(noun.replace(/(s|es|ы|и|а|у|ом|ой|ей)$/, ''));
+            const first = n.replace(/^(?:Mr|Mrs|Ms|Miss|Dr|Prof|Professor|Sir|Lady|Lord|Master|Madam|Madame|Mister)\.?\s+/, '').split(/\s+/)[0];
+            const low = first.toLowerCase().replace(/ё/g, 'е');
+            if (!isPerson || OPENER_WORDS.has(low) || SMALL_WORDS.has(low) || SCENE_STARTS.has(low) || isKnown(first) || found.includes(n)) continue;
+            found.push(n);
+        }
+        return found.map(w => ({ name: w, pic: '', kind: 'text', probes: probesFor(w) }));
+    } catch (e) { return []; }
+}
+function localWho(pieces, text, messageId) {
+    try {
+        const ctx = getContext();
+        const me = String(ctx.name1 || name1 || '');
+        const cands0 = faceCandidates().filter(c => !(c.kind === 'card' && isWorldCard(c.name)));
+        const cands = cands0.concat(namesFromText(text, messageId, cands0));
+        const cast = cands.filter(c => c.kind !== 'user');
+        const strip = x => String(x || '').replace(/^[\s*_"«“„—–-]+/, '');
+        const para = pc => (text.slice(0, pc.s).match(/\n\s*\n/g) || []).length;
+        const out = pieces.map(() => null);
+        const gender = {};                 // name -> 'm' | 'f', as this reply calls them
+        let lastName = null, lastPara = -1;
+        const firstWord = x => (strip(x).match(/^[\p{L}'’-]+/u) || [''])[0];
+        const nameAtStart = x => { const h = namesIn(strip(x).slice(0, 40), cands).find(z => z.at === 0); return h ? h.c.name : null; };
+        // capitalised words inside sentences that are nobody we know: someone else may be speaking
+        const strangers = (() => {
+            const known = cands.flatMap(c => c.probes);
+            const found = [];
+            const re = /(?<![.!?…"«“—–]\s)(?<!^)(?<=\s)(\p{Lu}[\p{Ll}]{2,})/gmu;   // a dash line's first word opens a sentence too
+            const body = blankThinking(text);
+            let m;
+            while ((m = re.exec(body))) {
+                const w = m[1].toLowerCase();
+                if (SMALL_WORDS.has(w) || SCENE_STARTS.has(w) || PRON_M.test(w) || PRON_F.test(w) || /^(i|you|your|вы|ты)$/.test(w)) continue;
+                if (known.some(pr => w.startsWith(pr.slice(0, Math.max(3, pr.length - 1))))) continue;
+                found.push(m[1]);
+            }
+            return found;
+        })();
+        // actions first
+        pieces.forEach((pc, i) => {
+            if (pc.kind === 'say') return;
+            const raw = text.slice(pc.s, pc.e);
+            const pp = para(pc);
+            const nm = nameAtStart(raw);
+            const fw = firstWord(raw).toLowerCase();
+            if (nm) { out[i] = { w: nm, c: 0.95 }; lastName = nm; lastPara = pp; return; }
+            // "It is Mr. Han, the teacher…", «Это был Лев…»: the one just revealed — and the "A figure steps
+            // inside" right before it in the same paragraph was them too
+            const reveal = strip(raw).match(/^(?:it|this|that)\s+(?:is|was)\s+|^это\s+(?:был[аио]?\s+)?/i);
+            const rn = reveal ? nameAtStart(strip(raw).slice(reveal[0].length)) : null;
+            if (rn) {
+                out[i] = { w: rn, c: 0.9 }; lastName = rn; lastPara = pp;
+                const pv = pieces[i - 1];
+                if (pv && pv.kind !== 'say' && para(pv) === pp && (!out[i - 1] || out[i - 1].c < 0.85)) {
+                    const lw = strip(text.slice(pv.s, pv.e)).toLowerCase().split(/[^\p{L}-]+/u).slice(0, 3);
+                    if (lw.some(w => VAGUE_PEOPLE.has(w))) out[i - 1] = { w: rn, c: 0.85 };
+                }
+                return;
+            }
+            if (YOU_WORDS.test(fw) && fw === (fw.match(YOU_WORDS) || [''])[0].toLowerCase()) { out[i] = { w: me, c: 0.9 }; return; }
+            // someone the text calls by what they are ("The teacher's mug…", «Учитель отставил…»): that person,
+            // under the text's own word — not a character of the chat the model might pin it on
+            const lab = strangerAtStart(raw, cands);
+            const who = lab ? (labelName(lab, messageId, text) || lab) : null;
+            if (who) { out[i] = { w: who, c: 0.85 }; lastName = who; lastPara = pp; return; }
+            const fw2 = (strip(raw).match(/^[\p{L}'’-]+,\s+([\p{L}'’-]+)/u) || [])[1] || '';
+            const pw = PRON_M.test(fw) || PRON_F.test(fw) ? fw : fw2.toLowerCase();
+            const g = /^(he|she|он|она)$/i.test(pw) || PRON_M.test(fw) || PRON_F.test(fw) ? (PRON_M.test(pw) ? 'm' : PRON_F.test(pw) ? 'f' : null) : null;
+            if (g && lastName && pp - lastPara <= 1 && (!gender[lastName] || gender[lastName] === g)) {
+                gender[lastName] = g;
+                out[i] = { w: lastName, c: 0.85 }; lastPara = pp; return;
+            }
+            const body = strip(raw);
+            // "The squeak of his polished shoes…": no name, no "you", and only his (or only her) — the man (or
+            // the woman) just named, when this reply has already called them so
+            if (lastName && pp - lastPara <= 1 && !namesIn(body, cands).length && !YOU_WORDS.test(body) && !SCENE_STARTS.has(fw)) {
+                const pr = (body.match(/(?<![\p{L}])(he|him|his|she|her|hers|they|them|their|i|me|my|we|us|our|он|его|ему|им|она|её|ее|ей|они|их|я|мы)(?![\p{L}])/giu) || []).map(x => x.toLowerCase());
+                const gs = new Set(pr.map(x => PRON_M.test(x) ? 'm' : PRON_F.test(x) ? 'f' : 'x'));
+                if (gs.size === 1 && !gs.has('x') && gender[lastName] === [...gs][0]) { out[i] = { w: lastName, c: 0.85 }; lastPara = pp; return; }
+            }
+            // a thing or a place doing something, with nobody in it: narration. "The rain taps…" yes;
+            // "A maid curtsied…" no — a person noun near the start leaves it to the model
+            const lead = body.toLowerCase().replace(/ё/g, 'е').split(/[^\p{L}-]+/u).slice(0, 4);
+            const someone = lead.some(w => PERSON_NOUNS.has(w) || PERSON_NOUNS.has(w.replace(/(s|es|ы|и|а|у|ом|ой|ей)$/, '')));
+            if (!someone && !PERSON_WORDS.test(body) && !YOU_WORDS.test(body) && !namesIn(body, cands).length) {
+                if (SCENE_STARTS.has(fw)) { out[i] = { w: '-', c: 0.85 }; return; }
+                if (SMALL_WORDS.has(fw)) { out[i] = { w: '-', c: 0.8 }; return; }
+            }
+            // "Behind him, the lights hum": a place word first, and the person only as an object — still the room
+            if (!someone && SCENE_STARTS.has(fw) && !YOU_WORDS.test(body) && !namesIn(body, cands).length && !/(?<![\p{L}])(he|she|they|i|we|он|она|они|я|мы)(?![\p{L}])/iu.test(body)) { out[i] = { w: '-', c: 0.85 }; return; }
+            // a short fragment right after someone's action in the same paragraph ("He doesn't ask. Not yet."): still them
+            const prevA = pieces[i - 1];
+            if (prevA && prevA.kind !== 'say' && para(prevA) === pp && out[i - 1] && out[i - 1].w !== '-' && body.split(/\s+/).filter(Boolean).length <= 3 && !namesIn(body, cands).length && !PERSON_WORDS.test(body) && !YOU_WORDS.test(body)) { out[i] = { w: out[i - 1].w, c: 0.85 }; return; }
+        });
+        // then the lines
+        const voices = new Set();
+        const meBeat = new Set();
+        pieces.forEach((pc, i) => {
+            if (pc.kind !== 'say') return;
+            const pp = para(pc);
+            const next = pieces[i + 1], prev = pieces[i - 1];
+            const nextTxt = next ? strip(text.slice(next.s, next.e)) : '';
+            // its tag: the bit right after it, starting small ("he murmurs", "— сказал он")
+            if (next && next.kind !== 'say' && para(next) === pp && /^[\p{Ll},]/u.test(nextTxt.replace(/^[,\s]+/, '').charAt(0) || '') ) {
+                const tagNm = namesIn(nextTxt.slice(0, 50), cands)[0];
+                if (tagNm) { out[i] = { w: tagNm.c.name, c: 0.9 }; voices.add(tagNm.c.name); return; }
+                if (out[i + 1] && out[i + 1].w !== '-' && out[i + 1].w !== me) { out[i] = { w: out[i + 1].w, c: Math.min(0.9, out[i + 1].c) }; voices.add(out[i + 1].w); return; }
+            }
+            // an action beat of someone right before it, in the same paragraph
+            if (prev && prev.kind !== 'say' && para(prev) === pp && out[i - 1] && out[i - 1].w !== '-' && out[i - 1].w !== me) { out[i] = { w: out[i - 1].w, c: 0.85 }; voices.add(out[i - 1].w); return; }
+            // an action beat of someone right after it, in the same paragraph ("Lost it, huh?" *His tone…*)
+            if (next && next.kind !== 'say' && para(next) === pp && out[i + 1] && out[i + 1].w !== '-' && out[i + 1].w !== me && !(prev && prev.kind !== 'say' && para(prev) === pp && out[i - 1] && out[i - 1].w === me)) { out[i] = { w: out[i + 1].w, c: 0.85 }; voices.add(out[i + 1].w); return; }
+            // right after the player's own action: it may be the player speaking — the model decides
+            if (prev && prev.kind !== 'say' && para(prev) === pp && out[i - 1] && out[i - 1].w === me) meBeat.add(i);
+        });
+        // lines next to a settled line of the same paragraph; then the single voice of the scene
+        for (let pass = 0; pass < 2; pass++) pieces.forEach((pc, i) => {
+            if (pc.kind !== 'say' || out[i] || meBeat.has(i)) return;
+            const pp = para(pc);
+            for (const k of [i - 1, i + 1, i - 2, i + 2]) {
+                const o = pieces[k];
+                if (o && o.kind === 'say' && para(o) === pp && out[k] && out[k].w !== me) { out[i] = { w: out[k].w, c: 0.85 }; return; }
+            }
+        });
+        const author = String((ctx.chat[messageId] && ctx.chat[messageId].name) || '');
+        const castNames = cast.filter(c => c.kind !== 'text').map(c => c.name);
+        const single = voices.size <= 1 && !strangers.length && (voices.size === 1 ? [...voices][0] : (castNames.length === 1 ? castNames[0] : (castNames.includes(author) && cast.length === 1 ? author : null)));
+        if (single) pieces.forEach((pc, i) => { if (pc.kind === 'say' && !out[i] && !meBeat.has(i)) out[i] = { w: single, c: 0.8 }; });
+        return out;
+    } catch (e) { console.warn('[Living Scene] roles: reading by the text failed', e); return null; }
+}
+
 const partsBusy = new Set();
-async function askParts(messageId, manual = false) {
+async function askParts(messageId, manual = false, again = false) {
     const ctx = getContext();
     const myChat = ctx.chatId;
     const msg = ctx.chat[messageId];
     if (!msg || msg.is_user || msg.is_system) return;
     if (!settings.enabled || settings.lineFaces === false) return;
-    if (!apiKey()) { if (manual) toastr.warning(t('gen_nokey')); return; }
     const swipeId = msg.swipe_id ?? 0;
     const key = `${myChat}#${messageId}#${swipeId}`;
     if (partsBusy.has(key)) return;
     const { text, pieces } = splitPieces(msg.mes);
     if (pieces.length < 2) { if (manual) toastr.info(t('parts_one')); return; }
+    /* The text's own signs first — a name opening a sentence, "he said" after a line, an action
+       beat before it, "you…" for the player, a room with nobody in it. What they settle for sure is
+       not asked; when they settle all of it, the model is not called at all. */
+    const local = settings.partsCodeFirst !== false ? localWho(pieces, text, messageId) : null;
+    const sure = local ? local.map(x => (x && x.c >= 0.85 ? x.w : null)) : null;
+    const allSure = !!(local && local.every(x => x && x.c >= 0.8));
+    if (!allSure && !apiKey()) { if (manual) toastr.warning(t('gen_nokey')); return; }
     partsBusy.add(key);
     markPartsBusy(messageId, true);
+    /* A model answer that fails, or that gives the whole reply to one person when the text clearly
+       has more than one in it, is asked once more by itself — as pressing the button again did.
+       The text's own reading (no model) is never asked again: it would say the same. */
+    let retry = false;
+    const mayRetry = !again && !allSure;
     try {
         let res;
-        try { res = await callAI(partsSys(), partsUser(messageId, pieces, text), waitFor(60000)); }
+        if (allSure) {
+            res = { who: Object.fromEntries(local.map((x, i) => [i, x.w])) };
+            console.log(`[Living Scene] roles: the text settled all ${pieces.length} pieces — the model was not asked`);
+        } else try {
+            if (sure) console.log(`[Living Scene] roles: the text settled ${sure.filter(Boolean).length} of ${pieces.length} pieces; the model is asked about the rest`);
+            res = await callAI(partsSys(), partsUser(messageId, pieces, text, sure), waitFor(60000));
+        }
         catch (e) {
             // a model on your own computer sometimes breaks its JSON with a stray line in the middle;
             // the numbered answers themselves are still there and are read one by one
@@ -2486,22 +2820,43 @@ async function askParts(messageId, manual = false) {
         const w0 = res && (res.who ?? res);
         if (Array.isArray(w0)) raw = w0.length === pieces.length ? w0 : null;   // a list is trusted only when it has them all
         else if (w0 && typeof w0 === 'object') raw = pieces.map((_, i) => w0[i] ?? w0[String(i)] ?? '?');
-        if (!raw) { console.warn('[Living Scene] roles: no "who" in', res); if (manual) toastr.warning(t('parts_failed')); return; }
+        if (!raw) { console.warn('[Living Scene] roles: no "who" in', res); if (mayRetry) { retry = true; return; } if (manual) toastr.warning(t('parts_failed')); return; }
+        // what the text settled for sure stands, whatever the model said about it
+        if (sure) sure.forEach((w, i) => { if (w) raw[i] = w; });
         const forms0 = worldCardFix(raw, res && res.forms, text, messageId);
         learnForms(forms0, text);
         const who = partsClean(raw, pieces, text, messageId);
+        // where the model could not tell, the text's own weaker reading is better than "?"
+        if (local) who.forEach((w, i) => { if (w === '?' && local[i] && local[i].w) who[i] = local[i].w; });
         if (!now.extra) now.extra = {};
         if (!now.extra.rls_parts || typeof now.extra.rls_parts !== 'object') now.extra.rls_parts = {};
         now.extra.rls_parts[swipeId] = { h: partsHash(now.mes), p: pieces.map(x => [x.s, x.e, x.kind === 'say' ? 's' : 'a']), w: who, f: partsFeel(res && res.feel, pieces.length) };
         saveScene();
+        if (mayRetry) {
+            const v = partsView(messageId);
+            const people = new Set((v ? v.blocks : []).map(b => b.w).filter(w => w && w !== '-' && w !== '?'));
+            const textSaw = new Set((local || []).filter(x => x && x.w && x.w !== '-' && x.w !== '?').map(x => x.w));
+            const given = new Set(raw.map(w => String(w || '').trim()).filter(w => w && w !== '-' && w !== '?'));
+            const dumped = given.size === 1 && !raw.some(w => String(w || '').trim() === '-') && pieces.some(x => x.kind === 'say') && pieces.some(x => x.kind !== 'say');
+            if (people.size <= 1 && (textSaw.size >= 2 || (dumped && (!people.size || people.has([...given][0]))))) {
+                console.log('[Living Scene] roles: the answer gave the whole reply to one person — asking once more');
+                retry = true; return;
+            }
+        }
         partsJustSplit.add(`${messageId}#${swipeId}`);   // its words may come in one by one — once, now
         renderParts(messageId);
         if (novel && novel.refresh) novel.refresh(null);
         if (manual && !document.querySelector(`#chat .mes[mesid="${messageId}"] .rls-parts`)) toastr.info(t('parts_one'));
     } catch (e) {
         console.warn('[Living Scene] roles', e);
-        if (manual) toastr.warning(t('parts_failed'));
-    } finally { partsBusy.delete(key); markPartsBusy(messageId, false); }
+        if (mayRetry && getContext().chatId === myChat) retry = true;
+        else if (manual) toastr.warning(t('parts_failed'));
+    } finally {
+        partsBusy.delete(key);
+        markPartsBusy(messageId, false);
+        // (the second ask puts the ring back in the same moment: nothing blinks)
+        if (retry) askParts(messageId, manual, true);
+    }
 }
 // the numbered pairs of a broken answer: "who" (and "feel") read as "N": "text" lines; most of the numbers must be there
 function salvageParts(raw, count) {
@@ -2519,8 +2874,16 @@ function salvageParts(raw, count) {
     return { who, feel: pairs(section('feel', ['who', 'forms'])) };
 }
 function markPartsBusy(messageId, on) {
-    const el = document.querySelector(`#chat .mes[mesid="${messageId}"] .rls-split-btn`);
-    if (el) el.classList.toggle('busy', !!on);
+    btnBusy(document.querySelector(`#chat .mes[mesid="${messageId}"] .rls-split-btn`), on);
+}
+/* A button that waits: its icon stays (invisible, so nothing in the row moves) and a round ring turns
+   over it — a perfect circle has no edge to wobble left and right the way a turned glyph does. */
+function btnBusy(el, on) {
+    if (!el) return;
+    el.classList.toggle('busy', !!on);
+    let ring = el.querySelector(':scope > .rls-ring');
+    if (on && !ring) { ring = document.createElement('span'); ring.className = 'rls-ring'; ring.setAttribute('aria-hidden', 'true'); el.appendChild(ring); }
+    if (!on && ring) ring.remove();
 }
 /* What the model left open is settled from the text itself, so a block never starts in the
    middle of a sentence and a spoken line never drops out between two blocks of its speaker:
@@ -2600,6 +2963,57 @@ function settleParts(items, text) {
     return items;
 }
 const partsShowText = new Set();   // messages switched back to plain text, this session
+
+/* "Whose is this?" — the people of the scene, the names this reply already has, narration, or
+   someone else by name. The choice is written into the reply's kept split (and remembered as set
+   by hand, so no guess ever moves it); asking the model again starts over. */
+function closeFixMenu() { document.getElementById('rls-fixmenu')?.remove(); document.removeEventListener('pointerdown', fixOutside, true); document.removeEventListener('keydown', fixKey, true); }
+function fixOutside(e) { if (!e.target.closest('#rls-fixmenu')) closeFixMenu(); }
+function fixKey(e) { if (e.key === 'Escape') { e.preventDefault(); closeFixMenu(); } }
+function openFixMenu(messageId, blk, x, y) {
+    closeFixMenu();
+    const msg = getContext().chat[messageId];
+    const saved = msg && msg.extra && msg.extra.rls_parts && msg.extra.rls_parts[msg.swipe_id ?? 0];
+    if (!saved || !Array.isArray(saved.w)) return;
+    const idx = String(blk.dataset.pieces || '').split(',').map(Number).filter(n => Number.isInteger(n) && n >= 0 && n < saved.w.length);
+    if (!idx.length) return;
+    const me = getContext().name1 || name1;
+    const names = [];
+    const add = n => { const v = String(n || '').trim(); if (v && v !== '-' && v !== '?' && !names.includes(v)) names.push(v); };
+    faceCandidates().filter(c => c.kind !== 'user').forEach(c => add(c.name));
+    saved.w.forEach(add);
+    add(me);
+    const cur = saved.w[idx[0]];
+    const menu = document.createElement('div');
+    menu.id = 'rls-fixmenu';
+    menu.setAttribute('role', 'menu');
+    menu.innerHTML = `<div class="rls-fix-title">${escapeHtml(t('fix_title'))}</div>
+        ${names.map(n => `<button type="button" role="menuitem" class="rls-fix-item${n === cur ? ' on' : ''}" data-w="${escapeHtml(n)}">${partFace(n).html}<span>${escapeHtml(n)}</span></button>`).join('')}
+        <button type="button" role="menuitem" class="rls-fix-item${cur === '-' ? ' on' : ''}" data-w="-"><span class="rls-fix-narr">¶</span><span>${escapeHtml(t('fix_narr'))}</span></button>
+        <form class="rls-fix-new"><input type="text" maxlength="40" placeholder="${escapeHtml(t('fix_new'))}" aria-label="${escapeHtml(t('fix_new'))}"><button type="submit">${escapeHtml(t('fix_ok'))}</button></form>`;
+    document.body.appendChild(menu);
+    const r = menu.getBoundingClientRect();
+    menu.style.left = Math.max(8, Math.min(window.innerWidth - r.width - 8, x)) + 'px';
+    menu.style.top = Math.max(8, Math.min(window.innerHeight - r.height - 8, y)) + 'px';
+    const apply = w => {
+        const v = String(w || '').replace(/\s+/g, ' ').trim().slice(0, 40);
+        if (!v) return;
+        const m2 = getContext().chat[messageId];
+        const sv = m2 && m2.extra && m2.extra.rls_parts && m2.extra.rls_parts[m2.swipe_id ?? 0];
+        if (!sv || sv !== saved) { closeFixMenu(); return; }        // the reply changed meanwhile
+        const fixed = new Set(Array.isArray(sv.m) ? sv.m : []);
+        idx.forEach(i => { sv.w[i] = v; fixed.add(i); });
+        sv.m = [...fixed].sort((a, b) => a - b);
+        saveScene();
+        closeFixMenu();
+        renderParts(messageId);
+        if (novel && novel.refresh) novel.refresh(null);
+    };
+    menu.querySelectorAll('.rls-fix-item').forEach(b => b.addEventListener('click', () => apply(b.dataset.w)));
+    menu.querySelector('.rls-fix-new').addEventListener('submit', e => { e.preventDefault(); apply(menu.querySelector('.rls-fix-new input').value); });
+    (menu.querySelector('.rls-fix-item.on') || menu.querySelector('.rls-fix-item'))?.focus();
+    setTimeout(() => { document.addEventListener('pointerdown', fixOutside, true); document.addEventListener('keydown', fixKey, true); }, 0);
+}
 function partFace(name) {
     let c = faceCandidates().find(x => x.name === name);
     if (!c || !c.pic) {
@@ -2625,6 +3039,9 @@ function partsView(messageId) {
     const items = settleParts(saved.p.map((x, i) => ({ s: x[0], e: x[1], k: x[2], w: saved.w[i], i })), text);
     if (soloReply(messageId)) items.forEach(it => { if (it.w === msg.name) it.w = '-'; });   // exploring alone: the card wrote as the game master
     for (let i = 1; i < items.length - 1; i++) if (items[i].w === '-' && items[i - 1].w !== '-' && items[i - 1].w === items[i + 1].w && items[i].e - items[i].s < 140 && !text.slice(items[i - 1].e, items[i + 1].s).includes('\n\n')) items[i].w = items[i - 1].w;
+    // what the player set by hand stands over every guess above
+    const fixed = Array.isArray(saved.m) ? new Set(saved.m) : null;
+    if (fixed) items.forEach(it => { if (fixed.has(it.i)) it.w = saved.w[it.i]; });
     const blocks = [];
     items.forEach(it => {
         const b = blocks[blocks.length - 1];
@@ -2664,7 +3081,8 @@ function renderParts(messageId) {
         // nobody identified, or the whole reply is one block of one person (all of it Minjun's):
         // there is nothing to tell apart, the plain text is better. One person with narration around
         // them (the hallway, then William) is told apart, and can be played as a scene
-        if (!blocks.some(b => b.w !== '-') || blocks.length < 2) return;
+        // one block of one person: plain text, unless asked to show it as a block too
+        if (!blocks.some(b => b.w !== '-') || (blocks.length < 2 && !(settings.partsSolo === true && blocks[0].w !== me && blocks[0].w !== '?'))) return;
         /* an older reply: its own plain text, and one small button under it that draws the blocks.
            Dozens of split replies in a long chat were hundreds of blocks in the page. */
         if (partsFolded(messageId, msg)) {
@@ -2691,12 +3109,12 @@ function renderParts(messageId) {
             const delay = dl ? ` style="animation-delay:${dl}"` : '';
             if (b.w === '-') {
                 const len = b.items.reduce((a0, it) => a0 + it.e - it.s, 0);
-                return `<div class="rls-part narr${len < 170 ? ' short' : ''}"${delay}><span class="rls-narr-line"></span><span class="rls-narr-text">${body}</span><span class="rls-narr-line"></span></div>`;
+                return `<div class="rls-part narr${len < 170 ? ' short' : ''}"${delay} data-pieces="${b.items.map(it => it.i).join(',')}"><span class="rls-narr-line"></span><span class="rls-narr-text">${body}</span><span class="rls-narr-line"></span></div>`;
             }
             const f = partFace(b.w);
             const side = b.w === me ? 'r' : (order.indexOf(b.w) % 2 ? 'r' : 'l');
             const nosay = !b.items.some(it => it.say);
-            return `<div class="rls-part who ${side} hand${f.hue % 4}${f.me ? ' me' : ''}${nosay ? ' nosay' : ''}" style="--rls-hue:${f.hue}${dl ? `;animation-delay:${dl}` : ''}" data-dl="${dl ? parseFloat(dl) : 0}">
+            return `<div class="rls-part who ${side} hand${f.hue % 4}${f.me ? ' me' : ''}${nosay ? ' nosay' : ''}" style="--rls-hue:${f.hue}${dl ? `;animation-delay:${dl}` : ''}" data-dl="${dl ? parseFloat(dl) : 0}" data-pieces="${b.items.map(it => it.i).join(',')}">
                 <div class="rls-part-ava" title="${escapeHtml(b.w)}">${f.html}</div>
                 <div class="rls-part-box"><div class="rls-part-name"><span class="rls-part-mini">${f.html}</span><span>${escapeHtml(b.w)}</span></div><div class="rls-part-text">${body}</div></div>
             </div>`;
@@ -2714,6 +3132,24 @@ function renderParts(messageId) {
             saveSettings();
             renderAllParts();
         });
+        // right-click, or a long press on a touch screen: "whose is this?"
+        wrap.addEventListener('contextmenu', e => {
+            const blk = e.target.closest('.rls-part');
+            if (!blk || !blk.dataset.pieces) return;
+            e.preventDefault();
+            openFixMenu(messageId, blk, e.clientX, e.clientY);
+        });
+        let pressT = 0, pressAt = null;
+        wrap.addEventListener('pointerdown', e => {
+            if (e.pointerType !== 'touch') return;
+            const blk = e.target.closest('.rls-part');
+            if (!blk || !blk.dataset.pieces) return;
+            pressAt = { x: e.clientX, y: e.clientY };
+            clearTimeout(pressT);
+            pressT = setTimeout(() => { pressAt = null; openFixMenu(messageId, blk, e.clientX, e.clientY); }, 550);
+        });
+        wrap.addEventListener('pointermove', e => { if (pressAt && Math.hypot(e.clientX - pressAt.x, e.clientY - pressAt.y) > 8) { clearTimeout(pressT); pressAt = null; } });
+        ['pointerup', 'pointercancel'].forEach(k => wrap.addEventListener(k, () => { clearTimeout(pressT); pressAt = null; }));
         // a click on someone's block quiets the others; again, and everyone is back
         wrap.addEventListener('click', e => {
             const blk = e.target.closest('.rls-part.who');
@@ -3557,8 +3993,8 @@ async function playInNovel(id) {
     // not split yet: split it first (one call), then play
     if (!msg.is_user && settings.lineFaces !== false && !partsView(id) && apiKey()) {
         const btn = document.querySelector(`#chat .mes[mesid="${id}"] .rls-novel-btn`);
-        if (btn) btn.classList.add('busy');
-        try { await askParts(id, false); } finally { if (btn) btn.classList.remove('busy'); }
+        btnBusy(btn, true);
+        try { await askParts(id, false); } finally { btnBusy(btn, false); }
     }
     if (!novel) openNovel(id);
     else if (novel.goto) novel.goto(id);
@@ -3653,11 +4089,13 @@ function buildCandidates() {
     };
     try {
         // a card of the same name lends its face — but not to a description like "The Cook", which many cards share
-        const cardPic = nm => { if (/^(the|a|an)\s/i.test(String(nm || '').trim())) return ''; const c = characters.find(x => x && x.name === nm); return c && c.avatar ? `/thumbnail?type=avatar&file=${encodeURIComponent(c.avatar)}` : ''; };
+        // (only when one card has that name: two cards called the same are two different stories)
+        const thumb = av => `/thumbnail?type=avatar&file=${encodeURIComponent(av)}`;
+        const cardPic = nm => { if (/^(the|a|an)\s/i.test(String(nm || '').trim())) return ''; const cs = characters.filter(x => x && x.name === nm && x.avatar); return cs.length === 1 ? thumb(cs[0].avatar) : ''; };
         if (selected_group) {
             const g = (groups || []).find(x => x && x.id === selected_group);
-            (g && g.members || []).forEach(av => { const c = characters.find(x => x && x.avatar === av); if (c) add(c.name, cardPic(c.name), 'card'); });
-        } else if (ctx.characterId !== undefined && characters[ctx.characterId]) add(characters[ctx.characterId].name, cardPic(characters[ctx.characterId].name), 'card');
+            (g && g.members || []).forEach(av => { const c = characters.find(x => x && x.avatar === av); if (c) add(c.name, thumb(c.avatar), 'card'); });
+        } else if (ctx.characterId !== undefined && characters[ctx.characterId]) add(characters[ctx.characterId].name, characters[ctx.characterId].avatar ? thumb(characters[ctx.characterId].avatar) : '', 'card');   // this chat's own card, not another of the same name
         const st = sceneState();
         st.npcs.forEach(n => add(n.name, cardPic(n.name), 'npc'));
         diaryNpcs().forEach(n => add(n.name, (typeof n.portrait === 'string' && n.portrait) || cardPic(n.name), 'npc'));
@@ -3670,8 +4108,15 @@ function buildCandidates() {
             if (c.pic || c.kind === 'user') return;
             const d = npcs.find(n => namesIn(n.name, [c]).length);
             if (d) { c.pic = d.portrait; return; }
-            const card = characters.find(x => x && x.avatar && x.name && namesIn(x.name, [c]).length);
-            if (card) c.pic = `/thumbnail?type=avatar&file=${encodeURIComponent(card.avatar)}`;
+            // a card from the library only when it is this very person: the whole name, one of their
+            // aliases, or the whole name in the other alphabet («Аква» / "Aqua") — and only one such card.
+            // A card that merely shares a first name ("Kai …" of another story) is somebody else.
+            const norm = x => String(x || '').trim().toLowerCase().replace(/ё/g, 'е');
+            const forms = new Set(aliasNamesOf(c.name).map(norm));
+            const cyr = x => /[а-яё]/i.test(x);
+            const same = characters.filter(x => x && x.avatar && x.name && (forms.has(norm(x.name))
+                || (cyr(x.name) !== cyr(c.name) && String(x.name).trim().split(/\s+/).length === c.name.split(/\s+/).length && sameSound(latinOf(x.name), latinOf(c.name)))));
+            if (same.length === 1) c.pic = `/thumbnail?type=avatar&file=${encodeURIComponent(same[0].avatar)}`;
         });
     } catch (e) { console.warn('[Living Scene] roles: cast', e); }
     return out.filter(c => c.probes.length);
