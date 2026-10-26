@@ -79,6 +79,7 @@ const I18N = {
         set_off_left: 'Left bubbles: offset from message top (px, below the thoughts):',
         set_off_right: 'Right bubbles: offset from message top (px):',
         set_parts_auto: 'Split every new reply by itself (off — only with the button)',
+        set_parts_fold: 'Older replies as plain text with a “By roles” button (the last 3 stay in blocks)', parts_unfold: 'By roles',
         set_parts_style: 'Look of the blocks:', style_glass: 'Glass — small faces, light frames', style_ink: 'Ink — no frames, a coloured line', style_classic: 'As before — big faces',
         set_parts_anim: 'Text appears:', anim_none: 'at once', anim_fade: 'word by word, fading in', anim_type: 'word by word, typed',
         set_parts_fonts: 'Each person has their own colour and lettering',
@@ -170,6 +171,7 @@ const I18N = {
         set_off_left: 'Облачка слева: отступ от верха сообщения (px, ниже мыслей):',
         set_off_right: 'Облачка справа: отступ от верха сообщения (px):',
         set_parts_auto: 'Разбивать каждый новый ответ сам (выкл. — только по кнопке)',
+        set_parts_fold: 'Старые ответы — обычным текстом с кнопкой «По ролям» (последние 3 остаются блоками)', parts_unfold: 'По ролям',
         set_parts_style: 'Вид блоков:', style_glass: 'Стекло — маленькие лица, лёгкие рамки', style_ink: 'Чернила — без рамок, цветная линия', style_classic: 'Как раньше — крупные лица',
         set_parts_anim: 'Появление текста:', anim_none: 'сразу', anim_fade: 'по словам, проявляясь', anim_type: 'по словам, как печать',
         set_parts_fonts: 'У каждого свой цвет и почерк',
@@ -279,6 +281,7 @@ function loadSettings() {
         novel: false,        // the chat is played as a visual novel (kept between chats and reloads)
         mapPresence: true,   // RPG Map's "Who is where" decides who is present (your switch still wins)
         partsAuto: true,     // every new reply is split by itself (off: only with the button, or while the novel is open)
+        partsFold: true,     // older replies show their plain text with a "by roles" button; the last few stay in blocks
         partsStyle: 'glass', // the blocks' look: glass | ink | classic
         partsAnim: 'fade',   // the text of a new block: none | fade | type
         partsFonts: true,    // each person their own colour and lettering
@@ -2080,6 +2083,7 @@ function settingsHtml() {
                 ${hint('set_faces_hint')}
                 <div class="rls-in">
                     <label class="checkbox_label"><input type="checkbox" id="rls-parts-auto"> ${t('set_parts_auto')}</label>
+                    <label class="checkbox_label"><input type="checkbox" id="rls-parts-fold"> ${t('set_parts_fold')}</label>
                     <div class="rls-row stack"><label for="rls-parts-style">${t('set_parts_style')}</label><select id="rls-parts-style" class="text_pole"><option value="glass">${t('style_glass')}</option><option value="ink">${t('style_ink')}</option><option value="classic">${t('style_classic')}</option></select></div>
                     <div class="rls-row stack"><label for="rls-parts-anim">${t('set_parts_anim')}</label><select id="rls-parts-anim" class="text_pole"><option value="none">${t('anim_none')}</option><option value="fade">${t('anim_fade')}</option><option value="type">${t('anim_type')}</option></select></div>
                     <label class="checkbox_label"><input type="checkbox" id="rls-parts-fonts"> ${t('set_parts_fonts')}</label>
@@ -2171,6 +2175,7 @@ function setupUI() {
     $('#rls-parts-auto').prop('checked', settings.partsAuto !== false).on('change', function () { settings.partsAuto = this.checked; saveSettings(); });
     $('#rls-parts-style').val(settings.partsStyle).on('change', function () { settings.partsStyle = this.value; saveSettings(); renderAllParts(); });
     $('#rls-parts-anim').val(settings.partsAnim).on('change', function () { settings.partsAnim = this.value; saveSettings(); });
+    $('#rls-parts-fold').prop('checked', settings.partsFold !== false).on('change', function () { settings.partsFold = this.checked; saveSettings(); renderAllParts(); });
     $('#rls-parts-fonts').prop('checked', settings.partsFonts !== false).on('change', function () { settings.partsFonts = this.checked; saveSettings(); renderAllParts(); });
     $('#rls-novel-btn').prop('checked', settings.novelBtn !== false).on('change', function () { settings.novelBtn = this.checked; saveSettings(); renderAllParts(); });
     const novelLook = () => { if (novel && novel.look) novel.look(); };
@@ -2213,18 +2218,26 @@ function pieceText(text, s0, e0) {
     if (inside % 2 === 1) piece = /\*\s*$/.test(piece) && before % 2 === 0 && !/^\s*\*/.test(text.slice(s0, e0)) ? piece : piece.replace(/\s+$/, '') + '*';
     return piece;
 }
+/* The model's own thinking left in the reply (<think>…</think>, <thinking>, <reasoning>) is not
+   the story: nobody says it and nobody does it. It is blanked out — same length, so every piece
+   still points at the right place in the real text — and never cut into pieces. */
+const THINK_RE = /<(think|thinking|reasoning|reflection)\b[^>]*>[\s\S]*?<\/\1\s*>/gi;
+function blankThinking(text) {
+    return String(text).replace(THINK_RE, m => m.replace(/[^\n]/g, ' '));
+}
 function splitPieces(mes) {
     const text = String(mes || '').replace(/\r\n?/g, '\n');
+    const scan = blankThinking(text);   // what is cut: the text with the thinking blanked out
     const out = [];
     const push = (s0, e0, kind) => {
-        while (s0 < e0 && /\s/.test(text[s0])) s0++;
-        while (e0 > s0 && /\s/.test(text[e0 - 1])) e0--;
+        while (s0 < e0 && /\s/.test(scan[s0])) s0++;
+        while (e0 > s0 && /\s/.test(scan[e0 - 1])) e0--;
         if (e0 > s0) out.push({ s: s0, e: e0, kind });
     };
     // narration: sentence by sentence — inside *…* too (a whole paragraph in italics is several people's
     // sentences); a piece cut inside the italics gets its asterisks back when it is drawn (pieceText)
     const narr = (s0, e0) => {
-        const chunk = text.slice(s0, e0);
+        const chunk = scan.slice(s0, e0);
         const re = /[^.!?…]+(?:[.!?…]+["»”*]*|$)/g;
         let m;
         while ((m = re.exec(chunk)) && m[0]) {
@@ -2233,7 +2246,7 @@ function splitPieces(mes) {
         }
     };
     let at = 0;
-    text.split('\n').forEach(line => {
+    scan.split('\n').forEach(line => {
         const ls = at; at += line.length + 1;
         if (!line.trim()) return;
         // (the whole line may sit in italics or bold: "*— Ready, miss. — he said.*" is still a dash dialogue line)
@@ -2271,7 +2284,9 @@ function partsSys() {
 - an action, a gesture, a look, an inner state: the person it is about;
 - narration about the place, the weather, several people at once, or nobody in particular: "-".
 Use the names exactly as listed under CAST when it is one of them (aliases count as that person). The player is "${getContext().name1 || name1 || 'User'}".
-Someone new who is not in the cast: use the name the text gives them; if the text never names them, a short label from the text (for example "the girl") — the same label every time.
+Someone new who is not in the cast: use the name the text gives them; if the text never names them, a short label from the text (for example "the girl") — in the reply's own language and words, as the text calls them (a Russian reply: "камердинер", not "the valet") — the same label every time; a label listed under LABELLED BEFORE is reused for the same person.
+A label is for a person only — never an object, a wound, a body part or a place. Narration about things, rooms or what someone finds is "-" unless it is clearly that person's own action.
+When PRESENT NOW is given, a cast member who is not in it is not in the scene: a piece that only mentions them is not theirs.
 Follow who is meant by "he", "she", "they" from the pieces around and from the earlier messages.
 A sentence about another person inside someone's paragraph ("Megumin, however, was already asleep") is that other person's.
 Never guess who is behind something nobody is named or meant in ("The hallway door clicks open behind you" with no one seen): that is "-".
@@ -2289,10 +2304,14 @@ function partsUser(messageId, pieces, text) {
         const al = String((st.meta && st.meta[c.name] && st.meta[c.name].aliases) || '').trim();
         return `- ${c.name}${al ? ` (also: ${al})` : ''}`;
     });
+    // the earlier replies without the model's thinking in them: it is not the story, and it is tokens
     const prev = (ctx.chat || []).slice(Math.max(0, messageId - 2), messageId)
-        .filter(m => m && !m.is_system).map(m => `${m.name}: ${String(m.mes || '').replace(/\s+/g, ' ').slice(-600)}`).join('\n');
+        .filter(m => m && !m.is_system).map(m => `${m.name}: ${blankThinking(String(m.mes || '')).replace(/\s+/g, ' ').trim().slice(-600)}`).join('\n');
     const lines = pieces.map((p, i) => `[${i}] ${text.slice(p.s, p.e).replace(/\s+/g, ' ').slice(0, 300)}`).join('\n');
-    return `CAST:\n${cast.join('\n') || '- (nobody listed)'}\n\nEARLIER:\n${prev || '(none)'}\n\nTHE REPLY (written as ${ctx.chat[messageId]?.name || ''}):\n${lines}\n\n{"who":{...}} with every number from 0 to ${pieces.length - 1}.`;
+    // two short facts instead of more history: who the Scene Card has in the scene, and the labels already given
+    const present = presentNowFor(messageId);
+    const labelled = labelsBefore(messageId);
+    return `CAST:\n${cast.join('\n') || '- (nobody listed)'}\n\n${present.length ? `PRESENT NOW (the scene tracker):\n${present.join(', ')}\n\n` : ''}${labelled.length ? `LABELLED BEFORE (unnamed people of the earlier replies):\n${labelled.join(', ')}\n\n` : ''}EARLIER:\n${prev || '(none)'}\n\nTHE REPLY (written as ${ctx.chat[messageId]?.name || ''}):\n${lines}\n\n{"who":{...}} with every number from 0 to ${pieces.length - 1}.`;
 }
 // the model's names, checked: someone in the cast, the player, or a name that is really in the text
 function partsClean(who, pieces, text, messageId) {
@@ -2311,13 +2330,103 @@ function partsClean(who, pieces, text, messageId) {
             const hay = near.toLowerCase().replace(/ё/g, 'е');
             // (articles and little words do not count: "The Cook" is not in the text because "the" is)
             out = w.split(/\s+/).filter(part => !SMALL_WORDS.has(part.toLowerCase())).some(part => { const pr = nameStem(part).replace(/ё/g, 'е'); return pr.length >= 3 && hay.includes(pr); }) ? w : '?';
+            // the same stranger as in the replies before ("the young servant girl" then "the servant girl"): one label
+            if (out !== '?') out = sameStranger(out, messageId) || out;
         }
         known.set(w.toLowerCase(), out);
         return out;
     });
 }
+// who the Scene Card has in the scene at this reply (its own card, else the latest one before it)
+function presentNowFor(messageId) {
+    try {
+        const chat = getContext().chat || [];
+        for (let i = messageId; i >= 0 && i >= messageId - 20; i--) {
+            const d = chat[i] && chat[i].extra && chat[i].extra.rpg_info_box;
+            if (d && Array.isArray(d.characters)) return [...new Set(d.characters.map(c => String((c && c.name) || '').trim()).filter(Boolean))].slice(0, 12);
+            if (d) return [];
+        }
+    } catch (e) { /* no Scene Card */ }
+    return [];
+}
+// the labels unnamed people got in the replies before (cast names excluded), newest first
+function labelsBefore(messageId) {
+    const out = [];
+    try {
+        const chat = getContext().chat || [];
+        const cast = new Set(faceCandidates().map(c => c.name.toLowerCase()));
+        for (let i = messageId - 1; i >= 0 && i >= messageId - 12 && out.length < 8; i--) {
+            const parts = chat[i] && chat[i].extra && chat[i].extra.rls_parts;
+            const saved = parts && typeof parts === 'object' ? parts[chat[i].swipe_id ?? 0] : null;
+            (saved && Array.isArray(saved.w) ? saved.w : []).forEach(w => { const x = String(w || '').trim(); if (x && x !== '-' && x !== '?' && !cast.has(x.toLowerCase()) && !out.includes(x) && out.length < 8) out.push(x); });
+        }
+    } catch (e) { /* none */ }
+    return out;
+}
+/* An unnamed person the model labelled in an earlier reply keeps that label: the model sees one
+   reply at a time and calls the same girl "the young servant girl", then "the servant girl" — two
+   colours, two faces. Labels whose words (without "the", "young"…) are the same, or one inside
+   the other, are one person; the earlier label stays. */
+function labelWords(label) {
+    return String(label || '').toLowerCase().replace(/ё/g, 'е').split(/[^\p{L}\p{N}]+/u).filter(w => w && !SMALL_WORDS.has(w)).map(w => nameStem(w));
+}
+function sameStranger(label, messageId) {
+    try {
+        const mine = labelWords(label);
+        if (!mine.length) return null;
+        const chat = getContext().chat || [];
+        const cast = new Set(faceCandidates().map(c => c.name.toLowerCase()));
+        for (let i = messageId - 1; i >= 0 && i >= messageId - 12; i--) {
+            const parts = chat[i] && chat[i].extra && chat[i].extra.rls_parts;
+            if (!parts || typeof parts !== 'object') continue;
+            const saved = parts[chat[i].swipe_id ?? 0];
+            const seen = [...new Set((saved && Array.isArray(saved.w) ? saved.w : []).filter(x => x && x !== '-' && x !== '?' && !cast.has(String(x).toLowerCase())))];
+            for (const old of seen) {
+                if (old.toLowerCase() === label.toLowerCase()) return old;
+                const theirs = labelWords(old);
+                if (!theirs.length) continue;
+                const inside = (a0, b0) => a0.every(w => b0.includes(w));
+                if (inside(mine, theirs) || inside(theirs, mine)) return old;
+            }
+        }
+    } catch (e) { /* keep the label as it is */ }
+    return null;
+}
 /* how a cast member is written in the replies, as the model reported it: kept as quiet aliases
    (scene meta "auto"), but only forms that are really in the reply, a few per person */
+/* A card that is a world, not a person ("Академия Красный Завет", a narrator card): its name is
+   never written in the story, and a small model hands it every piece of the reply, then reports
+   the real speaker as "how the card is written" — forms: { "Академия…": ["the student", "Lev"] }.
+   When the card's name stands nowhere in this reply or the messages before it, the pieces given
+   to it go to the person the model named for it (a name that is really in the reply, not a label
+   like "the student"), and that name is not learned as the card's alias. */
+function worldCardFix(raw, forms, text, messageId) {
+    try {
+        if (!forms || typeof forms !== 'object' || Array.isArray(forms)) return forms;
+        const ctx = getContext();
+        const cards = faceCandidates().filter(c => c.kind === 'card');
+        const around = (ctx.chat || []).slice(Math.max(0, messageId - 10), messageId).map(m => (m && m.mes) || '').join(' ') + ' ' + text;
+        const low = String(text || '').toLowerCase();
+        const me = String(ctx.name1 || name1 || '').toLowerCase();
+        const out = Object.assign({}, forms);
+        Object.keys(forms).forEach(key => {
+            const c = cards.find(x => x.name.toLowerCase() === String(key).trim().toLowerCase());
+            if (!c || !raw.some(w => String(w || '').trim().toLowerCase() === c.name.toLowerCase())) return;
+            if (namesIn(around, [c]).length) return;                   // the card's name is in the story: a person after all
+            const list = (Array.isArray(forms[key]) ? forms[key] : [forms[key]]).map(x => String(x || '').trim());
+            const person = list.find(f => {
+                const first = f.split(/\s+/)[0] || '';
+                return first.length >= 2 && /^\p{Lu}/u.test(first) && !SMALL_WORDS.has(first.toLowerCase()) && !PERSON_WORDS.test(first) && !YOU_WORDS.test(first)
+                    && first.toLowerCase() !== me && new RegExp(`(?<![\\p{L}])${first.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'iu').test(low);
+            });
+            if (!person) return;
+            for (let i = 0; i < raw.length; i++) if (String(raw[i] || '').trim().toLowerCase() === c.name.toLowerCase()) raw[i] = person;
+            delete out[key];
+            console.log(`[Living Scene] roles: "${c.name}" is never named in the story — its pieces go to ${person}, as the model named them`);
+        });
+        return out;
+    } catch (e) { return forms; }
+}
 function learnForms(forms, text) {
     if (!forms || typeof forms !== 'object' || Array.isArray(forms)) return;
     const cands = faceCandidates();
@@ -2378,7 +2487,8 @@ async function askParts(messageId, manual = false) {
         if (Array.isArray(w0)) raw = w0.length === pieces.length ? w0 : null;   // a list is trusted only when it has them all
         else if (w0 && typeof w0 === 'object') raw = pieces.map((_, i) => w0[i] ?? w0[String(i)] ?? '?');
         if (!raw) { console.warn('[Living Scene] roles: no "who" in', res); if (manual) toastr.warning(t('parts_failed')); return; }
-        learnForms(res && res.forms, text);
+        const forms0 = worldCardFix(raw, res && res.forms, text, messageId);
+        learnForms(forms0, text);
         const who = partsClean(raw, pieces, text, messageId);
         if (!now.extra) now.extra = {};
         if (!now.extra.rls_parts || typeof now.extra.rls_parts !== 'object') now.extra.rls_parts = {};
@@ -2454,6 +2564,12 @@ function settleParts(items, text) {
         if (it.say || it.subj || !prev || !prev.subj || prev.p !== it.p) return;
         if (/^[\s*_]*(he|she|they|his|her|their|him|он|она|они|его|её|ее|их)(?=[\s,.!?…])/iu.test(text.slice(it.s, it.e))) { it.w = prev.w; it.subj = true; }
     });
+    /* A spoken line nobody was named for is never guessed onto the player: in a character's reply
+       the player's pieces are "you"-narration, and a stranger's lines between two of them
+       (an unnamed valet dressing you) went into the player's block. The player gets a line only
+       when the model names them for it. */
+    const me = String(getContext().name1 || name1 || '').toLowerCase();
+    const voice = w => !open(w) && String(w).toLowerCase() !== me;
     for (let pass = 0; pass < 2; pass++) {
         items.forEach((it, i) => {
             const prev = items[i - 1], next = items[i + 1];
@@ -2465,19 +2581,19 @@ function settleParts(items, text) {
             }
             if (!it.say || !open(it.w)) return;
             // a line that runs on into its tag ("…," he said) is the tag's person
-            if (next && next.p === it.p && !open(next.w) && /[,—–-]\s*["»”“]?$/.test(piece)) { it.w = next.w; return; }
+            if (next && next.p === it.p && voice(next.w) && /[,—–-]\s*["»”“]?$/.test(piece)) { it.w = next.w; return; }
             // otherwise the nearest known voice in the same paragraph
             let k = 1;
             while (i - k >= 0 || i + k < items.length) {
                 const a0 = items[i - k], b0 = items[i + k];
-                if (a0 && a0.p === it.p && !open(a0.w)) { it.w = a0.w; return; }
-                if (b0 && b0.p === it.p && !open(b0.w)) { it.w = b0.w; return; }
+                if (a0 && a0.p === it.p && voice(a0.w)) { it.w = a0.w; return; }
+                if (b0 && b0.p === it.p && voice(b0.w)) { it.w = b0.w; return; }
                 k++;
             }
             // a line on its own between two blocks of one person is theirs
             let a1 = i - 1; while (a1 >= 0 && open(items[a1].w)) a1--;
             let b1 = i + 1; while (b1 < items.length && open(items[b1].w)) b1++;
-            if (a1 >= 0 && b1 < items.length && items[a1].w === items[b1].w) it.w = items[a1].w;
+            if (a1 >= 0 && b1 < items.length && items[a1].w === items[b1].w && voice(items[a1].w)) it.w = items[a1].w;
         });
     }
     items.forEach(it => { if (open(it.w)) it.w = '-'; });
@@ -2534,6 +2650,7 @@ function renderParts(messageId) {
         const mesText = mesEl.querySelector('.mes_text');
         const old = mesEl.querySelector('.rls-parts');
         if (old) old.remove();
+        mesEl.querySelector('.rls-parts-fold')?.remove();
         if (mesText) mesText.classList.remove('rls-hidden');
         const msg = getContext().chat[messageId];
         if (!msg || msg.is_user || msg.is_system || !mesText) return;
@@ -2548,6 +2665,16 @@ function renderParts(messageId) {
         // there is nothing to tell apart, the plain text is better. One person with narration around
         // them (the hallway, then William) is told apart, and can be played as a scene
         if (!blocks.some(b => b.w !== '-') || blocks.length < 2) return;
+        /* an older reply: its own plain text, and one small button under it that draws the blocks.
+           Dozens of split replies in a long chat were hundreds of blocks in the page. */
+        if (partsFolded(messageId, msg)) {
+            const strip = document.createElement('div');
+            strip.className = 'rls-parts-fold';
+            strip.innerHTML = `<button type="button" class="rls-unfold" title="${escapeHtml(t('parts_unfold'))}"><i class="fa-solid fa-people-arrows"></i> ${escapeHtml(t('parts_unfold'))}</button>`;
+            strip.querySelector('button').addEventListener('click', e => { e.stopPropagation(); partsUnfolded.add(`${getContext().chatId}#${messageId}#${msg.swipe_id ?? 0}`); renderParts(messageId); });
+            mesText.after(strip);
+            return;
+        }
         const piecesHtml = list => list.map((it, k) => {
             const gap = k ? text.slice(list[k - 1].e, it.s) : '';
             const sep = k ? (gap.includes('\n') ? '<br>' : ' ') : '';
@@ -3391,6 +3518,8 @@ function addSplitButton(mesEl, messageId) {
             const id = Number(b.closest('.mes')?.getAttribute('mesid'));
             if (!Number.isFinite(id)) return;
             if (partsShowText.has(id)) { partsShowText.delete(id); const m = getContext().chat[id]; const sv = m && m.extra && m.extra.rls_parts && m.extra.rls_parts[m.swipe_id ?? 0]; if (sv && sv.h === partsHash(m.mes)) { renderParts(id); return; } }
+            // a folded older reply: its saved split is drawn, nothing is asked again
+            { const m = getContext().chat[id]; if (m && partsFolded(id, m) && partsView(id)) { partsUnfolded.add(`${getContext().chatId}#${id}#${m.swipe_id ?? 0}`); renderParts(id); return; } }
             askParts(id, true);
         });
         bar.prepend(b);
@@ -3433,6 +3562,33 @@ async function playInNovel(id) {
     }
     if (!novel) openNovel(id);
     else if (novel.goto) novel.goto(id);
+}
+/* ---- older replies folded ---- */
+const PARTS_OPEN_LAST = 3;                 // the newest replies always in blocks
+const partsUnfolded = new Set();           // opened by hand this session: chatId#id#swipe
+function recentReplies() {
+    const chat = getContext().chat || [];
+    const out = new Set();
+    for (let i = chat.length - 1; i >= 0 && out.size < PARTS_OPEN_LAST; i--) { const m = chat[i]; if (m && !m.is_user && !m.is_system) out.add(i); }
+    return out;
+}
+function partsFolded(messageId, msg) {
+    if (settings.partsFold === false || novel) return false;
+    if (recentReplies().has(messageId)) return false;
+    return !partsUnfolded.has(`${getContext().chatId}#${messageId}#${(msg && msg.swipe_id) ?? 0}`);
+}
+// a new reply came: the ones now past the last few fold (drawn blocks of replies opened by hand stay)
+let refoldTimer = 0;
+function refoldParts() {
+    clearTimeout(refoldTimer);
+    refoldTimer = setTimeout(() => {
+        if (settings.partsFold === false) return;
+        const chat = getContext().chat || [];
+        document.querySelectorAll('#chat .mes[mesid] .rls-parts').forEach(w => {
+            const id = Number(w.closest('.mes').getAttribute('mesid'));
+            if (partsFolded(id, chat[id])) renderParts(id);
+        });
+    }, 120);
 }
 function renderAllParts() {
     const chat = getContext().chat || [];
@@ -3638,7 +3794,7 @@ jQuery(() => {
     });
 
     // the scene by roles: drawn whenever SillyTavern draws a message's text again
-    eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, (messageId) => renderParts(messageId));
+    eventSource.on(event_types.CHARACTER_MESSAGE_RENDERED, (messageId) => { renderParts(messageId); refoldParts(); });
     ['MESSAGE_UPDATED', 'MESSAGE_SWIPED', 'MESSAGE_EDITED'].forEach(k => {
         if (event_types[k]) eventSource.on(event_types[k], (messageId) => setTimeout(() => renderParts(messageId), 30));
     });

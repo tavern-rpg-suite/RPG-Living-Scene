@@ -698,3 +698,8 @@
 .rls-vn.box-parchment .rls-vn-text::-webkit-scrollbar { width: 6px; }
 .rls-vn.box-parchment .rls-vn-text::-webkit-scrollbar-thumb { background: #8a2c23; border-radius: 4px; }
 @media (prefers-reduced-motion: reduce) { .rls-vn-veil, .rls-vn-card, .rls-vn-card-line { transition: opacity .3s; } }
+
+/* an older reply folded: its plain text, and one small button under it to see it by roles */
+.rls-parts-fold { display: flex; justify-content: flex-end; margin: 2px 0 0; }
+.rls-parts-fold .rls-unfold { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border: 1px solid color-mix(in srgb, var(--SmartThemeBodyColor, #ddd) 18%, transparent); border-radius: 999px; background: transparent; color: var(--SmartThemeBodyColor, #ddd); opacity: .45; font-size: .78em; cursor: pointer; transition: opacity .15s; }
+.rls-parts-fold .rls-unfold:hover, .rls-parts-fold .rls-unfold:focus-visible { opacity: .9; }
