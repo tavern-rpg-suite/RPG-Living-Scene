@@ -720,4 +720,13 @@
 #rls-fixmenu .rls-fix-new { display: flex; gap: 6px; padding: 6px 4px 2px; border-top: 1px solid rgba(232, 200, 130, .14); margin-top: 4px; }
 #rls-fixmenu .rls-fix-new input { flex: 1; min-width: 0; height: 32px; padding: 0 8px; border-radius: 7px; border: 1px solid rgba(232, 200, 130, .25); background: rgba(255, 255, 255, .06); color: inherit; font: inherit; }
 #rls-fixmenu .rls-fix-new button { height: 32px; padding: 0 12px; border-radius: 7px; border: 1px solid rgba(232, 200, 130, .35); background: rgba(232, 200, 130, .15); color: inherit; font: inherit; cursor: pointer; }
-@media (prefers-reduced-motion: reduce) { #rls-fixmenu { animation: none; } }
+#rls-fixmenu .rls-fix-row { display: flex; align-items: center; gap: 2px; }
+#rls-fixmenu .rls-fix-row > .rls-fix-item { flex: 1; min-width: 0; }
+#rls-fixmenu .rls-fix-ed, #rls-fixmenu .rls-fix-rm { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: inherit; font-size: 12px; opacity: 0; cursor: pointer; transition: opacity .12s; }
+#rls-fixmenu .rls-fix-row:hover .rls-fix-ed, #rls-fixmenu .rls-fix-row:hover .rls-fix-rm, #rls-fixmenu .rls-fix-row:focus-within .rls-fix-ed, #rls-fixmenu .rls-fix-row:focus-within .rls-fix-rm { opacity: .7; }
+#rls-fixmenu .rls-fix-ed:hover, #rls-fixmenu .rls-fix-rm:hover, #rls-fixmenu .rls-fix-ed:focus-visible, #rls-fixmenu .rls-fix-rm:focus-visible { opacity: 1; background: rgba(232, 200, 130, .14); outline: none; }
+@media (hover: none) { #rls-fixmenu .rls-fix-ed, #rls-fixmenu .rls-fix-rm { opacity: .6; } }
+#rls-fixmenu .rls-fix-rename { display: flex; gap: 6px; width: 100%; padding: 2px 0; }
+#rls-fixmenu .rls-fix-rename input { flex: 1; min-width: 0; height: 32px; padding: 0 8px; border-radius: 7px; border: 1px solid rgba(232, 200, 130, .45); background: rgba(255, 255, 255, .08); color: inherit; font: inherit; }
+#rls-fixmenu .rls-fix-rename button { height: 32px; padding: 0 12px; border-radius: 7px; border: 1px solid rgba(232, 200, 130, .35); background: rgba(232, 200, 130, .15); color: inherit; font: inherit; cursor: pointer; }
+@media (prefers-reduced-motion: reduce) { #rls-fixmenu { animation: none; } #rls-fixmenu .rls-fix-ed, #rls-fixmenu .rls-fix-rm { transition: none; } }

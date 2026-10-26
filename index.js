@@ -81,7 +81,7 @@ const I18N = {
         set_parts_auto: 'Split every new reply by itself (off — only with the button)',
         set_parts_fold: 'Older replies as plain text with a “By roles” button (the last 3 stay in blocks)', parts_unfold: 'By roles',
         set_parts_code: 'Rules first: the model is asked only about what the text does not show', set_parts_solo: 'Show a reply of one character as a block too (portrait and name)', parts_fix_hint: 'Right-click or hold a block to say whose it is.',
-        fix_title: 'Whose is this?', fix_narr: 'Narration', fix_new: 'Someone else…', fix_ph: 'Name', fix_ok: 'OK',
+        fix_title: 'Whose is this?', fix_narr: 'Narration', fix_new: 'Someone else…', fix_ph: 'Name', fix_ok: 'OK', fix_rename: 'Rename everywhere in this chat', fix_forget: 'Remove from the list',
         set_parts_style: 'Look of the blocks:', style_glass: 'Glass — small faces, light frames', style_ink: 'Ink — no frames, a coloured line', style_classic: 'As before — big faces',
         set_parts_anim: 'Text appears:', anim_none: 'at once', anim_fade: 'word by word, fading in', anim_type: 'word by word, typed',
         set_parts_fonts: 'Each person has their own colour and lettering',
@@ -175,7 +175,7 @@ const I18N = {
         set_parts_auto: 'Разбивать каждый новый ответ сам (выкл. — только по кнопке)',
         set_parts_fold: 'Старые ответы — обычным текстом с кнопкой «По ролям» (последние 3 остаются блоками)', parts_unfold: 'По ролям',
         set_parts_code: 'Сначала правила: модель спрашивается только о том, чего не видно из текста', set_parts_solo: 'Показывать блоком и ответ одного персонажа (портрет и имя)', parts_fix_hint: 'Правый клик или долгое нажатие по блоку — выбрать, чей он.',
-        fix_title: 'Чьё это?', fix_narr: 'Повествование', fix_new: 'Кто-то другой…', fix_ph: 'Имя', fix_ok: 'OK',
+        fix_title: 'Чьё это?', fix_narr: 'Повествование', fix_new: 'Кто-то другой…', fix_ph: 'Имя', fix_ok: 'OK', fix_rename: 'Переименовать во всём чате', fix_forget: 'Убрать из списка',
         set_parts_style: 'Вид блоков:', style_glass: 'Стекло — маленькие лица, лёгкие рамки', style_ink: 'Чернила — без рамок, цветная линия', style_classic: 'Как раньше — крупные лица',
         set_parts_anim: 'Появление текста:', anim_none: 'сразу', anim_fade: 'по словам, проявляясь', anim_type: 'по словам, как печать',
         set_parts_fonts: 'У каждого свой цвет и почерк',
@@ -344,6 +344,72 @@ function sceneState() {
     return st;
 }
 function saveScene() { saveChatDebounced(); }
+
+/* ---- the people of this chat, remembered for the "Whose is this?" menu ----
+   Everyone the split has named who is not a card, a roster NPC or the player (Джулиан, «Леди Вэнс»,
+   "the valet") and everyone typed in by hand. Kept with the chat; renamed everywhere at once;
+   a name removed from the list is not brought back by itself. */
+function chatPeople() {
+    const st = sceneState();
+    if (!Array.isArray(st.people)) st.people = [];
+    if (!Array.isArray(st.peopleOff)) st.peopleOff = [];
+    return st;
+}
+// «Руфус» in the text for the card Rufus: the same person in the other alphabet — the cast, not someone new
+function castTwin(name, cands) {
+    const cyr = x => /[а-яё]/i.test(x);
+    const w = String(name || '').trim();
+    return (cands || faceCandidates()).some(c => [c.name].concat(aliasNamesOf(c.name)).some(n => cyr(n) !== cyr(w) && String(n).trim().split(/\s+/).length === w.split(/\s+/).length && sameSound(latinOf(w), latinOf(n))));
+}
+function cleanPersonName(n) { return String(n || '').replace(/\s+/g, ' ').trim().slice(0, 40); }
+function rememberPeople(names, byHand = false) {
+    const st = chatPeople();
+    const cast = new Set(faceCandidates().map(c => c.name.toLowerCase()));
+    let changed = false;
+    (names || []).forEach(n => {
+        const v = cleanPersonName(n);
+        if (!v || v === '-' || v === '?') return;
+        const lo = v.toLowerCase();
+        if (byHand && st.peopleOff.some(x => x.toLowerCase() === lo)) { st.peopleOff = st.peopleOff.filter(x => x.toLowerCase() !== lo); changed = true; }
+        if (cast.has(lo) || castTwin(v) || st.people.some(x => x.toLowerCase() === lo) || st.peopleOff.some(x => x.toLowerCase() === lo)) return;
+        st.people.push(v);
+        changed = true;
+    });
+    if (st.people.length > 80) st.people = st.people.slice(-80);
+    return changed;
+}
+// one name becomes another in every split reply of this chat (every swipe), in the list and in the roster notes
+function renamePerson(from, to) {
+    const a = cleanPersonName(from), b = cleanPersonName(to);
+    if (!a || !b || a === b || b === '-' || b === '?') return 0;
+    const chat = getContext().chat || [];
+    let n = 0;
+    const fix = parts => {
+        if (!parts || typeof parts !== 'object') return;
+        Object.values(parts).forEach(sv => { if (sv && Array.isArray(sv.w)) sv.w.forEach((w, i) => { if (w === a) { sv.w[i] = b; n++; } }); });
+    };
+    chat.forEach(m => {
+        if (!m) return;
+        fix(m.extra && m.extra.rls_parts);
+        if (Array.isArray(m.swipe_info)) m.swipe_info.forEach(si => fix(si && si.extra && si.extra.rls_parts));
+    });
+    const st = chatPeople();
+    const lo = b.toLowerCase();
+    st.people = st.people.filter(x => x !== a && x.toLowerCase() !== lo);
+    if (!faceCandidates().some(c => c.name.toLowerCase() === lo)) st.people.push(b);
+    st.peopleOff = st.peopleOff.filter(x => x.toLowerCase() !== lo);
+    if (st.meta[a] && !st.meta[b]) st.meta[b] = st.meta[a];
+    delete st.meta[a];
+    saveScene();
+    return n;
+}
+function forgetPerson(name) {
+    const st = chatPeople();
+    const v = cleanPersonName(name);
+    st.people = st.people.filter(x => x !== v);
+    if (!st.peopleOff.includes(v)) st.peopleOff.push(v);
+    saveScene();
+}
 
 // NPC dossiers kept by the RPG Diary extension: {name, role, look, note, trust}
 function diaryNpcs() {
@@ -2607,14 +2673,14 @@ const OPENER_WORDS = new Set(('not never nothing nobody none instead yet still a
 function namesFromText(text, messageId, cands) {
     try {
         const ctx = getContext();
-        const around = blankThinking(((ctx.chat || []).slice(Math.max(0, messageId - 2), messageId).map(m => (m && m.mes) || '').join('\n')) + '\n' + text);
+        const around = blankThinking(((ctx.chat || []).slice(Math.max(0, messageId - 2), messageId).map(m => (m && m.mes) || '').join('\n\n')) + '\n\n' + text);   // (each reply its own paragraphs)
         const known = cands.flatMap(c => c.probes);
         // a cast member written in another alphabet («Уильям» for William) is someone we know, not a new person
         const cyr = x => /[а-яё]/i.test(x);
         const castFirst = cands.flatMap(c => [c.name].concat(aliasNamesOf(c.name))).map(n => String(n).split(/\s+/)[0]);
         const isKnown = w => known.some(pr => w.toLowerCase().replace(/ё/g, 'е').startsWith(pr.slice(0, Math.max(3, pr.length - 1))))
             || castFirst.some(n => cyr(n) !== cyr(w) && sameSound(latinOf(w), latinOf(n)));
-        const count = new Map();
+        const count = new Map(), personLike = new Set();
         const re = /(?:^|[.!?…]\s+|\n\s*|[*_]\s*|["«“]\s*)(\p{Lu}[\p{Ll}'’]{2,})(?:['’]s)?\s+\p{Ll}/gu;
         let m;
         while ((m = re.exec(around))) {
@@ -2626,11 +2692,14 @@ function namesFromText(text, messageId, cands) {
             // the list below, an English adverb in -ly, or the same word written small somewhere around
             if (OPENER_WORDS.has(low) || /^\p{L}{3,}ly$/u.test(low) || new RegExp(`(?<![\\p{L}])${low}(?![\\p{L}])`, 'u').test(around)) continue;
             count.set(w, (count.get(w) || 0) + 1);
+            // a person, not the rain: the rest of the paragraph says "he"/"she" or has a spoken line in it
+            const rest = around.slice(m.index + m[0].length, (around.indexOf('\n\n', m.index + m[0].length) + 1 || around.length + 1) - 1);
+            if (/(?<![\p{L}])(he|she|his|her|him|он|она|его|её|ее|ему|ей|им)(?![\p{L}])/iu.test(rest) || /["«“”]|(^|\n)\s*[—–]/.test(rest)) personLike.add(w);
         }
         const present = new Set(presentNowFor(messageId).map(x => String(x).toLowerCase()));
         // twice opening a sentence, or once opening one and once more anywhere ("Felix turned…" … "Felix, stop")
         const anywhere = w => (around.match(new RegExp(`(?<![\\p{L}])${w}(?![\\p{L}])`, 'gu')) || []).length;
-        const found = [...count.entries()].filter(([w, n]) => n >= 2 || anywhere(w) >= 2 || present.has(w.toLowerCase())).map(([w]) => w);
+        const found = [...count.entries()].filter(([w, n]) => present.has(w.toLowerCase()) || ((n >= 2 || anywhere(w) >= 2) && personLike.has(w))).map(([w]) => w);
         // someone the story introduces: "It is Mr. Han, the computer science teacher", «Это был Лев, староста»,
         // "Lev, the student…" — a name next to a word for a person is a person, even said once
         const intro = new RegExp(`${NAME_RE},\\s+(?:(?:the|a|an|his|her|their|our)\\s+)?(?:[\\p{L}-]+\\s+){0,3}([\\p{L}-]+)`, 'gu');
@@ -2652,7 +2721,12 @@ function localWho(pieces, text, messageId) {
         const ctx = getContext();
         const me = String(ctx.name1 || name1 || '');
         const cands0 = faceCandidates().filter(c => !(c.kind === 'card' && isWorldCard(c.name)));
-        const cands = cands0.concat(namesFromText(text, messageId, cands0));
+        const fromText = namesFromText(text, messageId, cands0);
+        // the people this chat already met (a proper name, not a label like "the valet"): known by name
+        const met = chatPeople().people.filter(n => /^\p{Lu}/u.test(n) && !castTwin(n, cands0) && !cands0.concat(fromText).some(c => c.name.toLowerCase() === n.toLowerCase()))
+            // (only as written: «Руфус» remembered from one reply does not claim "Rufus" of another)
+            .map(n => ({ name: n, pic: '', kind: 'text', probes: probesFor(n).filter(pr => /[а-яё]/i.test(pr) === /[а-яё]/i.test(n)) })).filter(c => c.probes.length);
+        const cands = cands0.concat(fromText, met);
         const cast = cands.filter(c => c.kind !== 'user');
         const strip = x => String(x || '').replace(/^[\s*_"«“„—–-]+/, '');
         const para = pc => (text.slice(0, pc.s).match(/\n\s*\n/g) || []).length;
@@ -2831,6 +2905,7 @@ async function askParts(messageId, manual = false, again = false) {
         if (!now.extra) now.extra = {};
         if (!now.extra.rls_parts || typeof now.extra.rls_parts !== 'object') now.extra.rls_parts = {};
         now.extra.rls_parts[swipeId] = { h: partsHash(now.mes), p: pieces.map(x => [x.s, x.e, x.kind === 'say' ? 's' : 'a']), w: who, f: partsFeel(res && res.feel, pieces.length) };
+        rememberPeople(who);
         saveScene();
         if (mayRetry) {
             const v = partsView(messageId);
@@ -2969,9 +3044,18 @@ const partsShowText = new Set();   // messages switched back to plain text, this
    by hand, so no guess ever moves it); asking the model again starts over. */
 function closeFixMenu() { document.getElementById('rls-fixmenu')?.remove(); document.removeEventListener('pointerdown', fixOutside, true); document.removeEventListener('keydown', fixKey, true); }
 function fixOutside(e) { if (!e.target.closest('#rls-fixmenu')) closeFixMenu(); }
-function fixKey(e) { if (e.key === 'Escape') { e.preventDefault(); closeFixMenu(); } }
+let fixArgs = null;
+function fixKey(e) {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    // Esc in the rename field: back to the list; anywhere else: the menu closes
+    const back = e.target && e.target.closest && e.target.closest('.rls-fix-rename') && fixArgs;
+    closeFixMenu();
+    if (back) openFixMenu(...fixArgs);
+}
 function openFixMenu(messageId, blk, x, y) {
     closeFixMenu();
+    fixArgs = [messageId, blk, x, y];
     const msg = getContext().chat[messageId];
     const saved = msg && msg.extra && msg.extra.rls_parts && msg.extra.rls_parts[msg.swipe_id ?? 0];
     if (!saved || !Array.isArray(saved.w)) return;
@@ -2980,15 +3064,21 @@ function openFixMenu(messageId, blk, x, y) {
     const me = getContext().name1 || name1;
     const names = [];
     const add = n => { const v = String(n || '').trim(); if (v && v !== '-' && v !== '?' && !names.includes(v)) names.push(v); };
+    const castSet = new Set(faceCandidates().map(c => c.name));
     faceCandidates().filter(c => c.kind !== 'user').forEach(c => add(c.name));
+    const ppl = chatPeople();
+    ppl.people.forEach(add);
     saved.w.forEach(add);
     add(me);
     const cur = saved.w[idx[0]];
+    // the chat's own people can be renamed (everywhere) and removed from the list; cards, roster and you cannot here
+    const own = n => !castSet.has(n) && n !== me;
+    const row = n => `<div class="rls-fix-row" data-w="${escapeHtml(n)}"><button type="button" role="menuitem" class="rls-fix-item${n === cur ? ' on' : ''}" data-w="${escapeHtml(n)}">${partFace(n).html}<span>${escapeHtml(n)}</span></button>${own(n) ? `<button type="button" class="rls-fix-ed" title="${escapeHtml(t('fix_rename'))}" aria-label="${escapeHtml(t('fix_rename'))}"><i class="fa-solid fa-pen"></i></button>${saved.w.includes(n) ? '' : `<button type="button" class="rls-fix-rm" title="${escapeHtml(t('fix_forget'))}" aria-label="${escapeHtml(t('fix_forget'))}"><i class="fa-solid fa-xmark"></i></button>`}` : ''}</div>`;
     const menu = document.createElement('div');
     menu.id = 'rls-fixmenu';
     menu.setAttribute('role', 'menu');
     menu.innerHTML = `<div class="rls-fix-title">${escapeHtml(t('fix_title'))}</div>
-        ${names.map(n => `<button type="button" role="menuitem" class="rls-fix-item${n === cur ? ' on' : ''}" data-w="${escapeHtml(n)}">${partFace(n).html}<span>${escapeHtml(n)}</span></button>`).join('')}
+        ${names.map(row).join('')}
         <button type="button" role="menuitem" class="rls-fix-item${cur === '-' ? ' on' : ''}" data-w="-"><span class="rls-fix-narr">¶</span><span>${escapeHtml(t('fix_narr'))}</span></button>
         <form class="rls-fix-new"><input type="text" maxlength="40" placeholder="${escapeHtml(t('fix_new'))}" aria-label="${escapeHtml(t('fix_new'))}"><button type="submit">${escapeHtml(t('fix_ok'))}</button></form>`;
     document.body.appendChild(menu);
@@ -3004,12 +3094,40 @@ function openFixMenu(messageId, blk, x, y) {
         const fixed = new Set(Array.isArray(sv.m) ? sv.m : []);
         idx.forEach(i => { sv.w[i] = v; fixed.add(i); });
         sv.m = [...fixed].sort((a, b) => a - b);
+        if (v !== '-') rememberPeople([v], true);
         saveScene();
         closeFixMenu();
         renderParts(messageId);
         if (novel && novel.refresh) novel.refresh(null);
     };
     menu.querySelectorAll('.rls-fix-item').forEach(b => b.addEventListener('click', () => apply(b.dataset.w)));
+    // ✎ — the name in place becomes a field; Enter renames it in every reply of this chat
+    menu.querySelectorAll('.rls-fix-ed').forEach(b => b.addEventListener('click', e => {
+        e.stopPropagation();
+        const r = b.closest('.rls-fix-row'), old = r.dataset.w;
+        r.innerHTML = `<form class="rls-fix-rename"><input type="text" maxlength="40" value="${escapeHtml(old)}" aria-label="${escapeHtml(t('fix_rename'))}"><button type="submit">${escapeHtml(t('fix_ok'))}</button></form>`;
+        const inp = r.querySelector('input');
+        inp.focus(); inp.select();
+        r.querySelector('form').addEventListener('submit', ev => {
+            ev.preventDefault();
+            const nw = cleanPersonName(inp.value);
+            if (nw && nw !== old) {
+                const n = renamePerson(old, nw);
+                console.log(`[Living Scene] roles: "${old}" is now "${nw}" in ${n} piece(s) of this chat`);
+                renderAllParts();
+                if (novel && novel.refresh) novel.refresh(null);
+            }
+            closeFixMenu();
+            openFixMenu(messageId, blk, x, y);
+        });
+    }));
+    // ✕ — off the list (the blocks keep their names; a block still called so shows it again)
+    menu.querySelectorAll('.rls-fix-rm').forEach(b => b.addEventListener('click', e => {
+        e.stopPropagation();
+        forgetPerson(b.closest('.rls-fix-row').dataset.w);
+        closeFixMenu();
+        openFixMenu(messageId, blk, x, y);
+    }));
     menu.querySelector('.rls-fix-new').addEventListener('submit', e => { e.preventDefault(); apply(menu.querySelector('.rls-fix-new input').value); });
     (menu.querySelector('.rls-fix-item.on') || menu.querySelector('.rls-fix-item'))?.focus();
     setTimeout(() => { document.addEventListener('pointerdown', fixOutside, true); document.addEventListener('keydown', fixKey, true); }, 0);
@@ -3843,7 +3961,7 @@ function openNovel(fromId = null) {
     N.refresh = refresh;
     const next = () => { if (!log.hidden) return; if (N.idx < N.steps.length - 1) show(N.idx + 1, false, true); else { N.follow = true; syncChoices(); if (choices.hidden) input.focus({ preventScroll: true }); } };   // never scroll SillyTavern's page under the novel
     const prev = () => { if (!log.hidden) return; if (N.idx > 0) show(N.idx - 1, false, true); };
-    const toggleLog = on => { log.hidden = !on; $q('.rls-vn-logbtn').classList.toggle('on', on); if (on) { const row = list.querySelector('.cur'); if (row) row.scrollIntoView({ block: 'center' }); } };
+    const toggleLog = on => { log.hidden = !on; $q('.rls-vn-logbtn').classList.toggle('on', on); if (on) { const row = list.querySelector('.cur'); if (row) { /* only the list scrolls: scrollIntoView moved the whole page and left a grey strip under it */ const lr = list.getBoundingClientRect(), rr = row.getBoundingClientRect(); list.scrollTop += (rr.top - lr.top) - (list.clientHeight - rr.height) / 2; } } };
     list.addEventListener('click', e => { const row = e.target.closest('.rls-vn-logrow'); if (!row) return; toggleLog(false); show(Number(row.dataset.k), false, true); box.focus(); });
     $q('.rls-vn-logbtn').addEventListener('click', e => { e.stopPropagation(); toggleLog(log.hidden); });
     $q('.rls-vn-close').addEventListener('click', e => { e.stopPropagation(); closeNovel(true); });
