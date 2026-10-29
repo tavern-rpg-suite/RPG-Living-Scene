@@ -3836,7 +3836,7 @@ function openNovel(fromId = null) {
         const sig = list.map(h => h.id).join(',');
         if (bar.dataset.sig === sig) return;
         bar.dataset.sig = sig;
-        bar.innerHTML = list.map(h => `<button type="button" class="rls-vn-hudbtn" data-hud="${h.id}" title="${escapeHtml(t(h.key))}" aria-label="${escapeHtml(t(h.key))}"><i class="fa-solid ${h.icon}"></i><span>${escapeHtml(t(h.key))}</span></button>`).join('');
+        bar.innerHTML = list.map(h => `<button type="button" class="rls-vn-hudbtn" data-hud="${escapeHtml(h.id)}" title="${escapeHtml(t(h.key))}" aria-label="${escapeHtml(t(h.key))}"><i class="fa-solid ${h.icon}"></i><span>${escapeHtml(t(h.key))}</span></button>`).join('');
     };
     $q('.rls-vn-hud').addEventListener('click', e => {
         const b0 = e.target.closest('[data-hud]');
