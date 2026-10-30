@@ -1038,3 +1038,6 @@ body.rls-novel-on #rpg-buttons-container, body.rls-novel-on .rpg-floating-btn { 
 @keyframes rls-vn-wait-spin { to { transform: rotate(360deg); } }
 @keyframes rls-vn-wait-glow { 50% { box-shadow: 0 0 0 1.5px #161b26, 0 0 0 2.5px var(--vn-gold), 0 0 4px rgba(201, 166, 92, .2); } }
 @media (prefers-reduced-motion: reduce) { .rls-vn-say.wait .rls-vn-send i, .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-say.wait .rls-vn-send { animation: none; } }
+/* RPG Map's own notes and windows that come up during play (the scene's new place, an encounter,
+   a locked door, an overheard word) stand over the novel, the way they stand over the chat */
+body.rls-novel-on :is(#rpg-scene-sync, #rpg-encounter-modal, #rpg-unlock-modal, #rpg-oh) { z-index: 10070 !important; }

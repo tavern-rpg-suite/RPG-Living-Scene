@@ -3190,7 +3190,9 @@ function partFace(name) {
             || onlyOne(pics.filter(n => namesIn(n.name, [me]).length && namesIn(name, [{ probes: probesFor(n.name) }]).length).map(n => ({ c: n })));
         if (d) c = { name, pic: d.portrait, kind: (c && c.kind) || 'npc' };
     }
-    // no picture anywhere (someone living inside a card): their own sprite from Character Expressions
+    // not among the people of this chat: a card of that very person from the library
+    if ((!c || !c.pic) && !(c && c.kind === 'user')) { const cp = libraryCardFace(name); if (cp) c = { name, pic: cp, kind: (c && c.kind) || 'npc' }; }
+    // no portrait and no card anywhere (someone living inside a card): their own sprite, the last resort
     if ((!c || !c.pic) && !(c && c.kind === 'user')) { const sp = spriteFace(name); if (sp) c = { name, pic: sp, kind: (c && c.kind) || 'npc' }; }
     let hue = 0; for (const ch of String(name)) hue = (hue * 31 + ch.charCodeAt(0)) % 360;
     const ini = escapeHtml(String(name).trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase());
@@ -3646,6 +3648,29 @@ function roomMark(id) {
         if (keys.length > 400) keys.slice(0, keys.length - 400).forEach(x => delete st.rooms[x]);
         saveScene();
     } catch (e) { /* nothing to note */ }
+}
+/* The map moved after the newest message was noted (its note "go there", "add this room",
+   "I'm already here", or moving by itself): the story is already in the new room, so the newest
+   message is noted again with it. Older messages keep their own moment's room. True when it changed. */
+function roomFollow() {
+    if (!settings.enabled) return false;
+    try {
+        const chat = getContext().chat || [];
+        let id = chat.length - 1;
+        while (id >= 0 && chat[id] && chat[id].is_system) id--;
+        const m = chat[id];
+        const k = m && String(m.send_date || '');
+        if (!k) return false;
+        const r = roomNow();
+        if (!r) return false;
+        const st = sceneState();
+        if (!st.rooms || typeof st.rooms !== 'object') st.rooms = {};
+        const was = st.rooms[k] || roomOfMid(id);
+        if (was && was.key === r.key) return false;
+        st.rooms[k] = r;
+        saveScene();
+        return true;
+    } catch (e) { return false; }
 }
 // the room of a message: its own note, else the nearest one before it
 function roomOfMid(mid) {
@@ -4156,6 +4181,8 @@ function openNovel(fromId = null) {
     // what changes outside the chat's events: the room, Map's choices arriving, the stop button
     N.timer = setInterval(() => {
         if (novel !== N || document.hidden) return;
+        // the map moved: the newest lines are in the new room — on screen at once if they are what you see
+        if (roomFollow() && N.idx >= 0 && N.steps[N.idx] && N.steps[N.idx].mid === N.steps[N.steps.length - 1].mid) roomFor(N.idx);
         syncBg(); syncBar(); syncChoices(); box.classList.toggle('waiting', N.idx >= N.steps.length - 1 && stBusy());
         // your own line is on screen and the answer to it is finished and split: it plays now,
         // even if the event that should have started it was missed
@@ -4173,6 +4200,7 @@ function openNovel(fromId = null) {
     document.body.appendChild(ov);
     document.body.classList.add('rls-novel-on');
     N.idx = -1;
+    roomFollow();   // a move made while the novel was closed
     // a reply chosen with its ▶: from its first line; else the newest reply
     N.goto = id => { refresh(null); if (N.start.has(id)) show(N.start.get(id), false, true); };
     if (fromId != null) { refresh(null); if (N.start.has(fromId)) show(N.start.get(fromId), false, true); }
@@ -4373,6 +4401,21 @@ function faceCandidates() {
     candCache = { key, at: Date.now(), list };
     return list;
 }
+/* A card from the library only when it is this very person: the whole name, one of their aliases,
+   or the whole name in the other alphabet («Луна» / "Luna") — and only one such card. A card's
+   subtitle does not count: "Mark (Butler)" and "Mark - the cook" are Mark. A card that merely
+   shares a first name ("Sam …" of another story) is somebody else. */
+function libraryCardFace(name) {
+    const nm = String(name || '').trim();
+    if (!nm) return '';
+    const norm = x => String(x || '').trim().toLowerCase().replace(/ё/g, 'е');
+    const bare = x => String(x || '').split(/\s[-–—:|]\s|[(\[]/)[0].trim();
+    const forms = new Set(aliasNamesOf(nm).map(norm));
+    const cyr = x => /[а-яё]/i.test(x);
+    const same = characters.filter(x => x && x.avatar && x.name && (forms.has(norm(x.name)) || forms.has(norm(bare(x.name)))
+        || (cyr(x.name) !== cyr(nm) && String(x.name).trim().split(/\s+/).length === nm.split(/\s+/).length && sameSound(latinOf(x.name), latinOf(nm)))));
+    return same.length === 1 ? `/thumbnail?type=avatar&file=${encodeURIComponent(same[0].avatar)}` : '';
+}
 function buildCandidates() {
     const ctx = getContext();
     const out = [], seen = new Set();
@@ -4414,15 +4457,8 @@ function buildCandidates() {
             if (c.pic || c.kind === 'user') return;
             const d = npcs.find(n => namesIn(n.name, [c]).length);
             if (d) { c.pic = d.portrait; return; }
-            // a card from the library only when it is this very person: the whole name, one of their
-            // aliases, or the whole name in the other alphabet («Луна» / "Luna") — and only one such card.
-            // A card that merely shares a first name ("Sam …" of another story) is somebody else.
-            const norm = x => String(x || '').trim().toLowerCase().replace(/ё/g, 'е');
-            const forms = new Set(aliasNamesOf(c.name).map(norm));
-            const cyr = x => /[а-яё]/i.test(x);
-            const same = characters.filter(x => x && x.avatar && x.name && (forms.has(norm(x.name))
-                || (cyr(x.name) !== cyr(c.name) && String(x.name).trim().split(/\s+/).length === c.name.split(/\s+/).length && sameSound(latinOf(x.name), latinOf(c.name)))));
-            if (same.length === 1) c.pic = `/thumbnail?type=avatar&file=${encodeURIComponent(same[0].avatar)}`;
+            const pic = libraryCardFace(c.name);
+            if (pic) c.pic = pic;
         });
     } catch (e) { console.warn('[Living Scene] roles: cast', e); }
     return out.filter(c => c.probes.length);
