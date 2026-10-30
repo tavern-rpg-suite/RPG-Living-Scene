@@ -59,7 +59,7 @@ const I18N = {
         set_react_user_chance: 'Reaction chance for your messages (%):',
         set_calls: 'Side-model calls this session:',
         roster_edit_title: 'Aliases & character note',
-        meta_aliases_ph: 'Aliases, comma-separated (Aqua, Аква)…',
+        meta_aliases_ph: 'Aliases, comma-separated (nickname, short name)…',
         meta_note_ph: 'Character note for the AI (voice, attitude)…',
         meta_save: 'Save',
         set_auto: 'Auto-presence: characters mentioned recently are "in the scene"',
@@ -85,11 +85,15 @@ const I18N = {
         set_parts_style: 'Look of the blocks:', style_glass: 'Glass — small faces, light frames', style_ink: 'Ink — no frames, a coloured line', style_classic: 'As before — big faces',
         set_parts_anim: 'Text appears:', anim_none: 'at once', anim_fade: 'word by word, fading in', anim_type: 'word by word, typed',
         set_parts_fonts: 'Each person has their own colour and lettering',
-        set_novel_box: 'The text box:', box_parchment: 'Parchment — light, a thin frame and a pattern', box_glass: 'Glass — half-clear, a thin line', box_dark: 'Dark — as before',
+        set_novel_box: 'The text box:', box_parchment: 'Parchment — light, a thin frame and a pattern', box_glass: 'Glass — half-clear, a thin line',
+        box_grimoire: 'Grimoire — parchment, ink vines', box_ribbon: 'Night ribbon — a clear band across the screen', box_twilight: 'Twilight — dark glass, a gold frame, gold vines',
+        set_novel_info: 'A small plate in the corner:', info_time: 'time', info_date: 'day', info_place: 'place', info_weather: 'weather',
+        set_novel_fight: 'Fight stats (RPG Vitals):', fight_combat: 'only in a fight', fight_always: 'always', fight_off: 'never',
+        fight_show: 'Show:', fight_hp: 'HP', fight_food: 'satiety', fight_fatigue: 'fatigue', fight_mana: 'mana', fight_you: 'You',
         set_novel_sprite: 'The characters:', sprite_large: 'full height', sprite_medium: 'smaller', sprite_waist: 'from the waist up, closer',
         set_novel_face: 'The speaker\'s portrait in the box:', face_always: 'always', face_nosprite: 'only for those without sprites', face_never: 'never',
         set_novel_hud: 'Buttons over the novel: Map, Diary, Life (those installed)', set_novel_place: 'The place\'s name; a new place comes in with a passage',
-        hud_map: 'Map', hud_diary: 'Diary', hud_life: 'Life', novel_place: 'Place',
+        hud_map: 'Map', hud_diary: 'Diary', hud_life: 'Life', novel_place: 'Place', info_day_n: 'Day {n}',
         set_sec_novel: 'Novel', set_novel_btn: 'A ▶ button on each reply opens it in the novel', set_novel_open: 'Open the novel now', novel_btn: 'Play in the novel',
         set_pass_toast: 'Say in a notice who gets the turn',
         set_mappres: 'Presence from RPG Map ("Who is where")',
@@ -153,7 +157,7 @@ const I18N = {
         set_react_user_chance: 'Шанс реакции на твои сообщения (%):',
         set_calls: 'Вызовов боковой модели за сессию:',
         roster_edit_title: 'Алиасы и характер',
-        meta_aliases_ph: 'Алиасы через запятую (Aqua, Аква)…',
+        meta_aliases_ph: 'Алиасы через запятую (прозвище, короткое имя)…',
         meta_note_ph: 'Заметка-характер для ИИ (голос, отношение)…',
         meta_save: 'Сохранить',
         set_auto: 'Авто-присутствие: недавно упомянутые считаются «в сцене»',
@@ -179,11 +183,15 @@ const I18N = {
         set_parts_style: 'Вид блоков:', style_glass: 'Стекло — маленькие лица, лёгкие рамки', style_ink: 'Чернила — без рамок, цветная линия', style_classic: 'Как раньше — крупные лица',
         set_parts_anim: 'Появление текста:', anim_none: 'сразу', anim_fade: 'по словам, проявляясь', anim_type: 'по словам, как печать',
         set_parts_fonts: 'У каждого свой цвет и почерк',
-        set_novel_box: 'Окно текста:', box_parchment: 'Пергамент — светлый, тонкая рамка и узор', box_glass: 'Стекло — полупрозрачное, тонкая линия', box_dark: 'Тёмное — как раньше',
+        set_novel_box: 'Окно текста:', box_parchment: 'Пергамент — светлый, тонкая рамка и узор', box_glass: 'Стекло — полупрозрачное, тонкая линия',
+        box_grimoire: 'Гримуар — пергамент, чернильные лозы', box_ribbon: 'Ночная лента — прозрачная полоса во всю ширину', box_twilight: 'Сумерки — тёмное стекло, золотая рамка и лозы',
+        set_novel_info: 'Маленькая плашка в углу:', info_time: 'время', info_date: 'день', info_place: 'место', info_weather: 'погода',
+        set_novel_fight: 'Статы боя (RPG Vitals):', fight_combat: 'только в бою', fight_always: 'всегда', fight_off: 'никогда',
+        fight_show: 'Показывать:', fight_hp: 'HP', fight_food: 'сытость', fight_fatigue: 'усталость', fight_mana: 'мана', fight_you: 'Вы',
         set_novel_sprite: 'Персонажи:', sprite_large: 'в полный рост', sprite_medium: 'поменьше', sprite_waist: 'по пояс, ближе',
         set_novel_face: 'Портрет говорящего в окне:', face_always: 'всегда', face_nosprite: 'только у кого нет спрайтов', face_never: 'никогда',
         set_novel_hud: 'Кнопки поверх новеллы: Карта, Дневник, Жизнь (что установлено)', set_novel_place: 'Название места; новое место — с переходом',
-        hud_map: 'Карта', hud_diary: 'Дневник', hud_life: 'Жизнь', novel_place: 'Место',
+        hud_map: 'Карта', hud_diary: 'Дневник', hud_life: 'Жизнь', novel_place: 'Место', info_day_n: 'День {n}',
         set_sec_novel: 'Новелла', set_novel_btn: 'Кнопка ▶ на каждом ответе открывает его в новелле', set_novel_open: 'Открыть новеллу сейчас', novel_btn: 'Играть в новелле',
         set_pass_toast: 'Сообщать уведомлением, к кому перешёл ход',
         set_mappres: 'Присутствие по карте («Кто где»)',
@@ -297,6 +305,9 @@ function loadSettings() {
         novelFace: 'nosprite', // the speaker's portrait in the box: always | nosprite | never
         novelHud: true,        // buttons for RPG Map, the Diary, RPG Life over the novel
         novelPlace: true,      // the place's name, and a change of place played as a passage
+        novelInfo: { time: true, date: true, place: true, weather: true },   // the small plate in the corner (from the Scene Card and the Map)
+        novelFight: 'combat',  // RPG Vitals' bars over the novel: combat | always | off
+        novelFightShow: { hp: true, food: false, fatigue: false, mana: false },
         passToast: false,    // a notice saying who gets the turn
         compress: true,      // long cards are condensed once before they go to the side model
         compressOver: 400,   // …longer than this many tokens
@@ -315,7 +326,12 @@ function loadSettings() {
     if (!['glass', 'ink', 'classic'].includes(settings.partsStyle)) settings.partsStyle = defaults.partsStyle;
     if (!['none', 'fade', 'type'].includes(settings.partsAnim)) settings.partsAnim = defaults.partsAnim;
     if (!Number.isFinite(settings.compressOver)) settings.compressOver = defaults.compressOver;
-    if (!['parchment', 'glass', 'dark'].includes(settings.novelBox)) settings.novelBox = defaults.novelBox;
+    if (settings.novelBox === 'dark') settings.novelBox = 'twilight';   // "Dark — as before" was a twin of the others; Twilight is the dark one now
+    if (!['parchment', 'glass', 'grimoire', 'ribbon', 'twilight'].includes(settings.novelBox)) settings.novelBox = defaults.novelBox;
+    if (!settings.novelInfo || typeof settings.novelInfo !== 'object') settings.novelInfo = Object.assign({}, defaults.novelInfo);
+    if (!['combat', 'always', 'off'].includes(settings.novelFight)) settings.novelFight = defaults.novelFight;
+    if (!settings.novelFightShow || typeof settings.novelFightShow !== 'object') settings.novelFightShow = Object.assign({}, defaults.novelFightShow);
+    delete settings.novelFightPos;   // the bars stand at the top only now
     if (!['large', 'medium', 'waist'].includes(settings.novelSprite)) settings.novelSprite = defaults.novelSprite;
     if (!['always', 'nosprite', 'never'].includes(settings.novelFace)) settings.novelFace = defaults.novelFace;
     if (!settings.briefs || typeof settings.briefs !== 'object') settings.briefs = {};
@@ -355,7 +371,7 @@ function chatPeople() {
     if (!Array.isArray(st.peopleOff)) st.peopleOff = [];
     return st;
 }
-// «Руфус» in the text for the card Rufus: the same person in the other alphabet — the cast, not someone new
+// «Марк» in the text for the card Mark: the same person in the other alphabet — the cast, not someone new
 function castTwin(name, cands) {
     const cyr = x => /[а-яё]/i.test(x);
     const w = String(name || '').trim();
@@ -534,7 +550,7 @@ function isPresent(name) {
     const chat = getContext().chat || [];
     const tail = chat.slice(-10);
     const low = name.toLowerCase();
-    // stem match: the full card name ("Sebastian Michaelis") almost never appears in prose,
+    // stem match: the full card name ("Oliver Grant") almost never appears in prose,
     // and Russian declines names (Себастьяна/Себастьяну) — the old check missed both
     const probes = probesOf(name);
     return tail.some(m => (m.name && m.name.toLowerCase() === low)
@@ -683,17 +699,17 @@ async function callAI(systemPrompt, userPrompt, timeoutMs = 0, maxTokens = 3000)
 
 /* ============================================================
    Who is actively ON STAGE in this text? In narrator-style play one
-   card writes for everyone: the message may be "from Sebastian" while
+   card writes for everyone: the message may be "from Oliver" while
    CIEL does all the talking. Giving the talker an ambient bark looked
    absurd — his voice is already on screen. Stem matching tolerates
    Russian declensions (Сиэль/Сиэля/Сиэлю).
    ============================================================ */
 // all the ways this character may be written in prose: name + user-given aliases
-// (Aqua/Аква/Kazuma — fixes translated cards and declensions in one stroke)
+// (Luna/Луна/Theo — fixes translated cards and declensions in one stroke)
 function aliasNamesOf(name) {
     const st = sceneState();
     const meta = (st.meta && st.meta[name]) || {};
-    // the roster's aliases, then the forms learned from the replies themselves ("William" for «Уильям»),
+    // the roster's aliases, then the forms learned from the replies themselves ("Alex" for «Алекс»),
     // then RPG Phone's «Also called» for this person, read only
     const learned = Array.isArray(meta.auto) ? meta.auto.map(x => String(x || '').trim()).filter(Boolean) : [];
     const k = String(name || '').trim().toLowerCase();
@@ -701,7 +717,7 @@ function aliasNamesOf(name) {
     return [...new Set([name].concat(String(meta.aliases || '').split(',').map(x => x.trim()).filter(Boolean), learned, phone))];
 }
 /* RPG Phone keeps, per card, the people living inside it («Characters inside this card») and the
-   other ways a name is written («Also called»: "Уильям, Уилл" = the card, "Руфус = Rufus" =
+   other ways a name is written («Also called»: "Алекс, Ал" = the card, "Марк = Mark" =
    someone inside). The scene reads both for the cards of this chat; it never writes them. */
 function chatCardNames() {
     try {
@@ -750,7 +766,7 @@ function nameStem(name) {
 }
 function activeInText(text, name, cast) {
     // only DIRECT SPEECH counts as "on stage": frequent mentions of a silent observer must
-    // not silence him (Rufus was described five times yet never spoke — and his thought
+    // not silence him (Mark was described five times yet never spoke — and his thought
     // bubble was the best line in the scene). Attribution patterns mirror the quote parser.
     const Q_OPEN = '[«"“„]', Q_CLOSE = '[»"”“]', GAP = '[^«»"“”„\\n]';
     const patterns = [];
@@ -774,7 +790,7 @@ function activeInText(text, name, cast) {
 
 /* ============================================================
    A bark that repeats (or closely paraphrases) a line ALREADY in the
-   message text is noise — the reader just read it. Aqua's "Finally!"
+   message text is noise — the reader just read it. Luna's "Finally!"
    showing up both in the prose and as her bubble was exactly that.
    ============================================================ */
 function normForEcho(x) {
@@ -1022,7 +1038,7 @@ async function processMessage(messageId, force = false) {
     if (!msg.extra) msg.extra = {};
     const existing = (force && Array.isArray(msg.extra.rls_barks) && msg.extra.rls_swipe === swipeId) ? msg.extra.rls_barks : [];
     // one voice per character per beat: whisper participants keep ONLY the exchange
-    // (it needs both voices), so their separate normal bark is dropped — Aqua no longer
+    // (it needs both voices), so their separate normal bark is dropped — Luna no longer
     // exclaims on the left while bickering on the right
     const all = existing.concat(barks);
     const whisperNames = new Set(all.filter(b => b.kind === 'whisper').map(b => String(b.name || '').toLowerCase()));
@@ -1294,7 +1310,7 @@ function renderBarks(messageId, startCollapsed = false) {
    THE TURN — who answers next
    The roster knows who is present and what they are called; that is most of
    the work. A name addressed in the last line hands the turn over. A name
-   merely mentioned does not: "I looked at William" is not a question to him.
+   merely mentioned does not: "I looked at Alex" is not a question to him.
    When the text says nothing either way, ONE short side call may decide, and
    if that is unsure too, nobody is triggered at all.
    ============================================================ */
@@ -1357,13 +1373,13 @@ function normTurn(v) {
     return String(v || '').toLowerCase().replace(/ё/g, 'е').replace(/[^\p{L}\p{N} ]+/gu, ' ').replace(/\s+/g, ' ').trim();
 }
 
-/* "What do you think about Albert?" names Albert and means William. A name that
+/* "What do you think about Victor?" names Victor and means Alex. A name that
    follows one of these is the subject of the sentence, not its target. */
 const ABOUT_RX = /(?:об|обо|о|про|насчёт|насчет|по\s+поводу|вместо|кроме|без|для|about|regarding|concerning|instead\s+of|without)\s*$/i;
 
 /* Presence is generous on purpose — a mention is enough to make someone "present"
    so they can drop a thought bubble. Handing them the TURN on a mention is another
-   matter: talking about Albert must not summon Albert. For the turn, a character
+   matter: talking about Victor must not summon Victor. For the turn, a character
    counts as in the room only if you marked them present by hand, or if they have
    actually spoken in the last few messages. */
 /* Who may take the turn: the group's ENABLED members — muted ones never — minus
@@ -1460,7 +1476,7 @@ function addressedIn(text, name) {
             if (!/[\p{L}\p{N}]/u.test(before)) {
                 // a preposition right in front means the line is ABOUT them
                 if (ABOUT_RX.test(body.slice(Math.max(0, idx - 14), idx))) return { hit: true, about: true };
-                // what follows decides: "Albert, pour me a drink" vs "Louis and Albert left"
+                // what follows decides: "Victor, pour me a drink" vs "Leo and Victor left"
                 const rawIdx = text.toLowerCase().replace(/ё/g, 'е').indexOf(n.slice(0, 4));
                 const tail = rawIdx >= 0 ? text.slice(rawIdx + n.length) : '';
                 const direct = /^\s*[,:!?…]/.test(tail) || /^\s*[—–-]/.test(tail);
@@ -1473,8 +1489,8 @@ function addressedIn(text, name) {
 }
 
 /* A roleplay line has three parts and each means something different:
-     *actions*   — "looked at Albert" points the line AT Albert
-     "speech"    — "Albert, come here" addresses him; "Sebastian helped me" is ABOUT Sebastian
+     *actions*   — "looked at Victor" points the line AT Victor
+     "speech"    — "Victor, come here" addresses him; "Oliver helped me" is ABOUT Oliver
      narration   — whatever is left, read like an action                                   */
 function splitLine(text) {
     const src = String(text || '');
@@ -1504,10 +1520,10 @@ function gazeAt(actionText, name) {
     return false;
 }
 
-/* A name standing on its own is a call: "Oh… William." / "Уильям." The earlier rule
+/* A name standing on its own is a call: "Oh… Alex." / "Алекс." The earlier rule
    only knew the comma form, so a name closing a sentence read as a mere mention and
    the turn went to whoever you had been talking to. Interjections before it are
-   skipped; a name followed by a verb ("William nodded") is still narration. */
+   skipped; a name followed by a verb ("Alex nodded") is still narration. */
 const CALL_LEAD_RX = /^[\s"'«»“”*\-—–…,.!?]*(?:о[хй]|а[хй]|э[йх]|ну|слушай|послушай|погоди|подожди|постой|прошу|пожалуйста|эм|мм+|oh|ah|hey|hm+|well|look|listen|please|wait|um+)?[\s,…!?.\-—–]*/iu;
 
 function nameCalled(text, name) {
@@ -1524,7 +1540,7 @@ function nameCalled(text, name) {
             if (low.startsWith(n)) {
                 const rest = low.slice(n.length).trim();
                 if (!rest) return true;                      // nothing after it
-                if (/^[,:;!?…]/.test(rest)) return true;     // "William, come here"
+                if (/^[,:;!?…]/.test(rest)) return true;     // "Alex, come here"
             }
         }
     }
@@ -1543,9 +1559,9 @@ function lastPartner(cast) {
     return null;
 }
 
-/* A name written in the other alphabet («Уильям», «Луи», «Руфуса» for William, Louis, Rufus):
+/* A name written in the other alphabet («Алекс», «Лео», «Марка» for Alex, Leo, Mark):
    compared by its sound — the consonants in order, whether it starts on a vowel, and at least one
-   vowel in common — so that "лес" is not Louis and "или" is not anyone. The word is put back as the
+   vowel in common — so that "лес" is not Leo and "или" is not anyone. The word is put back as the
    cast name, and the usual reading of the line goes on from there. */
 function soundKey(w) {
     let x = /[а-яё]/i.test(w) ? translit(w) : String(w || '').toLowerCase();
@@ -1574,7 +1590,7 @@ function pickByText(text, cast) {
     text = turnSpell(text, cast);
     const parts = splitLine(text);
 
-    // 1. addressed by name inside speech: "Albert, …" / "…, Albert?"
+    // 1. addressed by name inside speech: "Victor, …" / "…, Victor?"
     const vocative = cast.filter(c => parts.speech.some(q => addressedIn(q, c.name).direct));
     if (vocative.length === 1) return { name: vocative[0].name, isNpc: !!vocative[0].isNpc, confidence: 0.95, why: 'addressed' };
 
@@ -2165,11 +2181,14 @@ function settingsHtml() {
                 </div>`)}
             ${sub(`📖 ${t('set_sec_novel')}`, `
                 <label class="checkbox_label"><input type="checkbox" id="rls-novel-btn"> ${t('set_novel_btn')}</label>
-                <div class="rls-row stack"><label for="rls-novel-box">${t('set_novel_box')}</label><select id="rls-novel-box" class="text_pole"><option value="parchment">${t('box_parchment')}</option><option value="glass">${t('box_glass')}</option><option value="dark">${t('box_dark')}</option></select></div>
+                <div class="rls-row stack"><label for="rls-novel-box">${t('set_novel_box')}</label><select id="rls-novel-box" class="text_pole"><option value="parchment">${t('box_parchment')}</option><option value="glass">${t('box_glass')}</option><option value="grimoire">${t('box_grimoire')}</option><option value="ribbon">${t('box_ribbon')}</option><option value="twilight">${t('box_twilight')}</option></select></div>
                 <div class="rls-row stack"><label for="rls-novel-sprite">${t('set_novel_sprite')}</label><select id="rls-novel-sprite" class="text_pole"><option value="large">${t('sprite_large')}</option><option value="medium">${t('sprite_medium')}</option><option value="waist">${t('sprite_waist')}</option></select></div>
                 <div class="rls-row stack"><label for="rls-novel-face">${t('set_novel_face')}</label><select id="rls-novel-face" class="text_pole"><option value="nosprite">${t('face_nosprite')}</option><option value="always">${t('face_always')}</option><option value="never">${t('face_never')}</option></select></div>
                 <label class="checkbox_label"><input type="checkbox" id="rls-novel-hud"> ${t('set_novel_hud')}</label>
                 <label class="checkbox_label"><input type="checkbox" id="rls-novel-place"> ${t('set_novel_place')}</label>
+                <div class="rls-row stack"><label>${t('set_novel_info')}</label><div class="rls-checks">${['time', 'date', 'place', 'weather'].map(k => `<label class="checkbox_label"><input type="checkbox" id="rls-novel-info-${k}" class="rls-novel-info" data-k="${k}"> ${t('info_' + k)}</label>`).join('')}</div></div>
+                <div class="rls-row stack"><label for="rls-novel-fight">${t('set_novel_fight')}</label><select id="rls-novel-fight" class="text_pole"><option value="combat">${t('fight_combat')}</option><option value="always">${t('fight_always')}</option><option value="off">${t('fight_off')}</option></select></div>
+                <div class="rls-row stack rls-fight-more"><label>${t('fight_show')}</label><div class="rls-checks">${['hp', 'food', 'fatigue', 'mana'].map(k => `<label class="checkbox_label"><input type="checkbox" id="rls-novel-fshow-${k}" class="rls-novel-fshow" data-k="${k}"> ${t('fight_' + k)}</label>`).join('')}</div></div>
                 <input type="button" id="rls-novel-open" class="menu_button" value="${t('set_novel_open')}">`)}
             ${sub(`🗜 ${t('set_sec_compress')}`, `
                 <label class="checkbox_label"><input type="checkbox" id="rls-compress"> ${t('set_compress')}</label>
@@ -2260,6 +2279,11 @@ function setupUI() {
     $('#rls-novel-sprite').val(settings.novelSprite).on('change', function () { settings.novelSprite = this.value; saveSettings(); novelLook(); });
     $('#rls-novel-face').val(settings.novelFace).on('change', function () { settings.novelFace = this.value; saveSettings(); novelLook(); });
     $('#rls-novel-hud').prop('checked', settings.novelHud !== false).on('change', function () { settings.novelHud = this.checked; saveSettings(); novelLook(); });
+    $('.rls-novel-info').each(function () { this.checked = settings.novelInfo[this.dataset.k] !== false; }).on('change', function () { settings.novelInfo[this.dataset.k] = this.checked; saveSettings(); novelLook(); });
+    const fightMore = () => $('.rls-fight-more').toggle(settings.novelFight !== 'off');
+    $('#rls-novel-fight').val(settings.novelFight).on('change', function () { settings.novelFight = this.value; saveSettings(); fightMore(); novelLook(); });
+    $('.rls-novel-fshow').each(function () { this.checked = !!settings.novelFightShow[this.dataset.k]; }).on('change', function () { settings.novelFightShow[this.dataset.k] = this.checked; saveSettings(); novelLook(); });
+    fightMore();
     $('#rls-novel-place').prop('checked', settings.novelPlace !== false).on('change', function () { settings.novelPlace = this.checked; saveSettings(); novelLook(); });
     $('#rls-novel-open').on('click', () => { if (!settings.enabled) { toastr.info(t('set_enable')); return; } if (isChatOpen()) openNovel(); });
     $('#rls-pass-toast').prop('checked', !!settings.passToast).on('change', function () { settings.passToast = this.checked; saveSettings(); });
@@ -2321,7 +2345,7 @@ function splitPieces(mes) {
         while ((m = re.exec(chunk)) && m[0]) {
             const ps = s0 + m.index, pe = ps + m[0].length;
             if (from < 0) from = ps;
-            // "Mr. Han", "Dr. Voss", "J. R. Smith": a title or an initial ends with a dot but not the sentence
+            // "Mr. Park", "Dr. Grey", "J. R. Smith": a title or an initial ends with a dot but not the sentence
             if (pe < e0 && ABBR_END.test(m[0])) continue;
             push(from, pe, 'act');
             from = -1;
@@ -2418,7 +2442,7 @@ function partsClean(who, pieces, text, messageId) {
             out = w.split(/\s+/).filter(part => !SMALL_WORDS.has(part.toLowerCase())).some(part => { const pr = nameStem(part).replace(/ё/g, 'е'); return pr.length >= 3 && hay.includes(pr); }) ? w : '?';
             // the same stranger as in the replies before ("the young servant girl" then "the servant girl"): one label
             if (out !== '?') out = sameStranger(out, messageId) || out;
-            // a label the story already tied to a name ("the teacher" → Mr. Han): the name
+            // a label the story already tied to a name ("the teacher" → Mr. Park): the name
             if (out !== '?' && /^(the |a |an )?[\p{Ll}]/u.test(out)) out = labelName(out, messageId, text) || out;
         }
         known.set(w.toLowerCase(), out);
@@ -2490,7 +2514,7 @@ const WORLD_RU = /(?<![\p{L}])(академи[яиюей]|школ[аыеуой]
 function isWorldCard(name) {
     const n = String(name || '').trim();
     if (!n) return false;
-    // the name itself, without its subtitle: "Kai (Yandere)" and "Kai - your neighbour" are still Kai
+    // the name itself, without its subtitle: "Sam (Yandere)" and "Sam - your neighbour" are still Sam
     const main = n.split(/\s[-–—:|]\s|[(\[]/)[0].trim();
     if (/&/.test(main)) return true;                                   // "Manor & Atelier": two things, not a person
     // "Ren the Hotel Manager" is a person: a word for someone in the name keeps it a person
@@ -2501,7 +2525,7 @@ function isWorldCard(name) {
 }
 /* A card that is a world, not a person ("Академия Красный Завет", a narrator card): its name is
    never written in the story, and a small model hands it every piece of the reply, then reports
-   the real speaker as "how the card is written" — forms: { "Академия…": ["the student", "Lev"] }.
+   the real speaker as "how the card is written" — forms: { "Академия…": ["the student", "Ilya"] }.
    When the card's name stands nowhere in this reply or the messages before it, the pieces given
    to it go to the person the model named for it (a name that is really in the reply, not a label
    like "the student"), and that name is not learned as the card's alias. */
@@ -2572,12 +2596,12 @@ const PERSON_WORDS = /(?<![\p{L}])(he|she|him|her|his|hers|they|them|their|i|me|
 const YOU_WORDS = /(?<![\p{L}])(you|your|yours|ты|тебя|тебе|тобой|твой|твоя|твоё|вы|вас|вам|ваш)(?![\p{L}])/iu;
 /* ---- reading the reply by its own signs (no model) ----
    Each piece gets a name and how sure that is, or nothing. Sure means the text says it:
-   - a sentence that opens with someone's name ("Kai's eyes widen…", "Уильям даже не поднял…");
+   - a sentence that opens with someone's name ("Sam's eyes widen…", "Алекс даже не поднял…");
    - "you…" / «вы…» opening it: the player;
    - "he/she…" opening it: the person last named in this or the paragraph before, if that person
      has not been called the other "he/she" in this reply;
    - a line with its tag in the same paragraph ("…," he murmurs / «…», — сказал он), or an action
-     beat right before it ("Kai folded his arms. 'Fine.'"); lines one after another in a paragraph;
+     beat right before it ("Sam folded his arms. 'Fine.'"); lines one after another in a paragraph;
    - only one character of the chat in the scene and nobody else named: every line is theirs;
    - a sentence about a thing or a place with no person in it: narration.
    Anything else is left for the model. */
@@ -2608,14 +2632,14 @@ function strangerAtStart(raw, cands) {
         if (!base && (VAGUE_PEOPLE.has(w) || VAGUE_PEOPLE.has(w.replace(/s$/, '')))) return null;   // "A figure…" — who it is comes later
         if (!base) { if (!art) return null; continue; }   // Russian: the person word comes first; English: adjectives may stand before it
         if (cands.some(c => aliasNamesOf(c.name).some(a => String(a).toLowerCase().replace(/ё/g, 'е').split(/\s+/).includes(base)))) return null;
-        if (orig[k + 1] && /^\p{Lu}/u.test(orig[k + 1])) return null;     // "Teacher Kim…", «Профессор Восс…»: a name follows — not a stranger
+        if (orig[k + 1] && /^\p{Lu}/u.test(orig[k + 1])) return null;     // "Teacher Park…", «Профессор Грей…»: a name follows — not a stranger
         return art ? `the ${base}` : base;
     }
     return null;
 }
-/* "The teacher" of this reply is the "Mr. Han, the computer science teacher" of the one before:
+/* "The teacher" of this reply is the "Mr. Park, the computer science teacher" of the one before:
    a label is given the name the story tied it to — "Name, the … teacher", "the teacher, Name",
-   "teacher Name", «Лев, учитель информатики», «учитель Хан» — in the narration of this reply or the
+   "teacher Name", «Илья, учитель информатики», «учитель Пак» — in the narration of this reply or the
    six before it (never inside spoken lines, where people are only addressed). */
 const NAME_RE = String.raw`((?:(?:Mr|Mrs|Ms|Miss|Dr|Prof|Professor|Sir|Lady|Lord|Master|Madam|Madame|Mister)\.?\s+)?\p{Lu}[\p{L}'’-]+(?:\s+\p{Lu}[\p{L}'’-]+)?)`;
 function labelName(label, messageId, text) {
@@ -2654,10 +2678,10 @@ function labelName(label, messageId, text) {
     } catch (e) { /* no name for it */ }
     return null;
 }
-/* People the story names who are in no list (Lysander, Lev): a capitalised word that opens a sentence
+/* People the story names who are in no list (Felix, Ilya): a capitalised word that opens a sentence
    with a verb after it and comes back at least twice in the reply or the two before it, or that the
    Scene Card lists as present. Used only by the text's own reading below. */
-// a name in Latin letters, the way it sounds: «Уильям» → "uilyam", "William" → "uilliam"
+// a name in Latin letters, the way it sounds: «Алиса» → "alisa", "Alice" → "alice"
 function latinOf(name) {
     const T = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya' };
     return String(name || '').toLowerCase().split('').map(ch => T[ch] ?? ch).join('').replace(/w/g, 'u').replace(/[^a-z]/g, '');
@@ -2675,7 +2699,7 @@ function namesFromText(text, messageId, cands) {
         const ctx = getContext();
         const around = blankThinking(((ctx.chat || []).slice(Math.max(0, messageId - 2), messageId).map(m => (m && m.mes) || '').join('\n\n')) + '\n\n' + text);   // (each reply its own paragraphs)
         const known = cands.flatMap(c => c.probes);
-        // a cast member written in another alphabet («Уильям» for William) is someone we know, not a new person
+        // a cast member written in another alphabet («Алекс» for Alex) is someone we know, not a new person
         const cyr = x => /[а-яё]/i.test(x);
         const castFirst = cands.flatMap(c => [c.name].concat(aliasNamesOf(c.name))).map(n => String(n).split(/\s+/)[0]);
         const isKnown = w => known.some(pr => w.toLowerCase().replace(/ё/g, 'е').startsWith(pr.slice(0, Math.max(3, pr.length - 1))))
@@ -2700,8 +2724,8 @@ function namesFromText(text, messageId, cands) {
         // twice opening a sentence, or once opening one and once more anywhere ("Felix turned…" … "Felix, stop")
         const anywhere = w => (around.match(new RegExp(`(?<![\\p{L}])${w}(?![\\p{L}])`, 'gu')) || []).length;
         const found = [...count.entries()].filter(([w, n]) => present.has(w.toLowerCase()) || ((n >= 2 || anywhere(w) >= 2) && personLike.has(w))).map(([w]) => w);
-        // someone the story introduces: "It is Mr. Han, the computer science teacher", «Это был Лев, староста»,
-        // "Lev, the student…" — a name next to a word for a person is a person, even said once
+        // someone the story introduces: "It is Mr. Park, the computer science teacher", «Это был Илья, староста»,
+        // "Ilya, the student…" — a name next to a word for a person is a person, even said once
         const intro = new RegExp(`${NAME_RE},\\s+(?:(?:the|a|an|his|her|their|our)\\s+)?(?:[\\p{L}-]+\\s+){0,3}([\\p{L}-]+)`, 'gu');
         const plain = around.replace(/["“«„][^"”»\n]*["”»]/g, m => ' '.repeat(m.length));
         let k;
@@ -2724,7 +2748,7 @@ function localWho(pieces, text, messageId) {
         const fromText = namesFromText(text, messageId, cands0);
         // the people this chat already met (a proper name, not a label like "the valet"): known by name
         const met = chatPeople().people.filter(n => /^\p{Lu}/u.test(n) && !castTwin(n, cands0) && !cands0.concat(fromText).some(c => c.name.toLowerCase() === n.toLowerCase()))
-            // (only as written: «Руфус» remembered from one reply does not claim "Rufus" of another)
+            // (only as written: «Марк» remembered from one reply does not claim "Mark" of another)
             .map(n => ({ name: n, pic: '', kind: 'text', probes: probesFor(n).filter(pr => /[а-яё]/i.test(pr) === /[а-яё]/i.test(n)) })).filter(c => c.probes.length);
         const cands = cands0.concat(fromText, met);
         const cast = cands.filter(c => c.kind !== 'user');
@@ -2758,7 +2782,7 @@ function localWho(pieces, text, messageId) {
             const nm = nameAtStart(raw);
             const fw = firstWord(raw).toLowerCase();
             if (nm) { out[i] = { w: nm, c: 0.95 }; lastName = nm; lastPara = pp; return; }
-            // "It is Mr. Han, the teacher…", «Это был Лев…»: the one just revealed — and the "A figure steps
+            // "It is Mr. Park, the teacher…", «Это был Илья…»: the one just revealed — and the "A figure steps
             // inside" right before it in the same paragraph was them too
             const reveal = strip(raw).match(/^(?:it|this|that)\s+(?:is|was)\s+|^это\s+(?:был[аио]?\s+)?/i);
             const rn = reveal ? nameAtStart(strip(raw).slice(reveal[0].length)) : null;
@@ -2973,7 +2997,7 @@ function settleParts(items, text) {
     const para = it => (text.slice(0, it.s).match(/\n/g) || []).length;
     // the kind is kept with the split; older splits fall back to the first character
     items.forEach(it => { it.say = it.k ? it.k === 's' : said(it); it.p = para(it); if (it.say && it.w === '-') it.w = '?'; });
-    // narration that opens with someone's name is about them ("Megumin, however, was already gone…"),
+    // narration that opens with someone's name is about them ("Mira, however, was already gone…"),
     // whoever's paragraph it stands in
     const cands = faceCandidates();
     items.forEach(it => {
@@ -2991,7 +3015,7 @@ function settleParts(items, text) {
         if (it.say || it.subj || it.w === '-' || it.w === '?') return;
         const piece = text.slice(it.s, it.e);
         // only a sentence that opens on a thing or a place ("The door…", "Somewhere…") — one that opens on
-        // a capital word may well be a name the scene has not learned yet ("Уильям даже не поднял…")
+        // a capital word may well be a name the scene has not learned yet ("Алекс даже не поднял…")
         const first = (piece.replace(/^[\s*_"«“]+/, '').match(/^[\p{L}-]+/u) || [''])[0].toLowerCase();
         if (!SMALL_WORDS.has(first) && !SCENE_STARTS.has(first)) return;
         const isMe = String(it.w).toLowerCase() === String(getContext().name1 || name1 || '').toLowerCase();
@@ -3139,7 +3163,7 @@ function openFixMenu(messageId, blk, x, y) {
 function partFace(name) {
     let c = faceCandidates().find(x => x.name === name);
     if (!c || !c.pic) {
-        // someone the scene met only now ("Minjun") may be in the diary under a fuller or Russian name («Ким Минджун»)
+        // someone the scene met only now ("Jun") may be in the diary under a fuller or Russian name («Пак Джун»)
         const me = { probes: probesFor(name) };
         const pics = diaryNpcs().filter(n => typeof n.portrait === 'string' && n.portrait);
         const d = pics.find(n => String(n.name).trim().toLowerCase() === String(name).trim().toLowerCase())
@@ -3200,9 +3224,9 @@ function renderParts(messageId) {
         const v = partsView(messageId);
         if (!v) return;
         const { text, blocks, me, order, fmt, saved } = v;
-        // nobody identified, or the whole reply is one block of one person (all of it Minjun's):
+        // nobody identified, or the whole reply is one block of one person (all of it Jun's):
         // there is nothing to tell apart, the plain text is better. One person with narration around
-        // them (the hallway, then William) is told apart, and can be played as a scene
+        // them (the hallway, then Alex) is told apart, and can be played as a scene
         // one block of one person: plain text, unless asked to show it as a block too
         if (!blocks.some(b => b.w !== '-') || (blocks.length < 2 && !(settings.partsSolo === true && blocks[0].w !== me && blocks[0].w !== '?'))) return;
         /* an older reply: its own plain text, and one small button under it that draws the blocks.
@@ -3332,7 +3356,7 @@ function inkWords(wrap, mode) {
 
 /* ---------- the reply played as a visual-novel scene, with the sprites of Character Expressions ----------
    Sprites are SillyTavern's own: the folder of a card (or its "sprite folder override"), and for someone
-   living inside a card, the card's subfolder of that name («William/Rufus») or a folder of their own.
+   living inside a card, the card's subfolder of that name («Alex/Mark») or a folder of their own.
    Whoever has no sprites is simply not drawn — their name and words still are. */
 const SPRITE_LABELS = ['admiration', 'amusement', 'anger', 'annoyance', 'approval', 'caring', 'confusion', 'curiosity', 'desire', 'disappointment', 'disapproval', 'disgust', 'embarrassment', 'excitement', 'fear', 'gratitude', 'grief', 'joy', 'love', 'nervousness', 'optimism', 'pride', 'realization', 'relief', 'remorse', 'sadness', 'surprise', 'neutral'];
 function spriteLabels() {
@@ -3371,7 +3395,7 @@ function spriteFolders(name) {
     const out = [];
     const card = cards.find(c => c.name.toLowerCase() === n.toLowerCase());
     if (card) out.push(folderOf(card));
-    // «Руфус» may keep his sprites in a folder named Rufus, and the other way round
+    // «Марк» may keep his sprites in a folder named Mark, and the other way round
     const cap = x => x.split(/(\s+|-)/).map(w => w ? w[0].toUpperCase() + w.slice(1) : w).join('');
     const names = [];
     aliasNamesOf(n).filter(a => !/[\/\\]/.test(a)).slice(0, 3).forEach(a => {
@@ -3657,6 +3681,18 @@ const HUD = [
     { id: 'diary', icon: 'fa-book', key: 'hud_diary', ok: () => !!document.getElementById('rpg-diary-btn'), go: () => document.getElementById('rpg-diary-btn').click() },
     { id: 'life', icon: 'fa-house-chimney', key: 'hud_life', ok: () => !!(window.RPG && window.RPG.life && typeof window.RPG.life.open === 'function'), go: () => window.RPG.life.open() },
 ];
+/* the novel's ornaments: drawn here, coloured by each look's CSS (currentColor) */
+const VN_VINE = `<svg viewBox="0 0 160 50" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M0 25 C 14 24, 22 16, 36 14" stroke-width="5.6"/><path d="M36 14 C 54 12, 62 30, 84 32" stroke-width="3.1"/><path d="M84 32 C 100 33, 112 24, 110 15 C 108 8, 98 9, 100 17" stroke-width="2.1"/><path d="M44 13 C 48 4, 60 1, 68 6 C 72 9, 68 14, 64 11" stroke-width="1.7"/><path d="M84 32 C 96 42, 116 44, 132 38" stroke-width="1.5"/><path d="M132 38 C 140 35, 145 40, 139 44" stroke-width="1.1"/><path d="M20 21 C 18 12, 24 6, 30 6" stroke-width="1.4"/></g><g fill="currentColor"><path d="M27 17 l1 -9 l5 7.5 z"/><path d="M52 14 l7 -6 l-1 8.5 z"/><path d="M71 25 l7 -5 l-1.5 8.5 z"/><path d="M92 33 l3 8 l3.5 -7.5 z"/><path d="M116 40 l6 -6 l1 7 z"/><path d="M58 22 c 4 -6 10 -6 13 -2 c -4 4 -9 5 -13 2 z"/><path d="M104 22 c 6 -2 10 2 9 7 c -5 0 -9 -2 -9 -7 z"/><path d="M30 6 c 3 -3 7 -2 8 1 c -3 2 -6 2 -8 -1 z"/><circle cx="100" cy="17" r="1.6"/></g></svg>`;
+const vnFlower = s => `<svg viewBox="0 0 20 20" width="${s}" height="${s}" aria-hidden="true"><g fill="currentColor"><circle cx="10" cy="5.2" r="4.4"/><circle cx="14.8" cy="10" r="4.4"/><circle cx="10" cy="14.8" r="4.4"/><circle cx="5.2" cy="10" r="4.4"/></g><circle cx="10" cy="10" r="2.2" class="core"/></svg>`;
+const VN_CLOUD = `<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17a4 4 0 0 1 .6-7.9A5 5 0 0 1 17 10a3.5 3.5 0 0 1 0 7z"/></svg>`;
+// the moon by the hour: full at night, a sliver at dawn and dusk, a sun by day
+function vnMoon(time) {
+    const m = /(\d{1,2})[:.](\d{2})/.exec(String(time || ''));
+    const h = m ? Number(m[1]) + Number(m[2]) / 60 : NaN;
+    if (Number.isFinite(h) && h >= 7 && h < 19) return `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="#1b2130" stroke="currentColor" stroke-width="1.2"/><circle cx="12" cy="12" r="5" fill="#efd78f"/></svg>`;
+    const lit = !Number.isFinite(h) ? 6.5 : (h >= 22 || h < 4) ? 0 : 6.5;
+    return `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="#1b2130" stroke="currentColor" stroke-width="1.2"/>${lit ? `<path d="M12 1.5 A10.5 10.5 0 0 1 12 22.5 A${lit} 10.5 0 0 0 12 1.5 Z" fill="#efd78f"/>` : '<circle cx="12" cy="12" r="10" fill="#efd78f"/>'}</svg>`;
+}
 const HUD_OPEN = ['#rpg-map-modal.visible', '#rpg-diary-modal.visible', '#rpg-life-host.open'];
 const hudSomethingOpen = () => HUD_OPEN.some(sel => { const el = document.querySelector(sel); return !!el && getComputedStyle(el).display !== 'none'; });
 const NOVEL_BACK = 24;   // messages taken into the novel's timeline
@@ -3716,6 +3752,8 @@ function openNovel(fromId = null) {
         <div class="rls-vn-veil"></div>
         <div class="rls-vn-card" aria-live="polite"></div>
         <div class="rls-vn-place"></div>
+        <div class="rls-vn-info" aria-hidden="true"></div>
+        <div class="rls-vn-fight" aria-hidden="true"></div>
         <div class="rls-vn-where"></div>
         <div class="rls-vn-top">
             <span class="rls-vn-hud"></span>
@@ -3729,7 +3767,11 @@ function openNovel(fromId = null) {
         </div>
         <div class="rls-vn-choices" hidden></div>
         <button type="button" class="rls-vn-box">
+            <span class="rls-vn-paper" aria-hidden="true"></span>
+            <span class="rls-vn-frame" aria-hidden="true"><i class="tl"></i><i class="tr"></i><i class="bl"></i><i class="br"></i></span>
             <span class="rls-vn-orn" aria-hidden="true"></span>
+            <span class="rls-vn-vine l" aria-hidden="true">${VN_VINE}</span><span class="rls-vn-vine r" aria-hidden="true">${VN_VINE}</span>
+            <span class="rls-vn-marks" aria-hidden="true">${vnFlower(9)}${vnFlower(13)}${vnFlower(9)}</span><span class="rls-vn-scroll" aria-hidden="true"></span>
             <span class="rls-vn-plate"></span>
             <span class="rls-vn-face" aria-hidden="true"></span>
             <span class="rls-vn-text"></span>
@@ -3861,7 +3903,66 @@ function openNovel(fromId = null) {
     N.look = () => {
         ov.className = ov.className.replace(/\b(box|size)-\S+/g, '').trim();
         ov.classList.add(`box-${settings.novelBox || 'parchment'}`, `size-${settings.novelSprite || 'large'}`);
-        hudBuild(); showPlace(); faceFor(N.steps[N.idx]);
+        hudBuild(); showPlace(); faceFor(N.steps[N.idx]); infoSync(); fightSync(); plateSpan();
+    };
+    // the vines stand either side of the name plate, whatever its length
+    const plateSpan = () => requestAnimationFrame(() => { if (novel === N) ov.style.setProperty('--rls-plate-half', (plate.getBoundingClientRect().width / 2 + 2) + 'px'); });
+    // the small plate in the corner: time, day, place, weather — each one only if wanted and known
+    const infoSync = () => {
+        const el = $q('.rls-vn-info');
+        const want = settings.novelInfo || {};
+        let sc = null;
+        try { sc = window.RPG && window.RPG.scene && window.RPG.scene.available !== false && typeof window.RPG.scene.get === 'function' ? window.RPG.scene.get() : null; } catch (e) { sc = null; }
+        const time = want.time !== false && sc && sc.time ? String(sc.time) : '';
+        const day = want.date !== false && sc ? String(sc.day ? t('info_day_n', { n: sc.day }) : (sc.date || '')) : '';
+        const place = want.place !== false ? (N.room ? placeText(N.room) : (sc && sc.location ? String(sc.location) : '')) : '';
+        const wx = want.weather !== false && sc && sc.weather ? String(sc.weather) : '';
+        const sig = [time, day, place, wx].join('|');
+        ov.classList.toggle('info-place', !!place);
+        if (el.dataset.sig === sig) return;
+        el.dataset.sig = sig;
+        const sep = '<span class="rls-vn-info-sep"></span>';
+        const bits = [];
+        if (time || day) bits.push(`<span class="rls-vn-info-moon">${vnMoon(time)}</span><span class="rls-vn-info-t">${time ? `<b>${escapeHtml(time)}</b>` : ''}${day ? `<i>${escapeHtml(day)}</i>` : ''}</span>`);
+        if (place) bits.push(`<span class="rls-vn-info-place">${escapeHtml(place)}</span>`);
+        if (wx) bits.push(`<span class="rls-vn-info-wx">${VN_CLOUD}<span>${escapeHtml(wx)}</span></span>`);
+        el.innerHTML = bits.length ? `<div class="rls-vn-info-row">${bits.join(sep)}</div>` : '';
+    };
+    // RPG Vitals' bars: yours on the left, the enemies on the right — in a fight, or always
+    const fightSync = () => {
+        const el = $q('.rls-vn-fight');
+        const V = window.RPG && window.RPG.vitals;
+        let mine = null, foes = [], meters = {};
+        try {
+            if (settings.novelFight !== 'off' && V && V.available && (!V.isEnabled || V.isEnabled())) {
+                foes = typeof V.getEnemies === 'function' ? V.getEnemies() : [];
+                meters = typeof V.meters === 'function' ? V.meters() : {};
+                if (settings.novelFight === 'always' || foes.length) mine = V.getHp ? V.getHp() : null;
+            }
+        } catch (e) { mine = null; foes = []; }
+        if (!mine) foes = [];
+        const show = settings.novelFightShow || {};
+        const extra = [];
+        try {
+            if (mine && show.food && meters.hunger && V.getHunger) extra.push(['food', V.getHunger(), 100]);
+            if (mine && show.fatigue && meters.fatigue && V.getFatigue) extra.push(['fatigue', V.getFatigue(), 100]);
+            if (mine && show.mana && meters.mana && V.getMana) extra.push(['mana', V.getMana(), 100]);
+        } catch (e) { /* a meter that is not there */ }
+        const hpOn = show.hp !== false;
+        const sig = JSON.stringify([mine, foes, extra, hpOn]);
+        ov.classList.toggle('fight-on', !!mine);
+        if (el.dataset.sig === sig) return;
+        el.dataset.sig = sig;
+        if (!mine) { el.innerHTML = ''; return; }
+        const pct = (a, b) => Math.max(0, Math.min(100, Math.round((Number(a) || 0) / (Number(b) || 1) * 100)));
+        const bar = (kind, v, max, label) => `<span class="rls-vn-bar ${kind}"><i style="width:${pct(v, max)}%"></i><b>${label}</b></span>`;
+        const medal = (pic, name) => `<span class="rls-vn-medal">${pic ? `<img src="${escapeHtml(pic)}" alt="" draggable="false">` : `<span>${escapeHtml(String(name || '?').trim().slice(0, 1).toUpperCase())}</span>`}</span>`;
+        const meIcon = user_avatar ? `/thumbnail?type=persona&file=${encodeURIComponent(user_avatar)}` : '';
+        const myBars = (hpOn ? [bar('hp', mine.hp, mine.max, `${Math.round(mine.hp)} / ${Math.round(mine.max)}`)] : [])
+            .concat(extra.map(([k, v]) => bar(k, v, 100, `${t('fight_' + k)} ${Math.round(Number(v) || 0)}`)));
+        const meHtml = `<div class="rls-vn-fighter l">${medal(meIcon, me())}<span class="rls-vn-fbody"><span class="rls-vn-fname">${escapeHtml(me() || t('fight_you'))}</span>${myBars.join('')}</span></div>`;
+        const foeHtml = foes.slice(0, 4).map(f => `<div class="rls-vn-fighter r">${medal('', f.name)}<span class="rls-vn-fbody"><span class="rls-vn-fname">${escapeHtml(f.name)}</span>${bar('hp', f.hp, f.max, `${Math.round(f.hp)} / ${Math.round(f.max)}`)}</span></div>`).join('');
+        el.innerHTML = `<div class="rls-vn-fside l">${meHtml}</div><div class="rls-vn-fside r">${foeHtml}</div>`;
     };
     const syncChoices = () => {
         const atEnd = N.idx >= N.steps.length - 1;
@@ -3878,7 +3979,7 @@ function openNovel(fromId = null) {
             b.type = 'button';
             b.className = 'rls-vn-choice';
             const key = o.querySelector('.rpg-choice-key'), text = o.querySelector('.rpg-choice-text');
-            b.innerHTML = `<span class="k">${escapeHtml(key ? key.textContent : '')}</span><span>${escapeHtml(text ? text.textContent : o.textContent)}</span>`;
+            b.innerHTML = `<span class="k">${escapeHtml(key ? key.textContent : '')}</span><span class="q" aria-hidden="true">${vnFlower(16)}</span><span>${escapeHtml(text ? text.textContent : o.textContent)}</span>`;
             b.addEventListener('click', e => { e.stopPropagation(); if (stBusy()) { toastr.info(t('novel_busy')); return; } o.click(); choices.hidden = true; });
             choices.appendChild(b);
         });
@@ -3893,7 +3994,7 @@ function openNovel(fromId = null) {
         choices.hidden = !choices.children.length;
     };
     const syncBar = () => {
-        hudBuild();
+        hudBuild(); infoSync(); fightSync();
         const busy = stBusy();
         const ex = exploring();
         ov.classList.toggle('explore', !!ex);
@@ -3934,6 +4035,7 @@ function openNovel(fromId = null) {
         ov.classList.toggle('mine', !!st0.user);
         box.classList.toggle('r', !narr && (st0.user || (at != null && at > 55)));
         plate.textContent = narr ? '…' : st0.who;
+        plateSpan();
         txt.className = `rls-vn-text ${st0.kind}`;
         txt.innerHTML = stepHtml(st0);
         if (moved && !quiet) { txt.classList.remove('in'); void txt.offsetWidth; txt.classList.add('in'); }
@@ -4152,7 +4254,7 @@ function renderAllParts() {
     const chat = getContext().chat || [];
     document.querySelectorAll('#chat .mes[mesid]').forEach(el => { const id = Number(el.getAttribute('mesid')); if (chat[id] && !chat[id].is_user) renderParts(id); });
 }
-// Cyrillic ⇄ Latin, so a card named in Russian is found in an English reply (Мегумин / Megumin)
+// Cyrillic ⇄ Latin, so a card named in Russian is found in an English reply (Мира / Mira)
 const TR_CYR = { а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', ё: 'e', ж: 'zh', з: 'z', и: 'i', й: 'y', к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ф: 'f', х: 'h', ц: 'ts', ч: 'ch', ш: 'sh', щ: 'sch', ъ: '', ы: 'y', ь: '', э: 'e', ю: 'yu', я: 'ya' };
 const TR_LAT = [['sch', 'щ'], ['sh', 'ш'], ['ch', 'ч'], ['zh', 'ж'], ['ts', 'ц'], ['yu', 'ю'], ['ya', 'я'], ['kh', 'х'], ['a', 'а'], ['b', 'б'], ['c', 'к'], ['d', 'д'], ['e', 'е'], ['f', 'ф'], ['g', 'г'], ['h', 'х'], ['i', 'и'], ['j', 'дж'], ['k', 'к'], ['l', 'л'], ['m', 'м'], ['n', 'н'], ['o', 'о'], ['p', 'п'], ['q', 'к'], ['r', 'р'], ['s', 'с'], ['t', 'т'], ['u', 'у'], ['v', 'в'], ['w', 'в'], ['x', 'кс'], ['y', 'й'], ['z', 'з']];
 function translit(x) {
@@ -4167,13 +4269,13 @@ function probesFor(n) {
     // "The Cook" is found by "Cook", never by "the"
     const pr = probesOf(n).filter(x => !SMALL_WORDS.has(x));
     aliasNamesOf(n).forEach(a0 => { const words = String(a0).trim().split(/\s+/); if (words.length > 1 && SMALL_WORDS.has(words[0].toLowerCase())) { const st0 = nameStem(words[1]); if (st0.length >= 3) pr.push(st0); } });
-    // the other words of a full name count too: «Ким Минджун» is called Minjun, William James Moriarty is Moriarty
+    // the other words of a full name count too: «Пак Джун» is called Jun, Alexander James Ashford is Ashford
     aliasNamesOf(n).forEach(a0 => String(a0).trim().split(/\s+/).slice(1).forEach(wd => { if (SMALL_WORDS.has(wd.toLowerCase())) return; const st1 = nameStem(wd); if (st1.length >= 4) pr.push(st1); }));
     pr.slice().forEach(x => {
         const tr = translit(x);
         if (!tr || tr === x || tr.length < 3) return;
         pr.push(tr);
-        // «Минджун» is Minjun, «Джон» is Jon, «Сэйдзи» is Seiji: дж and дз are also written j, й also i
+        // «Джун» is Jun, «Джон» is Jon, «Кадзуки» is Kazuki: дж and дз are also written j, й also i
         const alt = tr.replace(/dzh|dz/g, 'j').replace(/y(?=[^aeiouy]|$)/g, 'i');
         if (alt !== tr && alt.length >= 3) pr.push(alt);
     });
@@ -4202,7 +4304,7 @@ function buildCandidates() {
             return;
         }
         const cand = { name: n, pic: pic || '', kind, probes: probesFor(n) };
-        // the same person written another way ("Megumin" in the diary, «Мегумин» in the roster):
+        // the same person written another way ("Mira" in the diary, «Мира» in the roster):
         // one entry, the first name stays; both names have to find each other, so Ann is not Anna
         const twin = kind !== 'user' && out.find(x => x.kind !== 'user' && namesIn(n, [x]).length && namesIn(x.name, [cand]).length);
         if (twin) { if (!twin.pic && pic) twin.pic = pic; seen.add(n.toLowerCase()); return; }
@@ -4224,15 +4326,15 @@ function buildCandidates() {
         phoneCast().forEach(n => add(n, cardPic(n), 'npc'));   // the people inside the card, as RPG Phone lists them
         add(ctx.name1 || name1, user_avatar ? `/thumbnail?type=persona&file=${encodeURIComponent(user_avatar)}` : '', 'user');
         // still no face: a diary portrait or a card of the same person under another written name
-        // ("Аква" in the roster, "Aqua" in the diary — aliases, Phone's «Also called» and learned forms count)
+        // ("Луна" in the roster, "Luna" in the diary — aliases, Phone's «Also called» and learned forms count)
         const npcs = diaryNpcs().filter(n => typeof n.portrait === 'string' && n.portrait);
         out.forEach(c => {
             if (c.pic || c.kind === 'user') return;
             const d = npcs.find(n => namesIn(n.name, [c]).length);
             if (d) { c.pic = d.portrait; return; }
             // a card from the library only when it is this very person: the whole name, one of their
-            // aliases, or the whole name in the other alphabet («Аква» / "Aqua") — and only one such card.
-            // A card that merely shares a first name ("Kai …" of another story) is somebody else.
+            // aliases, or the whole name in the other alphabet («Луна» / "Luna") — and only one such card.
+            // A card that merely shares a first name ("Sam …" of another story) is somebody else.
             const norm = x => String(x || '').trim().toLowerCase().replace(/ё/g, 'е');
             const forms = new Set(aliasNamesOf(c.name).map(norm));
             const cyr = x => /[а-яё]/i.test(x);
