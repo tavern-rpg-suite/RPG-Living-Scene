@@ -101,7 +101,7 @@ const I18N = {
         set_sec_compress: 'Long cards', set_compress: 'Long cards are condensed before they are sent (once, kept)', set_compress_over: 'Condense cards longer than (tokens):',
         set_faces: 'Split replies by roles', set_sec_cast: 'Who is in the scene', set_sec_roles: 'Replies by roles',
         set_faces_hint: 'Each person’s lines and actions in their own block, with their face. One side call per reply. Older replies: the button in the message menu.',
-        parts_btn: 'Split by roles', parts_plain: 'Show as plain text', parts_compact: 'Only the spoken lines', parts_full: 'Lines and actions', parts_failed: 'Could not split this reply.', parts_one: 'Nothing to split here.', scene_btn: 'Play as a scene', scene_log: 'Log', scene_close: 'Close', scene_end: 'End of the reply', scene_hint: 'Click, Space or → — next · ← — back · Esc — close', novel_menu: 'Novel mode', novel_exit: 'Back to the chat', novel_say: 'Your line…', novel_send: 'Send', novel_prev: 'Previous version', novel_next: 'Another version', novel_regen: 'Regenerate', novel_stop: 'Stop', novel_busy: 'Wait until the reply is finished.', novel_hint: 'Click or Space — next · ← — back · Enter — send · Esc — back to the chat', novel_return: 'Return to the character', novel_ask: 'Suggest choices', novel_empty: 'Write the first line below.',
+        parts_btn: 'Split by roles', parts_plain: 'Show as plain text', parts_compact: 'Only the spoken lines', parts_full: 'Lines and actions', parts_failed: 'Could not split this reply.', parts_one: 'Nothing to split here.', scene_btn: 'Play as a scene', scene_log: 'Log', scene_close: 'Close', scene_end: 'End of the reply', scene_hint: 'Click, Space or → — next · ← — back · Esc — close', novel_menu: 'Novel mode', novel_exit: 'Back to the chat', novel_say: 'Your line…', novel_send: 'Send', novel_prev: 'Previous version', novel_next: 'Another version', novel_regen: 'Regenerate', novel_stop: 'Stop', novel_busy: 'Wait until the reply is finished.', novel_wait: 'The reply is on its way…', novel_hint: 'Click or Space — next · ← — back · Enter — send · Esc — back to the chat', novel_return: 'Return to the character', novel_ask: 'Suggest choices', novel_empty: 'Write the first line below.',
         set_autonpc: 'Offer diary NPCs in the roster',
         set_autonpc_hint: 'They are listed so you can let them in with "+" or the switch. Being mentioned is not enough — an NPC nobody invited stays silent.',
         roster_diary: 'From the Diary',
@@ -199,7 +199,7 @@ const I18N = {
         set_sec_compress: 'Длинные карточки', set_compress: 'Длинные карточки сжимаются перед отправкой (один раз, запоминается)', set_compress_over: 'Сжимать карточки длиннее (токенов):',
         set_faces: 'Разбивать ответы по ролям', set_sec_cast: 'Кто в сцене', set_sec_roles: 'Ответы по ролям',
         set_faces_hint: 'Реплики и действия каждого — в своём блоке, с портретом. Один запрос к боковой модели на ответ. Для старых сообщений — кнопка в меню сообщения.',
-        parts_btn: 'Разбить по ролям', parts_plain: 'Показать обычным текстом', parts_compact: 'Только реплики', parts_full: 'Реплики и действия', parts_failed: 'Не получилось разбить этот ответ.', parts_one: 'Здесь нечего разбивать.', scene_btn: 'Показать сценой', scene_log: 'Журнал', scene_close: 'Закрыть', scene_end: 'Конец ответа', scene_hint: 'Клик, пробел или → — дальше · ← — назад · Esc — закрыть', novel_menu: 'Режим новеллы', novel_exit: 'Вернуться в чат', novel_say: 'Твоя реплика…', novel_send: 'Отправить', novel_prev: 'Предыдущая версия', novel_next: 'Другая версия', novel_regen: 'Перегенерировать', novel_stop: 'Остановить', novel_busy: 'Дождись, пока ответ допишется.', novel_hint: 'Клик или пробел — дальше · ← — назад · Enter — отправить · Esc — в чат', novel_return: 'Вернуться к персонажу', novel_ask: 'Предложить варианты', novel_empty: 'Напиши первую реплику внизу.',
+        parts_btn: 'Разбить по ролям', parts_plain: 'Показать обычным текстом', parts_compact: 'Только реплики', parts_full: 'Реплики и действия', parts_failed: 'Не получилось разбить этот ответ.', parts_one: 'Здесь нечего разбивать.', scene_btn: 'Показать сценой', scene_log: 'Журнал', scene_close: 'Закрыть', scene_end: 'Конец ответа', scene_hint: 'Клик, пробел или → — дальше · ← — назад · Esc — закрыть', novel_menu: 'Режим новеллы', novel_exit: 'Вернуться в чат', novel_say: 'Твоя реплика…', novel_send: 'Отправить', novel_prev: 'Предыдущая версия', novel_next: 'Другая версия', novel_regen: 'Перегенерировать', novel_stop: 'Остановить', novel_busy: 'Дождись, пока ответ допишется.', novel_wait: 'Ответ пишется…', novel_hint: 'Клик или пробел — дальше · ← — назад · Enter — отправить · Esc — в чат', novel_return: 'Вернуться к персонажу', novel_ask: 'Предложить варианты', novel_empty: 'Напиши первую реплику внизу.',
         set_autonpc: 'Показывать NPC из дневника в списке сцены',
         set_autonpc_hint: 'Они появляются в списке, чтобы их можно было впустить кнопкой «+» или переключателем. Одного упоминания мало — неприглашённый NPC молчит.',
         roster_diary: 'Из дневника',
@@ -3160,6 +3160,26 @@ function openFixMenu(messageId, blk, x, y) {
     (menu.querySelector('.rls-fix-item.on') || menu.querySelector('.rls-fix-item'))?.focus();
     setTimeout(() => { document.addEventListener('pointerdown', fixOutside, true); document.addEventListener('keydown', fixKey, true); }, 0);
 }
+/* A face for someone with no card, no diary portrait and no card of the same name — the people
+   who live inside one card. Their sprite (neutral first) is the face, as Character Expressions
+   shows them. Looked up once per chat in the background; the replies are redrawn when it comes. */
+const spriteFaces = new Map();   // chatId|name -> sprite path ('' while looking, or none)
+let spriteFaceT = null;
+function spriteFace(name) {
+    const n = String(name || '').trim();
+    if (!n || n === '-') return '';
+    const key = `${getContext().chatId}|${n}`;
+    if (spriteFaces.has(key)) return spriteFaces.get(key);
+    spriteFaces.set(key, '');
+    spritesOf(n).then(list => {
+        const path = pickSprite(list, 'neutral');
+        if (!path) return;
+        spriteFaces.set(key, path);
+        clearTimeout(spriteFaceT);
+        spriteFaceT = setTimeout(() => { candCache = null; if (document.querySelector('#chat .rls-parts')) renderAllParts(); }, 80);
+    }).catch(() => {});
+    return '';
+}
 function partFace(name) {
     let c = faceCandidates().find(x => x.name === name);
     if (!c || !c.pic) {
@@ -3170,6 +3190,8 @@ function partFace(name) {
             || onlyOne(pics.filter(n => namesIn(n.name, [me]).length && namesIn(name, [{ probes: probesFor(n.name) }]).length).map(n => ({ c: n })));
         if (d) c = { name, pic: d.portrait, kind: (c && c.kind) || 'npc' };
     }
+    // no picture anywhere (someone living inside a card): their own sprite from Character Expressions
+    if ((!c || !c.pic) && !(c && c.kind === 'user')) { const sp = spriteFace(name); if (sp) c = { name, pic: sp, kind: (c && c.kind) || 'npc' }; }
     let hue = 0; for (const ch of String(name)) hue = (hue * 31 + ch.charCodeAt(0)) % 360;
     const ini = escapeHtml(String(name).trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase());
     return { hue, pic: (c && c.pic) || '', html: c && c.pic ? `<img src="${escapeHtml(c.pic)}" alt="" draggable="false" loading="lazy">` : `<span class="rls-part-ini">${ini}</span>`, me: !!(c && c.kind === 'user') };
@@ -3437,7 +3459,9 @@ function guessFeel(text) {
 function pickSprite(list, feel) {
     if (!list || !list.length) return '';
     const fallback = String(extension_settings.expressions?.fallback_expression || 'joy').toLowerCase();
-    const hit = (feel && list.find(x => x.label === feel)) || list.find(x => x.label === 'neutral') || list.find(x => x.label === fallback) || list[0];
+    // labels compared without case: a file named Joy.png is the joy sprite too
+    const is = l => x => String(x.label).toLowerCase() === l;
+    const hit = (feel && list.find(is(String(feel).toLowerCase()))) || list.find(is('neutral')) || list.find(is(fallback)) || list[0];
     return hit.path;
 }
 // the steps of the scene: one per spoken line, with the words around it ("…," he said) on the same step;
@@ -3781,14 +3805,13 @@ function openNovel(fromId = null) {
             <textarea rows="1" class="rls-vn-input" placeholder="${escapeHtml(t('novel_say'))}" aria-label="${escapeHtml(t('novel_say'))}"></textarea>
             <button type="submit" class="rls-vn-send" title="${escapeHtml(t('novel_send'))}" aria-label="${escapeHtml(t('novel_send'))}"><i class="fa-solid fa-paper-plane"></i></button>
         </form>
-        <div class="rls-vn-log" hidden><div class="rls-vn-logtitle">${escapeHtml(t('scene_log'))}</div><div class="rls-vn-loglist"></div></div>
-        <div class="rls-vn-hint">${escapeHtml(t('novel_hint'))}</div>`;
+        <div class="rls-vn-log" hidden><div class="rls-vn-logtitle">${escapeHtml(t('scene_log'))}</div><div class="rls-vn-loglist"></div></div>`;
     const $q = sel => ov.querySelector(sel);
     const box = $q('.rls-vn-box'), plate = $q('.rls-vn-plate'), txt = $q('.rls-vn-text'), count = $q('.rls-vn-count');
     const stage = $q('.rls-vn-stage'), input = $q('.rls-vn-input'), choices = $q('.rls-vn-choices'), log = $q('.rls-vn-log'), list = $q('.rls-vn-loglist');
     // follow: the reader is with the newest message, so a new one is played as it comes;
     // reading back in the log or with ← stops that until they come back to the newest
-    const N = novel = { ov, steps: [], start: new Map(), idx: -1, sprites: {}, bg: '', timer: null, follow: true };
+    const N = novel = { ov, steps: [], start: new Map(), idx: -1, sprites: {}, bg: '', timer: null, follow: true, waitReply: 0 };
     const me = () => getContext().name1 || name1;
     const loadSprites = async () => {
         const people = [...new Set(N.steps.filter(x => x.who !== '-' && x.who !== me()).map(x => x.who))].filter(w => !(w in N.sprites));
@@ -3913,8 +3936,21 @@ function openNovel(fromId = null) {
         const want = settings.novelInfo || {};
         let sc = null;
         try { sc = window.RPG && window.RPG.scene && window.RPG.scene.available !== false && typeof window.RPG.scene.get === 'function' ? window.RPG.scene.get() : null; } catch (e) { sc = null; }
+        /* what the bridge leaves out (an older Scene Card, or its record missing a field) is read
+           from the Scene Card's own record in the chat, the newest one that has a time or a date */
+        if (!sc || !sc.time || !sc.weather || !sc.date) {
+            const chat = getContext().chat || [];
+            for (let i = chat.length - 1; i >= 0 && i >= chat.length - 40; i--) {
+                const d = chat[i] && chat[i].extra && chat[i].extra.rpg_info_box;
+                if (!d || typeof d !== 'object' || !(d.time || d.date)) continue;
+                sc = Object.assign({}, sc || {});
+                ['time', 'date', 'weather', 'location'].forEach(k => { if (!sc[k] && typeof d[k] === 'string' && d[k].trim()) sc[k] = d[k].trim(); });
+                break;
+            }
+        }
         const time = want.time !== false && sc && sc.time ? String(sc.time) : '';
-        const day = want.date !== false && sc ? String(sc.day ? t('info_day_n', { n: sc.day }) : (sc.date || '')) : '';
+        // the date as the Scene Card wrote it (its "day" is only the first number in that date: 3 March was "Day 3")
+        const day = want.date !== false && sc ? String(sc.date || (sc.day ? t('info_day_n', { n: sc.day }) : '')) : '';
         const place = want.place !== false ? (N.room ? placeText(N.room) : (sc && sc.location ? String(sc.location) : '')) : '';
         const wx = want.weather !== false && sc && sc.weather ? String(sc.weather) : '';
         const sig = [time, day, place, wx].join('|');
@@ -4006,7 +4042,13 @@ function openNovel(fromId = null) {
         $q('.rls-vn-prev').hidden = !canSwipe || !((getContext().chat[lastId].swipe_id || 0) > 0);
         $q('.rls-vn-next2').hidden = !canSwipe;
         $q('.rls-vn-regen').hidden = busy || lastMes < 0;
-        $q('.rls-vn-send').disabled = busy;
+        // while the reply is being written, or split for the scene, there is nothing to send to:
+        // the field is locked and the send seal turns
+        const wait = busy || N.waitReply > 0;
+        $q('.rls-vn-send').disabled = wait;
+        $q('.rls-vn-say').classList.toggle('wait', wait);
+        input.readOnly = wait;
+        input.placeholder = t(wait ? 'novel_wait' : 'novel_say');
     };
     const show = (k, quiet = false, byHand = false) => {
         syncBg(); syncBar();
@@ -4058,13 +4100,15 @@ function openNovel(fromId = null) {
         N.steps = tl.steps; N.start = tl.start;
         list.innerHTML = N.steps.map((st0, k) => `<button type="button" class="rls-vn-logrow ${st0.kind}${st0.user ? ' mine' : ''}" data-k="${k}"><span class="rls-vn-logwho">${escapeHtml(st0.who === '-' ? '—' : st0.who)}</span><span class="rls-vn-logtext">${stepHtml(st0)}</span></button>`).join('');
         let k;
-        if (playFrom != null && N.start.has(playFrom) && (N.follow || N.idx < 0)) k = N.start.get(playFrom);
+        const onMine = !!(cur && cur.user && playFrom != null && playFrom > cur.mid);   // you sent a line and wait: the answer to it plays
+        if (playFrom != null && N.start.has(playFrom) && (N.follow || N.idx < 0 || onMine)) k = N.start.get(playFrom);
         else if (curMid != null && N.start.has(curMid)) k = Math.min(N.start.get(curMid) + curOff, N.steps.length - 1);
         else k = N.steps.length - 1;
         show(k, playFrom == null && k === N.idx);
         loadSprites();
     };
     N.refresh = refresh;
+    N.syncBar = syncBar;
     const next = () => { if (!log.hidden) return; if (N.idx < N.steps.length - 1) show(N.idx + 1, false, true); else { N.follow = true; syncChoices(); if (choices.hidden) input.focus({ preventScroll: true }); } };   // never scroll SillyTavern's page under the novel
     const prev = () => { if (!log.hidden) return; if (N.idx > 0) show(N.idx - 1, false, true); };
     const toggleLog = on => { log.hidden = !on; $q('.rls-vn-logbtn').classList.toggle('on', on); if (on) { const row = list.querySelector('.cur'); if (row) { /* only the list scrolls: scrollIntoView moved the whole page and left a grey strip under it */ const lr = list.getBoundingClientRect(), rr = row.getBoundingClientRect(); list.scrollTop += (rr.top - lr.top) - (list.clientHeight - rr.height) / 2; } } };
@@ -4077,6 +4121,7 @@ function openNovel(fromId = null) {
     $q('.rls-vn-next2').addEventListener('click', e => { e.stopPropagation(); lastMesEl()?.querySelector('.swipe_right')?.click(); });
     $q('.rls-vn-regen').addEventListener('click', e => { e.stopPropagation(); if (stBusy()) return; document.getElementById('option_regenerate')?.click(); });
     $q('.rls-vn-stop').addEventListener('click', e => { e.stopPropagation(); document.getElementById('mes_stop')?.click(); });
+
     box.addEventListener('click', e => { if (e.target.closest('a')) return; next(); });
     stage.addEventListener('click', next);
     // a line of your own: SillyTavern's own box and button send it, as if typed there
@@ -4086,7 +4131,7 @@ function openNovel(fromId = null) {
         e.preventDefault();
         const words = input.value.trim();
         if (!words) { next(); return; }
-        if (stBusy()) { toastr.info(t('novel_busy')); return; }
+        if (stBusy() || N.waitReply > 0) { toastr.info(t('novel_busy')); return; }
         const ta = document.getElementById('send_textarea'), send = document.getElementById('send_but');
         if (!ta || !send) return;
         N.follow = true;
@@ -4109,7 +4154,19 @@ function openNovel(fromId = null) {
     document.addEventListener('keydown', onKey, true);
     N.off = () => document.removeEventListener('keydown', onKey, true);
     // what changes outside the chat's events: the room, Map's choices arriving, the stop button
-    N.timer = setInterval(() => { if (novel === N && !document.hidden) { syncBg(); syncBar(); syncChoices(); box.classList.toggle('waiting', N.idx >= N.steps.length - 1 && stBusy()); } }, 700);
+    N.timer = setInterval(() => {
+        if (novel !== N || document.hidden) return;
+        syncBg(); syncBar(); syncChoices(); box.classList.toggle('waiting', N.idx >= N.steps.length - 1 && stBusy());
+        // your own line is on screen and the answer to it is finished and split: it plays now,
+        // even if the event that should have started it was missed
+        const cur = N.steps[N.idx];
+        if (N.follow && cur && cur.user && !stBusy()) {
+            const chat = getContext().chat || [];
+            const last = lastReplyId(), lm = chat[last];
+            const lastMine = chat.map(m => !!(m && m.is_user)).lastIndexOf(true);
+            if (cur.mid === lastMine && last > cur.mid && lm && !partsBusy.has(`${getContext().chatId}#${last}#${lm.swipe_id ?? 0}`) && novelStepsFor(last).length) refresh(last);
+        }
+    }, 700);
     // older browsers without overflow: clip — whatever scrolls the stage is put back
     ov.addEventListener('scroll', () => { if (ov.scrollTop || ov.scrollLeft) { ov.scrollTop = 0; ov.scrollLeft = 0; } });
     N.look();
@@ -4137,18 +4194,43 @@ function closeNovel(byHand = false) {
     if (byHand && settings.novel) { settings.novel = false; saveSettings(); }
 }
 // a reply that has just come: played once its split by roles is in (or given up on)
+// a reply that should be split for the scene and is not (yet): a bot's reply of two pieces or more
+function novelNeedsSplit(id) {
+    const m = getContext().chat[id];
+    if (!m || m.is_user || m.is_system || !settings.enabled || settings.lineFaces === false) return false;   // in the novel replies are split whatever "split by itself" says
+    if (partsView(id)) return false;
+    return splitPieces(String(m.mes || '')).pieces.length >= 2;
+}
 async function novelOnReply(id) {
     if (!novel) return;
     const N = novel;
+    N.waitReply = (N.waitReply || 0) + 1;
+    try { await novelPlayReply(N, id); } finally { N.waitReply = Math.max(0, (N.waitReply || 1) - 1); if (novel === N && N.syncBar) N.syncBar(); }
+}
+async function novelPlayReply(N, id) {
     N.refresh(null);
     await new Promise(r => setTimeout(r, 700));   // the split is asked for 300 ms after the reply
     const ctx = getContext();
-    const until = Date.now() + waitFor(60000) + 5000;   // as long as the split itself may take
-    while (novel === N && Date.now() < until) {
-        const m = ctx.chat[id];
-        const key = `${ctx.chatId}#${id}#${m ? (m.swipe_id ?? 0) : 0}`;
-        if (!partsBusy.has(key)) break;
+    const waitSplit = async () => {
+        const until = Date.now() + waitFor(60000) + 5000;   // as long as the split itself may take
+        while (novel === N && Date.now() < until) {
+            const m = ctx.chat[id];
+            const key = `${ctx.chatId}#${id}#${m ? (m.swipe_id ?? 0) : 0}`;
+            if (!partsBusy.has(key)) break;
+            await new Promise(r => setTimeout(r, 300));
+        }
+    };
+    await waitSplit();
+    /* The split failed (the model answered nothing usable, or an error): it is asked again by
+       itself — twice more, a little apart — so a scene is never left as plain narration for the
+       reader to fix by hand. Then the reply plays, split or, if it truly cannot be, as it is. */
+    for (const pause of [1500, 4000]) {
+        if (novel !== N || !novelNeedsSplit(id)) break;
+        await new Promise(r => setTimeout(r, pause));
+        if (novel !== N || !novelNeedsSplit(id)) break;
+        askParts(id, false, true);
         await new Promise(r => setTimeout(r, 300));
+        await waitSplit();
     }
     if (novel === N) N.refresh(id);
 }

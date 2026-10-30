@@ -809,7 +809,8 @@
 .rls-vn.box-ribbon .rls-vn-marks { color: #e07c80; bottom: 12px; }
 .rls-vn.box-ribbon .rls-vn-foot { color: rgba(243, 234, 217, .5); right: 5%; }
 .rls-vn.box-ribbon .rls-vn-box.face.r .rls-vn-foot { left: 5%; }
-.rls-vn.box-ribbon .rls-vn-box.face { padding-left: max(60px, 12vw); padding-right: max(60px, 12vw); }
+.rls-vn.box-ribbon .rls-vn-box.face { padding-left: max(60px, 12vw, calc(6% + 116px)); padding-right: max(60px, 12vw); }
+.rls-vn.box-ribbon .rls-vn-box.face.r { padding-left: max(60px, 12vw); padding-right: max(60px, 12vw, calc(6% + 116px)); }   /* the text keeps clear of the portrait (it ran under it on narrower screens) */
 .rls-vn.box-ribbon .rls-vn-box.face .rls-vn-face { left: 6%; } .rls-vn.box-ribbon .rls-vn-box.face.r .rls-vn-face { left: auto; right: 6%; }
 
 /* —— Twilight: dark glass with grain, cut corners, a gold frame with scrolls, gold vines, a light name plate —— */
@@ -906,7 +907,7 @@
     .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-text { font-size: 1.08em; }
     .rls-vn:is(.box-grimoire, .box-twilight) .rls-vn-box.face { padding-left: 90px; }
     .rls-vn:is(.box-grimoire, .box-twilight) .rls-vn-box.face.r { padding-left: 18px; padding-right: 90px; }
-    .rls-vn.box-ribbon .rls-vn-box.face { padding-left: 84px; padding-right: 22px; } .rls-vn.box-ribbon .rls-vn-box.face.r { padding-left: 22px; padding-right: 84px; }
+    .rls-vn.box-ribbon .rls-vn-box.face { padding-left: calc(6% + 74px); padding-right: 22px; } .rls-vn.box-ribbon .rls-vn-box.face.r { padding-left: 22px; padding-right: calc(6% + 74px); }
     .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choices { bottom: calc(max(14px, env(safe-area-inset-bottom)) + 62px + 146px + 20px); }
     .rls-vn-info { top: calc(max(10px, env(safe-area-inset-top)) + 40px); }
     .rls-vn-info-row { font-size: 12px; gap: 7px; padding-right: 30px; }
@@ -1017,3 +1018,23 @@
 /* while the novel is on, the suite's corner buttons stay hidden — also while a window opened from it (Map, Diary) is on top;
    the novel's own buttons open those windows */
 body.rls-novel-on #rpg-buttons-container, body.rls-novel-on .rpg-floating-btn { visibility: hidden !important; pointer-events: none !important; }
+
+/* a portrait in the box (those without sprites, or always): in the framed looks the text keeps
+   clear of it on a wide screen too, and the portrait keeps clear of the corner scrolls */
+@media (min-width: 701px) {
+    .rls-vn:is(.box-grimoire, .box-twilight) .rls-vn-box.face .rls-vn-face { left: 40px; top: 32px; }
+    .rls-vn:is(.box-grimoire, .box-twilight) .rls-vn-box.face.r .rls-vn-face { left: auto; right: 40px; }
+    .rls-vn:is(.box-grimoire, .box-twilight) .rls-vn-box.face { padding-left: 152px; }
+    .rls-vn:is(.box-grimoire, .box-twilight) .rls-vn-box.face.r { padding-left: 44px; padding-right: 152px; }
+}
+
+/* while the reply is written or split: the field is locked, the send button turns slowly */
+.rls-vn-say.wait .rls-vn-input { opacity: .6; cursor: progress; }
+.rls-vn-say.wait .rls-vn-send { cursor: progress; }
+.rls-vn-say.wait .rls-vn-send i { animation: rls-vn-wait-spin 1.6s linear infinite; }
+.rls-vn-say.wait .rls-vn-send:disabled { opacity: .85; }
+.rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-say.wait .rls-vn-send:disabled { opacity: .85; }
+.rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-say.wait .rls-vn-send { box-shadow: 0 0 0 1.5px #161b26, 0 0 0 2.5px var(--vn-gold), 0 0 14px rgba(201, 166, 92, .45); animation: rls-vn-wait-glow 1.6s ease-in-out infinite; }
+@keyframes rls-vn-wait-spin { to { transform: rotate(360deg); } }
+@keyframes rls-vn-wait-glow { 50% { box-shadow: 0 0 0 1.5px #161b26, 0 0 0 2.5px var(--vn-gold), 0 0 4px rgba(201, 166, 92, .2); } }
+@media (prefers-reduced-motion: reduce) { .rls-vn-say.wait .rls-vn-send i, .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-say.wait .rls-vn-send { animation: none; } }
