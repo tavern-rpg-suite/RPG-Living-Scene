@@ -75,7 +75,7 @@ const I18N = {
         gen_quiet: 'The scene stayed quiet this time.',
         gen_nocast: 'Nobody is present — open 🎭 and toggle who is in the scene.',
         gen_nokey: 'Set the API key in the Living Scene settings first.',
-        set_inject_depth: 'Injection depth:',
+        set_inject_depth: 'Injection depth:', set_inchat: 'Insert in chat', set_depth_off: 'Works with "Insert in chat"',
         set_off_left: 'Left bubbles: offset from message top (px, below the thoughts):',
         set_off_right: 'Right bubbles: offset from message top (px):',
         set_parts_auto: 'Split every new reply by itself (off — only with the button)',
@@ -173,7 +173,7 @@ const I18N = {
         gen_quiet: 'Сцена в этот раз промолчала.',
         gen_nocast: 'Никого нет в сцене — открой 🎭 и включи присутствующих.',
         gen_nokey: 'Сначала укажи API-ключ в настройках Живой сцены.',
-        set_inject_depth: 'Глубина вставки:',
+        set_inject_depth: 'Глубина вставки:', set_inchat: 'Вставлять в чат', set_depth_off: 'Работает с «Вставлять в чат»',
         set_off_left: 'Облачка слева: отступ от верха сообщения (px, ниже мыслей):',
         set_off_right: 'Облачка справа: отступ от верха сообщения (px):',
         set_parts_auto: 'Разбивать каждый новый ответ сам (выкл. — только по кнопке)',
@@ -268,6 +268,7 @@ function loadSettings() {
         autoNpc: true,      // diary NPCs auto-join the scene when mentioned
         injectBarks: true,  // the main model gets to KNOW what the scene said
         injectDepth: 1,
+        inChat: false,      // off: the scene's lines go to the top of the prompt, as always; on: into the chat at the depth (a local model then re-reads only the end)
         quoteReply: true,   // replying via 💬 quotes the bubble into the chat first
         allowActions: false, // bubbles may carry a tiny *action* beat
         reactToUser: true,   // the scene may react to the PLAYER's messages too
@@ -551,7 +552,7 @@ function isPresent(name) {
     const tail = chat.slice(-10);
     const low = name.toLowerCase();
     // stem match: the full card name ("Oliver Grant") almost never appears in prose,
-    // and Russian declines names (Себастьяна/Себастьяну) — the old check missed both
+    // and Russian declines names (Мира/Миры/Мире) — the old check missed both
     const probes = probesOf(name);
     return tail.some(m => (m.name && m.name.toLowerCase() === low)
         || (m.mes && probes.some(pr => m.mes.toLowerCase().includes(pr))));
@@ -699,10 +700,10 @@ async function callAI(systemPrompt, userPrompt, timeoutMs = 0, maxTokens = 3000)
 
 /* ============================================================
    Who is actively ON STAGE in this text? In narrator-style play one
-   card writes for everyone: the message may be "from Oliver" while
-   CIEL does all the talking. Giving the talker an ambient bark looked
-   absurd — his voice is already on screen. Stem matching tolerates
-   Russian declensions (Сиэль/Сиэля/Сиэлю).
+   card writes for everyone: the message may be "from" one character while
+   ANOTHER does all the talking. Giving the talker an ambient bark looked
+   absurd — their voice is already on screen. Stem matching tolerates
+   Russian declensions (Мира/Миры/Мире).
    ============================================================ */
 // all the ways this character may be written in prose: name + user-given aliases
 // (Luna/Луна/Theo — fixes translated cards and declensions in one stroke)
@@ -774,8 +775,8 @@ function activeInText(text, name, cast) {
         const first = String(alias || '').trim().split(/\s+/)[0];
         if (!first || first.length < 2) continue;
         const nm = first.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        patterns.push(new RegExp(`${nm}${GAP}{0,28}?${Q_OPEN}`, 'iu'));            // Ciel said: "…"
-        patterns.push(new RegExp(`${Q_CLOSE}[\\s,]*[—–-]?${GAP}{0,28}?${nm}`, 'iu')); // "…" — said Ciel
+        patterns.push(new RegExp(`${nm}${GAP}{0,28}?${Q_OPEN}`, 'iu'));            // Mira said: "…"
+        patterns.push(new RegExp(`${Q_CLOSE}[\\s,]*[—–-]?${GAP}{0,28}?${nm}`, 'iu')); // "…" — said Mira
     }
     for (const re of patterns) {
         const m = String(text || '').match(re);
@@ -1061,9 +1062,11 @@ async function processMessage(messageId, force = false) {
 /* ============================================================
    MAIN-PROMPT INJECTION
    Without this, replying to a bubble confused the main model —
-   it never knew Ciel had muttered anything. The last few
+   it never knew a character had muttered anything. The last few
    messages' scene lines are handed to it as quiet context.
    ============================================================ */
+// where the scene's lines go: the top of the prompt (as always), or the chat at their depth
+function injPos() { return settings.inChat ? 1 : 2; }
 function updateInjection() {
     if (!settings.enabled || !settings.injectBarks) {
         setExtensionPrompt(PROMPT_KEY, '', 0, 0, false);
@@ -1084,7 +1087,7 @@ function updateInjection() {
     }
     if (!lines.length) { setExtensionPrompt(PROMPT_KEY, '', 0, 0, false); return; }
     const txt = `\n[Background scene moments that also happened (keep them canon; characters may be addressed about them):\n${lines.slice(-8).join('\n')}]\n`;
-    setExtensionPrompt(PROMPT_KEY, txt, 2, Math.max(0, settings.injectDepth || 0), false, extension_prompt_roles.SYSTEM);
+    setExtensionPrompt(PROMPT_KEY, txt, injPos(), Math.max(0, settings.injectDepth || 0), false, extension_prompt_roles.SYSTEM);
 }
 
 /* ============================================================
@@ -1659,7 +1662,7 @@ function soloVoiceNote(name) {
     const txt = settings.language === 'ru'
         ? `\n[Пиши только за ${name}. Не пиши реплики, мысли и действия за других персонажей сцены — они отвечают сами. Никогда не упоминай эту заметку.]\n`
         : `\n[Write only as ${name}. Do not write dialogue, thoughts or actions for the other characters present — they answer for themselves. Never mention this note.]\n`;
-    setExtensionPrompt(TURN_KEY, txt, 2, 0, false, extension_prompt_roles.SYSTEM);
+    setExtensionPrompt(TURN_KEY, txt, injPos(), 0, false, extension_prompt_roles.SYSTEM);
 }
 
 function turnLog(msg) { console.log(`[Living Scene] turn: ${msg}`); }
@@ -1696,6 +1699,24 @@ function turnKey(messageId, msg) {
     return `${getContext().chatId || ''}#${messageId}#${m.send_date || ''}#${String(m.mes || '').length}`;
 }
 
+/* A half-typed line in the box would be sent along as your message by the next generation: it is
+   taken out, and the returned function puts it back once the reply is done. What is in the box may
+   be the line you have just SENT (on a long chat SillyTavern saves before it clears the box): that is
+   not a draft, it is only cleared — put back, your own message came back. */
+function holdBox(fromUser, msg) {
+    const ta = document.getElementById('send_textarea');
+    const inBox = ta ? String(ta.value || '') : '';
+    const flat = x => String(x || '').replace(/\s+/g, ' ').trim();
+    const sentNow = fromUser && msg ? flat(msg.mes) : '';
+    const draft = inBox && !(sentNow && (flat(inBox) === sentNow || sentNow.includes(flat(inBox)))) ? inBox : '';
+    if (inBox && ta) { ta.value = ''; ta.dispatchEvent(new Event('input', { bubbles: true })); }
+    return () => {
+        if (!draft || !ta) return;
+        const now = String(ta.value || '');
+        ta.value = now ? draft + ' ' + now : draft;
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+}
 async function passTheTurn(messageId, fromUser) {
     // Deliberately NOT gated on the main Living Scene switch: that one is for the
     // thought bubbles. Handing the turn over is its own feature with its own toggle.
@@ -1752,9 +1773,15 @@ async function passTheTurn(messageId, fromUser) {
             if (fromUser && settings.passFallbackRandom) {
                 const c = getContext();
                 if (typeof c.generate === 'function') {
+                    /* Not before SillyTavern is free: on a long group chat it is still saving your
+                       message, with the line still in the box — a generation started then sent
+                       that line a second time. And whatever is in the box is kept aside, or the
+                       generation would send it as your message. */
+                    if (!(await stIdle())) { turnLog('SillyTavern stayed busy for 15s — not triggered'); return null; }
+                    const giveBack = holdBox(fromUser, msg);
                     turnLog('→ nobody addressed: SillyTavern picks a random enabled member');
                     turnChain++;
-                    c.generate('normal');
+                    Promise.resolve().then(() => c.generate('normal')).catch(e => console.warn('[Living Scene] turn: generate failed', e)).then(giveBack);
                 }
             }
             return null;
@@ -1791,16 +1818,7 @@ async function passTheTurn(messageId, fromUser) {
         let started = false;
         const onStart = () => { started = true; };
         if (hasStartEvt) eventSource.on(event_types.GROUP_WRAPPER_STARTED, onStart);
-        // a half-typed line in the box would be sent along as your message; keep it aside
-        const ta = document.getElementById('send_textarea');
-        const draft = ta ? String(ta.value || '') : '';
-        if (draft && ta) { ta.value = ''; ta.dispatchEvent(new Event('input', { bubbles: true })); }
-        const giveDraftBack = () => {
-            if (!draft || !ta) return;
-            const now = String(ta.value || '');
-            ta.value = now ? draft + ' ' + now : draft;
-            ta.dispatchEvent(new Event('input', { bubbles: true }));
-        };
+        const giveDraftBack = holdBox(fromUser, msg);
         let run = null;
         try {
             for (let attempt = 1; attempt <= 4 && !started; attempt++) {
@@ -2138,7 +2156,8 @@ function settingsHtml() {
                 <label class="checkbox_label"><input type="checkbox" id="rls-actions"> ${t('set_actions')}</label>
                 <label class="checkbox_label"><input type="checkbox" id="rls-quote"> ${t('set_quote_reply')}</label>
                 <label class="checkbox_label"><input type="checkbox" id="rls-inject"> ${t('set_inject')}</label>
-                <div class="rls-in">${num(t('set_inject_depth'), 'rls-inject-depth', 'min="0" max="20"')}</div>
+                <div class="rls-in">${num(t('set_inject_depth'), 'rls-inject-depth', 'min="0" max="20"')}
+                    <label class="checkbox_label"><input type="checkbox" id="rls-inchat"> ${t('set_inchat')}</label></div>
                 ${num(t('set_off_left'), 'rls-off-left', 'min="0" max="800"')}
                 ${num(t('set_off_right'), 'rls-off-right', 'min="0" max="800"')}`)}
             ${sub(`🎬 ${t('set_turn')}`, `
@@ -2260,6 +2279,10 @@ function setupUI() {
     });
     $('#rls-inject').prop('checked', settings.injectBarks).on('change', function () { settings.injectBarks = this.checked; saveSettings(); updateInjection(); });
     $('#rls-inject-depth').val(settings.injectDepth).on('change', function () { settings.injectDepth = Math.max(0, parseInt($(this).val()) || 0); $(this).val(settings.injectDepth); saveSettings(); updateInjection(); });
+    // the depth only means something in the chat: at the top of the prompt SillyTavern ignores it
+    const depthLock = () => $('#rls-inject-depth').css('opacity', settings.inChat ? '' : '0.55').attr('title', settings.inChat ? '' : t('set_depth_off'));
+    $('#rls-inchat').prop('checked', !!settings.inChat).on('change', function () { settings.inChat = this.checked; saveSettings(); depthLock(); updateInjection(); });
+    depthLock();
     $('#rls-quote').prop('checked', settings.quoteReply).on('change', function () { settings.quoteReply = this.checked; saveSettings(); });
     $('#rls-actions').prop('checked', settings.allowActions).on('change', function () { settings.allowActions = this.checked; saveSettings(); });
     $('#rls-autonpc').prop('checked', settings.autoNpc).on('change', function () { settings.autoNpc = this.checked; saveSettings(); });
