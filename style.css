@@ -19,7 +19,9 @@
 /* fixed overlay layer: bubbles float over the page, glued to their messages */
 #rls-layer {
     position: fixed;
-    inset: 0;
+    /* the size outright: on a phone the tavern transforms <html>, and inset: 0 gave a box 0px tall
+       (the chat-height clip below would then hide every bubble) */
+    top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh;
     pointer-events: none;
     z-index: 2500;   /* above chat, safely below the suite's buttons and modals */
 }
@@ -112,7 +114,9 @@
 }
 
 .rls-acts { display: flex; gap: 9px; opacity: 0; transition: opacity 0.15s; flex-shrink: 0; }
-.rls-chip:hover .rls-acts { opacity: 0.9; }
+.rls-chip:hover .rls-acts, .rls-chip:focus-within .rls-acts { opacity: 0.9; }
+@media (hover: none) { .rls-acts { opacity: 0.8; } }   /* a touch screen has no hover: the buttons stay in sight */
+.rls-acts i:focus-visible, .rls-ask-send:focus-visible { outline: 2px solid #cdbcff; outline-offset: 2px; border-radius: 3px; }
 .rls-acts i { cursor: pointer; font-size: 0.78rem; color: #cdbcff; }
 .rls-reply:hover { color: #7bd88f; transform: scale(1.15); }
 .rls-del:hover { color: #ff6b6b; transform: scale(1.15); }
@@ -163,7 +167,14 @@
 #rls-roster::-webkit-scrollbar { width: 6px; }
 #rls-roster::-webkit-scrollbar-thumb { background: rgba(170, 140, 255, 0.35); border-radius: 3px; }
 
-.rls-roster-title { font-weight: 700; font-size: 0.95rem; color: #cdbcff; margin-bottom: 4px; }
+.rls-roster-title { font-weight: 700; font-size: 0.95rem; color: #cdbcff; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+.rls-roster-close { margin-left: auto; width: 28px; height: 28px; flex: none; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%;
+    background: transparent; border: 1px solid rgba(170, 140, 255, .3); color: #cdbcff; cursor: pointer; transition: background 80ms ease-out, color 80ms ease-out; }
+.rls-roster-close:hover, .rls-roster-close:focus-visible { background: rgba(170, 140, 255, .2); color: #fff; outline: none; }
+/* a phone: below the tavern's top bar by explicit sizes (the tavern transforms <html>, so bottom: on a fixed box lands off screen) */
+@media (max-width: 700px) {
+    #rls-roster { top: calc(var(--topBarBlockSize, 36px) + 10px); bottom: auto; right: 8px; width: calc(100vw - 16px); max-height: calc(100dvh - var(--topBarBlockSize, 36px) - 96px); }
+}
 .rls-roster-hint { font-size: 0.74rem; opacity: 0.65; margin-bottom: 10px; line-height: 1.35; }
 .rls-roster-sec {
     font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1px;
@@ -199,6 +210,10 @@
    just keep them a bit slimmer */
 @media (max-width: 700px) {
     .rls-chip { max-width: 210px; }
+    /* on a phone a bubble floats over the message text itself: a denser glass keeps both readable */
+    .rls-chip:not(.collapsed) { background: linear-gradient(135deg, rgba(70, 52, 120, 0.9), rgba(32, 22, 64, 0.94)); }
+    .rls-chip.think:not(.collapsed) { background: linear-gradient(135deg, rgba(48, 82, 128, 0.9), rgba(22, 38, 70, 0.94)); }
+    .rls-chip.whisper:not(.collapsed) { background: linear-gradient(135deg, rgba(70, 68, 92, 0.9), rgba(36, 34, 52, 0.94)); }
 }
 
 /* the 🎭 roster button: full style of its own (the shared class is unstyled) */
@@ -460,7 +475,7 @@
 .rls-vn-text.say { color: #fff6e6; }
 .rls-vn-text q { color: var(--SmartThemeQuoteColor, #fff6e6); }
 .rls-vn-text em, .rls-vn-text i { color: var(--SmartThemeEmColor, rgba(244, 236, 220, .75)); }
-.rls-vn-foot { position: absolute; right: 16px; bottom: 9px; display: flex; gap: 10px; align-items: center; font-size: 12px; color: rgba(244, 236, 220, .5); }
+.rls-vn-foot { position: absolute; right: 16px; bottom: 9px; display: flex; gap: 10px; align-items: center; font-size: 12px; color: rgba(244, 236, 220, .78); }
 .rls-vn-next { color: #f3d48a; animation: rls-vn-bob 1.2s ease-in-out infinite; }
 @keyframes rls-vn-bob { 50% { transform: translateY(3px); } }
 .rls-vn-hint { position: absolute; left: 16px; top: max(16px, env(safe-area-inset-top)); font-size: 11px; letter-spacing: .06em; color: rgba(244, 236, 220, .45); pointer-events: none; }
@@ -487,7 +502,7 @@
     .rls-vn, .rls-vn.out, .rls-vn-actor.in, .rls-vn-actor.hop, .rls-vn-actor.sink, .rls-vn-actor.talk, .rls-vn-actor img, .rls-vn-actor img.swap, .rls-vn-text.in, .rls-vn-next { animation: none; }
     .rls-vn-actor { transition: none; }
 }
-.rls-vn-text .rls-pp.act { font-style: italic; color: rgba(244, 236, 220, .68); font-size: .9em; }
+.rls-vn-text .rls-pp.act { font-style: italic; color: rgba(244, 236, 220, .68); font-size: .9em; opacity: 1; }   /* the box sets the colour of an action; the chat's .66 dimming on top made it unreadable */
 .rls-vn-text .rls-pp.say { color: #fff6e6; }
 /* the quote marks are in the text already, as in the message itself */
 .rls-vn q::before, .rls-vn q::after { content: ''; }
@@ -567,7 +582,8 @@
 @media (max-width: 700px) {
     .rls-vn.novel .rls-vn-top { gap: 4px; right: 8px; }
     .rls-vn.novel .rls-vn-top button { min-width: 30px; padding: 5px 7px; font-size: 11px; }
-    .rls-vn.novel .rls-vn-logbtn { display: none; }
+    .rls-vn.novel .rls-vn-logbtn span { display: none; }
+    .rls-vn.novel .rls-vn-logbtn i { display: inline-block; }
     .rls-vn-where { top: calc(max(14px, env(safe-area-inset-top)) + 40px); max-width: 80%; }
     .rls-vn-choices { width: calc(100% - 24px); bottom: calc(max(14px, env(safe-area-inset-bottom)) + 62px + 146px); }
     .rls-vn.explore .rls-vn-choices { top: 42%; }
@@ -659,7 +675,9 @@
 .rls-vn-hud:empty { display: none; }
 .rls-vn-top button.rls-vn-hudbtn { display: inline-flex; align-items: center; gap: 6px; }
 .rls-vn-hudbtn i { font-size: 13px; }
-@media (max-width: 760px) { .rls-vn-hudbtn span { display: none; } .rls-vn-place span { max-width: 56vw; } }
+@media (max-width: 760px) { .rls-vn-place span { max-width: 56vw; } }
+/* seven windows of the suite: their words fit beside the novel's own buttons only on a wide screen */
+@media (max-width: 1080px) { .rls-vn-hudbtn span { display: none; } }
 
 /* the speaker's portrait inside the box */
 .rls-vn-face { display: none; }
@@ -697,13 +715,13 @@
 .rls-vn.box-parchment .rls-vn-orn::after { content: '❦'; position: absolute; left: 50%; bottom: -3px; transform: translateX(-50%); font-size: 13px; color: rgba(138, 44, 35, .7); line-height: 1; text-shadow: 0 0 6px rgba(250, 243, 223, .9); }
 .rls-vn.box-parchment .rls-vn-plate { top: -15px; padding: 5px 20px 6px; border-radius: 3px; font-family: 'RLS Alegreya', Georgia, serif; font-weight: 800; font-size: 16px; letter-spacing: .04em; color: #fbe9c5;
     background: linear-gradient(180deg, #a8352a, #6f1d16); box-shadow: 0 0 0 1px rgba(243, 212, 138, .6), 0 4px 10px rgba(0, 0, 0, .35); }
-.rls-vn.box-parchment.narr .rls-vn-plate { background: linear-gradient(180deg, #8f8574, #6b6252); }
+.rls-vn.box-parchment.narr .rls-vn-plate { background: linear-gradient(180deg, #6f6555, #4f473a); }
 .rls-vn.box-parchment.mine .rls-vn-plate { background: linear-gradient(180deg, #5a3d22, #3e2913); }
 .rls-vn.box-parchment .rls-vn-text.say, .rls-vn.box-parchment .rls-vn-text .rls-pp.say { color: #2b2014; }
-.rls-vn.box-parchment .rls-vn-text.act, .rls-vn.box-parchment .rls-vn-text.narr, .rls-vn.box-parchment .rls-vn-text .rls-pp.act { color: rgba(60, 44, 24, .78); }
-.rls-vn.box-parchment .rls-vn-text q { color: #7a2a20; }
-.rls-vn.box-parchment .rls-vn-text em, .rls-vn.box-parchment .rls-vn-text i { color: rgba(60, 44, 24, .78); }
-.rls-vn.box-parchment .rls-vn-foot { color: rgba(90, 69, 40, .6); }
+.rls-vn.box-parchment .rls-vn-text.act, .rls-vn.box-parchment .rls-vn-text.narr, .rls-vn.box-parchment .rls-vn-text .rls-pp.act { color: #45331d; }   /* solid: the paper is see-through, over a dark room .78 fell to 2.4:1 */
+.rls-vn.box-parchment .rls-vn-text q { color: #6a1f17; }
+.rls-vn.box-parchment .rls-vn-text em, .rls-vn.box-parchment .rls-vn-text i { color: #45331d; }
+.rls-vn.box-parchment .rls-vn-foot { color: #35260f; }
 .rls-vn.box-parchment .rls-vn-next { color: #8a2c23; }
 .rls-vn.box-parchment .rls-vn-box.face .rls-vn-face { box-shadow: 0 0 0 1px rgba(122, 92, 48, .6), 0 0 0 4px rgba(250, 243, 223, .9), 0 0 0 5px rgba(184, 144, 47, .6), 0 6px 14px rgba(43, 32, 20, .35); }
 .rls-vn.box-parchment .rls-vn-text::-webkit-scrollbar { width: 6px; }
@@ -783,7 +801,7 @@
 .rls-vn.box-grimoire .rls-vn-text, .rls-vn.box-grimoire .rls-vn-text.say, .rls-vn.box-grimoire .rls-vn-text .rls-pp.say { color: var(--vn-ink); }
 .rls-vn.box-grimoire .rls-vn-text.act, .rls-vn.box-grimoire .rls-vn-text.narr, .rls-vn.box-grimoire .rls-vn-text i, .rls-vn.box-grimoire .rls-vn-text em, .rls-vn.box-grimoire .rls-vn-text .rls-pp.act { color: rgba(60, 48, 36, .78); }
 .rls-vn.box-grimoire .rls-vn-text q { color: var(--vn-blood); }
-.rls-vn.box-grimoire .rls-vn-foot { color: rgba(60, 48, 36, .55); }
+.rls-vn.box-grimoire .rls-vn-foot { color: #5c4c3c; }
 .rls-vn.box-grimoire .rls-vn-next, .rls-vn.box-grimoire .rls-vn-box.waiting .rls-vn-text::after { color: var(--vn-blood); }
 .rls-vn.box-grimoire.narr .rls-vn-plate { background: linear-gradient(180deg, #6d6457, #4b443a); }
 .rls-vn.box-grimoire.mine .rls-vn-plate { background: linear-gradient(180deg, #5b2f2f, #3a1d1f); }
@@ -807,7 +825,7 @@
 .rls-vn.box-ribbon .rls-vn-text q { color: #f0c9a2; }
 .rls-vn.box-ribbon .rls-vn-scroll { display: block; position: absolute; left: 2.5%; right: 2.5%; top: 8px; bottom: 8px; pointer-events: none; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 100' width='24' height='100' preserveAspectRatio='none'%3E%3Cg fill='none' stroke='rgba(243,234,217,.55)' stroke-linecap='round'%3E%0A%3Cpath d='M14 14 V86' stroke-width='1.2'/%3E%3Cpath d='M14 14 C 14 6, 6 3, 4 8 C 2 13, 9 15, 10 10' stroke-width='1.3'/%3E%3Cpath d='M14 86 C 14 94, 6 97, 4 92 C 2 87, 9 85, 10 90' stroke-width='1.3'/%3E%0A%3Cpath d='M14 40 C 18 44, 18 56, 14 60' stroke-width='1'/%3E%3C/g%3E%3Cg fill='rgba(243,234,217,.55)'%3E%3Cpath d='M14 47 l3 3 l-3 3 l-3 -3 z'/%3E%3C/g%3E%3C/svg%3E") left center / 24px 100% no-repeat, url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 100' width='24' height='100' preserveAspectRatio='none'%3E%3Cg transform='translate(24 0) scale(-1 1)'%3E%3Cg fill='none' stroke='rgba(243,234,217,.55)' stroke-linecap='round'%3E%0A%3Cpath d='M14 14 V86' stroke-width='1.2'/%3E%3Cpath d='M14 14 C 14 6, 6 3, 4 8 C 2 13, 9 15, 10 10' stroke-width='1.3'/%3E%3Cpath d='M14 86 C 14 94, 6 97, 4 92 C 2 87, 9 85, 10 90' stroke-width='1.3'/%3E%0A%3Cpath d='M14 40 C 18 44, 18 56, 14 60' stroke-width='1'/%3E%3C/g%3E%3Cg fill='rgba(243,234,217,.55)'%3E%3Cpath d='M14 47 l3 3 l-3 3 l-3 -3 z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E") right center / 24px 100% no-repeat; }
 .rls-vn.box-ribbon .rls-vn-marks { color: #e07c80; bottom: 12px; }
-.rls-vn.box-ribbon .rls-vn-foot { color: rgba(243, 234, 217, .5); right: 5%; }
+.rls-vn.box-ribbon .rls-vn-foot { color: rgba(243, 234, 217, .8); right: 5%; }
 .rls-vn.box-ribbon .rls-vn-box.face.r .rls-vn-foot { left: 5%; }
 .rls-vn.box-ribbon .rls-vn-box.face { padding-left: max(60px, 12vw, calc(6% + 116px)); padding-right: max(60px, 12vw); }
 .rls-vn.box-ribbon .rls-vn-box.face.r { padding-left: max(60px, 12vw); padding-right: max(60px, 12vw, calc(6% + 116px)); }   /* the text keeps clear of the portrait (it ran under it on narrower screens) */
@@ -834,7 +852,7 @@
 .rls-vn.box-twilight .rls-vn-text q { color: #f0c9a2; }
 .rls-vn.box-twilight .rls-vn-marks { color: #e07c80; }
 .rls-vn.box-twilight .rls-vn-marks svg:first-child, .rls-vn.box-twilight .rls-vn-marks svg:last-child { color: #b9585d; }
-.rls-vn.box-twilight .rls-vn-foot { color: rgba(243, 234, 217, .5); }
+.rls-vn.box-twilight .rls-vn-foot { color: rgba(243, 234, 217, .8); }
 .rls-vn.box-twilight .rls-vn-next { color: var(--vn-gold); }
 
 /* the choices in these looks: parchment plates with cut corners, grain, a flower — raised clear of the vines */
@@ -1041,3 +1059,29 @@ body.rls-novel-on #rpg-buttons-container, body.rls-novel-on .rpg-floating-btn { 
 /* RPG Map's own notes and windows that come up during play (the scene's new place, an encounter,
    a locked door, an overheard word) stand over the novel, the way they stand over the chat */
 body.rls-novel-on :is(#rpg-scene-sync, #rpg-encounter-modal, #rpg-unlock-modal, #rpg-oh) { z-index: 10070 !important; }
+
+.rls-vn-logbtn i { display: none; }
+
+/* ---- the novel: "Received" — the same gilt-and-ink plate as the place, on the right ---- */
+.rls-vn-got { position: absolute; right: 16px; top: max(62px, calc(env(safe-area-inset-top) + 50px)); z-index: 4; display: flex; align-items: stretch; max-width: min(70vw, 460px);
+    pointer-events: none; font-size: 13px; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .5)); opacity: 0; transform: translateY(-8px); visibility: hidden;
+    transition: opacity 150ms ease-in, transform 150ms ease-in, visibility 0s linear 150ms; }
+.rls-vn-got.on { opacity: 1; transform: none; visibility: visible; transition: opacity 300ms cubic-bezier(.2, 1, .3, 1), transform 300ms cubic-bezier(.2, 1, .3, 1), visibility 0s; }
+.rls-vn-got:empty { display: none; }
+.rls-vn-got em { font-style: normal; font-family: 'RLS Alegreya', Georgia, serif; font-weight: 800; letter-spacing: .08em; padding: 4px 10px 4px 11px; color: #1a1210;
+    background: linear-gradient(180deg, #f3d48a, #c9a24d); white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+.rls-vn-got em i { font-size: 11px; }
+.rls-vn-got > span { padding: 4px 14px 4px 10px; color: #f4ecdc; background: linear-gradient(90deg, rgba(20, 12, 10, .86), rgba(20, 12, 10, .62)); min-width: 0; display: flex; align-items: center; }
+.rls-got-t { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow-wrap: anywhere; line-height: 1.35; }   /* two lines at most: a long loot list still reads */
+.rls-vn.under .rls-vn-got { display: none; }
+@media (max-width: 760px) { .rls-vn-got { right: 10px; top: max(56px, calc(env(safe-area-inset-top) + 46px)); max-width: calc(100vw - 20px); } }
+@media (prefers-reduced-motion: reduce) { .rls-vn-got, .rls-vn-got.on { transform: none; transition: opacity 120ms linear, visibility 0s; } }
+
+/* ---- the novel: a reply being split by roles while you read (instead of the counter) ---- */
+.rls-vn-box.splitting .rls-vn-count::before { content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 6px; vertical-align: -1px; border-radius: 50%;
+    border: 1.5px solid currentColor; border-right-color: transparent; animation: rls-spin .9s linear infinite; }
+@keyframes rls-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .rls-vn-box.splitting .rls-vn-count::before { animation: none; border-right-color: currentColor; opacity: .6; } }
+
+/* ---- the novel's log: "Earlier" row ---- */
+.rls-vn-logrow.rls-vn-earlier { justify-content: center; gap: 8px; font-weight: 700; letter-spacing: .06em; opacity: .9; }

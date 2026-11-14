@@ -63,7 +63,7 @@ const I18N = {
         meta_note_ph: 'Character note for the AI (voice, attitude)…',
         meta_save: 'Save',
         set_auto: 'Auto-presence: characters mentioned recently are "in the scene"',
-        roster_title: 'Who is in the scene?',
+        roster_title: 'Who is in the scene?', roster_close: 'Close',
         roster_hint: 'Present characters may quietly react to what happens. Toggle who is actually in the room.',
         roster_npc_ph: 'NPC name (no card needed)…',
         roster_npc_add: 'Add NPC',
@@ -93,7 +93,8 @@ const I18N = {
         set_novel_sprite: 'The characters:', sprite_large: 'full height', sprite_medium: 'smaller', sprite_waist: 'from the waist up, closer',
         set_novel_face: 'The speaker\'s portrait in the box:', face_always: 'always', face_nosprite: 'only for those without sprites', face_never: 'never',
         set_novel_hud: 'Buttons over the novel: Map, Diary, Life (those installed)', set_novel_place: 'The place\'s name; a new place comes in with a passage',
-        hud_map: 'Map', hud_diary: 'Diary', hud_life: 'Life', novel_place: 'Place', info_day_n: 'Day {n}',
+        hud_map: 'Map', hud_diary: 'Diary', hud_life: 'Life', hud_pack: 'Backpack', hud_gear: 'Gear', hud_shop: 'Vendors', hud_vitals: 'Vitals',
+        got_title: 'Received', got_coins: '+{n} coins', novel_earlier: 'Earlier lines', novel_splitting: 'Sorting out who speaks…', novel_place: 'Place', info_day_n: 'Day {n}',
         set_sec_novel: 'Novel', set_novel_btn: 'A ▶ button on each reply opens it in the novel', set_novel_open: 'Open the novel now', novel_btn: 'Play in the novel',
         set_pass_toast: 'Say in a notice who gets the turn',
         set_mappres: 'Presence from RPG Map ("Who is where")',
@@ -134,7 +135,7 @@ const I18N = {
         set_pass_continue: 'Ни к кому новому не обратилась → отвечает тот, с кем говорю',
         set_pass_random: 'Всё равно никто → отвечает случайный из включённых (приглушённые никогда)',
         turn_picked: 'Ход переходит к {name}',
-        turn_needs_manual: 'Living Scene: группа отвечает сама, поэтому ход передать нельзя. Нажми кнопку в настройках — она переключит на ручной режим.',
+        turn_needs_manual: 'Живая сцена: группа отвечает сама, поэтому ход передать нельзя. Нажми кнопку в настройках — она переключит на ручной режим.',
         turn_btn_manual: 'Переключить эту группу на ручной ответ',
         turn_btn_hint: 'Записывает настройку самой группы «Персонажи отвечают…» в значение «Когда вы скажете». В некоторых темах этот список спрятан — здесь то же самое поле.',
         turn_set_manual: 'Теперь группа отвечает только когда ты скажешь.',
@@ -161,7 +162,7 @@ const I18N = {
         meta_note_ph: 'Заметка-характер для ИИ (голос, отношение)…',
         meta_save: 'Сохранить',
         set_auto: 'Авто-присутствие: недавно упомянутые считаются «в сцене»',
-        roster_title: 'Кто сейчас в сцене?',
+        roster_title: 'Кто сейчас в сцене?', roster_close: 'Закрыть',
         roster_hint: 'Присутствующие могут тихо реагировать на происходящее. Отметь, кто реально в комнате.',
         roster_npc_ph: 'Имя NPC (карточка не нужна)…',
         roster_npc_add: 'Добавить NPC',
@@ -191,7 +192,8 @@ const I18N = {
         set_novel_sprite: 'Персонажи:', sprite_large: 'в полный рост', sprite_medium: 'поменьше', sprite_waist: 'по пояс, ближе',
         set_novel_face: 'Портрет говорящего в окне:', face_always: 'всегда', face_nosprite: 'только у кого нет спрайтов', face_never: 'никогда',
         set_novel_hud: 'Кнопки поверх новеллы: Карта, Дневник, Жизнь (что установлено)', set_novel_place: 'Название места; новое место — с переходом',
-        hud_map: 'Карта', hud_diary: 'Дневник', hud_life: 'Жизнь', novel_place: 'Место', info_day_n: 'День {n}',
+        hud_map: 'Карта', hud_diary: 'Дневник', hud_life: 'Жизнь', hud_pack: 'Рюкзак', hud_gear: 'Экипировка', hud_shop: 'Вендоры', hud_vitals: 'Состояние',
+        got_title: 'Получено', got_coins: '+{n} {coins}', novel_earlier: 'Раньше', novel_splitting: 'Разбираю, кто говорит…', novel_place: 'Место', info_day_n: 'День {n}',
         set_sec_novel: 'Новелла', set_novel_btn: 'Кнопка ▶ на каждом ответе открывает его в новелле', set_novel_open: 'Открыть новеллу сейчас', novel_btn: 'Играть в новелле',
         set_pass_toast: 'Сообщать уведомлением, к кому перешёл ход',
         set_mappres: 'Присутствие по карте («Кто где»)',
@@ -229,6 +231,70 @@ function genLang() { return settings.language === 'ru' ? 'Russian' : 'English'; 
 // Names/barks come from the AI and downloaded cards — never raw in HTML.
 function escapeHtml(x) {
     return String(x ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+/* What small local models get wrong in a JSON answer, put right before it is read:
+   quotes inside a text, line breaks inside a text, // comments, a missing comma.
+   Only the punctuation is touched, never the words. (The same helper as in Status Bar and Vendors.) */
+function repairModelJson(src) {
+    const t0 = String(src || '');
+    let out = '', inS = false, q = '"', isKey = false, k = 0;
+    const stack = [];   // the open { and [ around
+    const nextSolid = j => { while (j < t0.length && /\s/.test(t0[j])) j++; return j; };
+    for (; k < t0.length; k++) {
+        const c = t0[k];
+        if (inS) {
+            if (c === '\\') { if (t0[k + 1] === "'") out += "'"; else out += c + (t0[k + 1] ?? ''); k++; continue; }
+            if (c === '"' && q === "'") { out += '\\"'; continue; }                 // 'say "no"' -> "say \"no\""
+            if (isKey && (c === ':' || c === '\n')) { inS = false; out += '"' + (c === ':' ? ':' : '\n'); continue; }   // "fatigue: 5  -> "fatigue": 5
+            if (c === q) {
+                const j = nextSolid(k + 1), d = t0[j];
+                // a real closing quote is followed by , : } ] or the end; a quote then a new line then "..." is a missing comma
+                const after = d === ',' || d === ':' ? t0[nextSolid(j + 1)] : '';
+                const ends = j >= t0.length || '}]'.includes(d)
+                    || (d === ',' && (after === undefined || '"\'{[}]/'.includes(after)))           // "...", "next"  — not  "a "ghost", it walks"
+                    || (d === ':' && (after === undefined || /["'{\[\d\-tfn]/.test(after)))
+                    || (d === '"' && /[\r\n]/.test(t0.slice(k + 1, j)));
+                if (ends) { inS = false; out += '"'; }
+                else out += q === '"' ? '\\"' : "'";
+                continue;
+            }
+            if (c === '\n') { out += '\\n'; continue; }
+            if (c === '\r') continue;
+            if (c === '\t') { out += ' '; continue; }
+            out += c; continue;
+        }
+        if (c === '/' && t0[k + 1] === '/') { while (k < t0.length && t0[k] !== '\n') k++; out += '\n'; continue; }
+        if (c === '/' && t0[k + 1] === '*') { const e = t0.indexOf('*/', k + 2); k = e < 0 ? t0.length : e + 1; continue; }
+        if (c === '"' || c === "'") {
+            // "a" "b", } {, ] [, 5 "b" with no comma between them
+            const prev = out.replace(/\s+$/, '').slice(-1);
+            // a name in an object (not a value, not an item of a list): "fatigue: 5 lost its closing quote
+            q = c; isKey = stack[stack.length - 1] === '{' && prev !== ':';
+            if (prev && /["}\]\w]/.test(prev) && /\s$/.test(out)) out = out.replace(/\s+$/, '') + ',' + out.match(/\s+$/)[0];   // after a text, an object, a list, a number or true/false/null
+            inS = true; out += '"'; continue;
+        }
+        if (c === '}' || c === ']') stack.pop();
+        if (c === '{' || c === '[') {
+            stack.push(c);
+            const prev = out.replace(/\s+$/, '').slice(-1);
+            if (prev && '"}]'.includes(prev)) out = out.replace(/\s+$/, '') + ',' + (out.match(/\s+$/) || [''])[0];
+        }
+        out += c;
+    }
+    return out;
+}
+// the answer of a model: the text, or (a thinking model) its reasoning, or (a completion server) "text"
+function modelAnswerText(data) {
+    const c0 = (data && data.choices && data.choices[0]) || {};
+    const m = c0.message || {};
+    return String(m.content || c0.text || m.reasoning_content || m.reasoning || '').trim();
+}
+
+// a picture address from another extension or a card: only the kinds a picture can be
+function safeImg(u) {
+    const x = String(u || '').trim();
+    if (!x || /^\s*(javascript|vbscript|data:(?!image\/(png|jpe?g|gif|webp|avif|bmp)))/i.test(x)) return '';
+    return /^(data:image\/|blob:|https?:\/\/|\/|[\w%.-][\w%. ()'-]*\/)/i.test(x) ? x : '';
 }
 // tiny safe markdown for bubble text: escape first, then *italic* / **bold**
 function miniMd(x) {
@@ -687,11 +753,14 @@ async function callAI(systemPrompt, userPrompt, timeoutMs = 0, maxTokens = 3000)
     apiCallCount++;
     $('#rls-calls-n').text(apiCallCount);
     const data = await response.json();
-    const content = (data.choices?.[0]?.message?.content || '').trim();
+    // a thinking model may answer in its reasoning field, or put its thinking before the JSON
+    const content = modelAnswerText(data).replace(THINK_RE, ' ').trim();
     // the shape is not trusted: JSON inside text, JSON inside a string (sometimes twice)
-    const m = content.match(/\{[\s\S]*\}/);
+    const m = content.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').match(/\{[\s\S]*\}/);
     let v = m ? m[0] : content;
     for (let i = 0; i < 3 && typeof v === 'string'; i++) { try { v = JSON.parse(v.trim()); } catch (e) { break; } }
+    // the punctuation of a local model: a trailing comma, curly quotes, then the full repair
+    if (typeof v === 'string' && m) { try { v = JSON.parse(m[0].replace(/,\s*([}\]])/g, '$1').replace(/[“”]/g, '"')); } catch (e) { try { v = JSON.parse(repairModelJson(m[0]).replace(/,\s*([}\]])/g, '$1')); } catch (e2) { /* not JSON at all */ } } }
     if (!v || typeof v !== 'object') { console.warn('[Living Scene] side model: not JSON —', content.slice(0, 600)); const err = new Error('not json'); err.raw = content; throw err; }
     Object.defineProperty(v, '__raw', { value: content, enumerable: false });
     return v;
@@ -847,6 +916,9 @@ async function cardBrief(ch, text) {
             const v = res && typeof res === 'object' ? (res.brief || res.text || res.summary) : res;
             if (typeof v !== 'string' || isJunk(v)) { console.warn('[Living Scene] brief: no text in the answer —', String(res && res.__raw || '').slice(0, 600)); return ''; }
             settings.briefs[key] = { text: v.trim(), stamp: textHash(text), name: ch.name, date: new Date().toISOString() };
+            // a store that only grows: the 80 most recent cards are kept, the oldest go (they are made again when needed)
+            const keys = Object.keys(settings.briefs);
+            if (keys.length > 80) keys.sort((a, b) => String(settings.briefs[a].date || '').localeCompare(String(settings.briefs[b].date || ''))).slice(0, keys.length - 80).forEach(k => delete settings.briefs[k]);
             saveSettings();
             return v.trim();
         } catch (e) { console.warn('[Living Scene] brief failed', e); return ''; }
@@ -1102,7 +1174,7 @@ function avatarHtml(name) {
     const ch = characters.find(c => c.name === name);
     if (ch && ch.avatar) return `<img class="rls-ava" src="/characters/${escapeHtml(ch.avatar)}" draggable="false">`;
     // no card of that name: the same faces as the role blocks — the diary's portraits, Phone's people, the persona
-    try { const f = partFace(name); if (f.pic) return `<img class="rls-ava" src="${escapeHtml(f.pic)}" draggable="false" alt="">`; } catch (e) { /* initials below */ }
+    try { const f = partFace(name); if (f.pic) return `<img class="rls-ava" src="${escapeHtml(f.pic)}" draggable="false" alt="">`; } catch (e) { /* initials below (partFace gives only a safe picture) */ }
     const initials = escapeHtml(String(name).trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase());
     let hue = 0; for (const c of name) hue = (hue * 31 + c.charCodeAt(0)) % 360;
     return `<span class="rls-ava rls-ava-npc" style="background:hsl(${hue},45%,38%)">${initials}</span>`;
@@ -1161,6 +1233,15 @@ function syncBubbles() {
     // group bubbles per message and stack them by their REAL heights: the old fixed
     // steps (84/52px) made tall two-line bubbles overlap the next one in the column
     const byMsg = new Map();
+    // the bubbles float only over the chat's own height: never over the top bar or the message box
+    let chatBottom = 0;
+    if (rlsLayer) {
+        const ch = document.getElementById('chat');
+        const cr = ch ? ch.getBoundingClientRect() : null;
+        if (cr && cr.height > 0) chatBottom = cr.bottom;
+        const clip = cr && cr.height > 0 ? `inset(${Math.max(0, Math.round(cr.top))}px 0 ${Math.max(0, Math.round(window.innerHeight - cr.bottom))}px 0)` : '';
+        if (rlsLayer.style.clipPath !== clip) rlsLayer.style.clipPath = clip;
+    }
     for (const [key, d] of rlsBubbles.entries()) {
         if (!document.body.contains(d.messageElement)) { d.bubble.remove(); rlsBubbles.delete(key); continue; }
         const mid = key.split('::')[0];
@@ -1173,6 +1254,7 @@ function syncBubbles() {
         let yL = rect.top + Math.max(0, settings.offsetLeft);
         let yR = rect.top + Math.max(0, settings.offsetRight);
         list.sort((a, b) => ((a.stir ? 1 : 0) - (b.stir ? 1 : 0)) || (a.idx - b.idx));
+        const placed = { left: [], right: [] };
         for (const d of list) {
             const b = d.bubble;
             b.style.opacity = off ? '0' : '1';
@@ -1182,8 +1264,17 @@ function syncBubbles() {
             placeX(d, rect);
             const h = b.offsetHeight || 40;
             const gap = b.classList.contains('whisper') ? 6 : 10;
-            if (d.side === 'left') { b.style.top = Math.round(yL) + 'px'; yL += h + gap; }
-            else { b.style.top = Math.round(yR) + 'px'; yR += h + gap; }
+            if (d.side === 'left') { placed.left.push([b, yL]); yL += h + gap; }
+            else { placed.right.push([b, yR]); yR += h + gap; }
+        }
+        /* a column that would run past the bottom of the chat (the newest message on a phone, where the
+           offset below its top is taller than what is left of the screen) slides up to stay in sight,
+           never above the top of its own message */
+        for (const [side, end] of [['left', yL], ['right', yR]]) {
+            const col = placed[side];
+            if (!col.length) continue;
+            const over = chatBottom > 0 ? Math.min(end - 10 - (chatBottom - 6), col[0][1] - rect.top) : 0;
+            col.forEach(([b, y]) => { b.style.top = Math.round(y - Math.max(0, over)) + 'px'; });
         }
     }
 }
@@ -1232,16 +1323,16 @@ function renderBarks(messageId, startCollapsed = false) {
                     ${avatarHtml(b.name)}
                     <span class="rls-name">${escapeHtml(b.name)}${think ? ' 💭' : ''}${whisper ? ' 🗨' : ''}</span>
                     <span class="rls-acts">
-                        <i class="fa-solid fa-comment rls-reply" title="${escapeHtml(t('bark_reply_title', { name: b.name }))}"></i>
-                        <i class="fa-solid fa-rotate rls-regen" title="${escapeHtml(t('bark_regen_title'))}"></i>
-                        <i class="fa-solid fa-xmark rls-del" title="${escapeHtml(t('bark_del_title'))}"></i>
+                        <i class="fa-solid fa-comment rls-reply" role="button" tabindex="0" title="${escapeHtml(t('bark_reply_title', { name: b.name }))}" aria-label="${escapeHtml(t('bark_reply_title', { name: b.name }))}"></i>
+                        <i class="fa-solid fa-rotate rls-regen" role="button" tabindex="0" title="${escapeHtml(t('bark_regen_title'))}" aria-label="${escapeHtml(t('bark_regen_title'))}"></i>
+                        <i class="fa-solid fa-xmark rls-del" role="button" tabindex="0" title="${escapeHtml(t('bark_del_title'))}" aria-label="${escapeHtml(t('bark_del_title'))}"></i>
                     </span>
                 </div>
                 ${b.action ? `<div class="rls-action">*${escapeHtml(b.action)}*</div>` : ''}
                 <div class="rls-text">${think ? '<i>' : ''}${miniMd(b.text)}${think ? '</i>' : ''}</div>
                 <div class="rls-ask">
                     <input type="text" class="rls-ask-in" placeholder="${escapeHtml(t('ask_ph', { name: b.name }))}" maxlength="300">
-                    <i class="fa-solid fa-paper-plane rls-ask-send"></i>
+                    <i class="fa-solid fa-paper-plane rls-ask-send" role="button" tabindex="0" aria-label="${escapeHtml(t('bark_reply_title', { name: b.name }))}"></i>
                 </div>
             </div>`;
         chip.style.animationDelay = `0s, ${(Math.random() * 2.4).toFixed(2)}s`;   // desync the bobbing
@@ -1282,6 +1373,10 @@ function renderBarks(messageId, startCollapsed = false) {
                 updateInjection();   // a dismissed line leaves the prompt too
             }
         });
+        // the small icons answer Enter and Space like buttons
+        chip.querySelectorAll('[role="button"]').forEach(el => el.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); el.click(); }
+        }));
         chip.addEventListener('click', (e) => {
             if (e.target.closest('.rls-acts')) return;
             chip.classList.toggle('collapsed');
@@ -1293,6 +1388,8 @@ function renderBarks(messageId, startCollapsed = false) {
 
     // the "stir the scene" wand floats only on the newest message
     if ((ctx.chat.length - 1) === messageId) {
+        // the wand of an older message stays behind otherwise: one wand, on the newest message only
+        for (const [key, d] of rlsBubbles.entries()) if (d.stir && !key.startsWith(messageId + '::')) { d.bubble.remove(); rlsBubbles.delete(key); }
         const wand = document.createElement('div');
         wand.className = 'rls-stir-float';
         wand.title = t('bark_more_title');
@@ -1989,7 +2086,8 @@ function renderRosterButton() {
     }
     let btn = $('#rls-btn');
     if (btn.length === 0) {
-        btn = $(`<div class="rpg-floating-btn" id="rls-btn" title="${escapeHtml(t('btn_title'))}" style="position:static; margin:0;"><i class="fa-solid fa-masks-theater"></i></div>`);
+        btn = $(`<div class="rpg-floating-btn" id="rls-btn" role="button" tabindex="0" title="${escapeHtml(t('btn_title'))}" aria-label="${escapeHtml(t('btn_title'))}" style="position:static; margin:0;"><i class="fa-solid fa-masks-theater"></i></div>`);
+        btn.on('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.trigger('click'); } });
         container.prepend(btn);
     }
     if (!settings.enabled || !isChatOpen()) { btn.hide(); $('#rls-roster').removeClass('visible'); return; }
@@ -2002,6 +2100,12 @@ function renderRosterButton() {
         // event reaches document — closest() then failed and the panel slammed shut
         if (!document.body.contains(e.target)) return;
         if (!e.target.closest('#rls-roster') && !e.target.closest('#rls-btn')) $('#rls-roster').removeClass('visible');
+    });
+    $(document).off('keydown.rlsRoster').on('keydown.rlsRoster', (e) => {
+        if (e.key !== 'Escape' || !$('#rls-roster').hasClass('visible')) return;
+        e.stopPropagation();
+        $('#rls-roster').removeClass('visible');
+        document.getElementById('rls-btn')?.focus({ preventScroll: true });
     });
 }
 
@@ -2031,7 +2135,7 @@ function renderRoster() {
             <button class="menu_button rls-meta-save" data-name="${escapeHtml(name)}">${t('meta_save')}</button>
         </div>`;
     };
-    let html = `<div class="rls-roster-title"><i class="fa-solid fa-masks-theater"></i> ${t('roster_title')}</div>
+    let html = `<div class="rls-roster-title"><i class="fa-solid fa-masks-theater"></i> ${t('roster_title')}<button type="button" class="rls-roster-close" title="${escapeHtml(t('roster_close'))}" aria-label="${escapeHtml(t('roster_close'))}"><i class="fa-solid fa-xmark"></i></button></div>
         <div class="rls-roster-hint">${t('roster_hint')}</div>`;
     if (members.length) {
         html += `<div class="rls-roster-sec">${t('roster_members')}</div>` + members.map(m => rowHtml(m.name, false)).join('');
@@ -2057,6 +2161,7 @@ function renderRoster() {
         <button id="rls-npc-add" class="menu_button">${t('roster_npc_add')}</button>
     </div>`;
     body.html(html);
+    body.find('.rls-roster-close').on('click', () => $('#rls-roster').removeClass('visible'));
 
     body.find('.rls-toggle').on('click', async function () {
         const nm = $(this).data('name');
@@ -3219,7 +3324,8 @@ function partFace(name) {
     if ((!c || !c.pic) && !(c && c.kind === 'user')) { const sp = spriteFace(name); if (sp) c = { name, pic: sp, kind: (c && c.kind) || 'npc' }; }
     let hue = 0; for (const ch of String(name)) hue = (hue * 31 + ch.charCodeAt(0)) % 360;
     const ini = escapeHtml(String(name).trim().split(/\s+/).map(w => w[0]).join('').slice(0, 2).toUpperCase());
-    return { hue, pic: (c && c.pic) || '', html: c && c.pic ? `<img src="${escapeHtml(c.pic)}" alt="" draggable="false" loading="lazy">` : `<span class="rls-part-ini">${ini}</span>`, me: !!(c && c.kind === 'user') };
+    const pic = safeImg(c && c.pic);
+    return { hue, pic, html: pic ? `<img src="${escapeHtml(pic)}" alt="" draggable="false" loading="lazy">` : `<span class="rls-part-ini">${ini}</span>`, me: !!(c && c.kind === 'user') };
 }
 // the stored split of a reply, settled and grouped into blocks — what the chat draws and the novel plays
 function partsView(messageId) {
@@ -3752,7 +3858,14 @@ const HUD = [
     { id: 'map', icon: 'fa-map-location-dot', key: 'hud_map', ok: () => !!document.getElementById('rpg-map-btn'), go: () => document.getElementById('rpg-map-btn').click() },
     { id: 'diary', icon: 'fa-book', key: 'hud_diary', ok: () => !!document.getElementById('rpg-diary-btn'), go: () => document.getElementById('rpg-diary-btn').click() },
     { id: 'life', icon: 'fa-house-chimney', key: 'hud_life', ok: () => !!(window.RPG && window.RPG.life && typeof window.RPG.life.open === 'function'), go: () => window.RPG.life.open() },
+    // the rest of the suite, each by its own button (shown only while that extension is on)
+    { id: 'pack', icon: 'fa-suitcase', key: 'hud_pack', ok: () => hudBtnOn('rpg-inventory-btn'), go: () => document.getElementById('rpg-inventory-btn').click() },
+    { id: 'gear', icon: 'fa-shirt', key: 'hud_gear', ok: () => hudBtnOn('rpg-eq-btn'), go: () => document.getElementById('rpg-eq-btn').click() },
+    { id: 'shop', icon: 'fa-store', key: 'hud_shop', ok: () => hudBtnOn('rpg-vnd-btn'), go: () => document.getElementById('rpg-vnd-btn').click() },
+    { id: 'vitals', icon: 'fa-heart-pulse', key: 'hud_vitals', ok: () => hudBtnOn('rpg-vit-btn'), go: () => document.getElementById('rpg-vit-btn').click() },
 ];
+// an extension's own button: there and not switched off (a switched-off extension hides it)
+function hudBtnOn(id) { const b = document.getElementById(id); return !!b && b.style.display !== 'none' && getComputedStyle(b).display !== 'none'; }
 /* the novel's ornaments: drawn here, coloured by each look's CSS (currentColor) */
 const VN_VINE = `<svg viewBox="0 0 160 50" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M0 25 C 14 24, 22 16, 36 14" stroke-width="5.6"/><path d="M36 14 C 54 12, 62 30, 84 32" stroke-width="3.1"/><path d="M84 32 C 100 33, 112 24, 110 15 C 108 8, 98 9, 100 17" stroke-width="2.1"/><path d="M44 13 C 48 4, 60 1, 68 6 C 72 9, 68 14, 64 11" stroke-width="1.7"/><path d="M84 32 C 96 42, 116 44, 132 38" stroke-width="1.5"/><path d="M132 38 C 140 35, 145 40, 139 44" stroke-width="1.1"/><path d="M20 21 C 18 12, 24 6, 30 6" stroke-width="1.4"/></g><g fill="currentColor"><path d="M27 17 l1 -9 l5 7.5 z"/><path d="M52 14 l7 -6 l-1 8.5 z"/><path d="M71 25 l7 -5 l-1.5 8.5 z"/><path d="M92 33 l3 8 l3.5 -7.5 z"/><path d="M116 40 l6 -6 l1 7 z"/><path d="M58 22 c 4 -6 10 -6 13 -2 c -4 4 -9 5 -13 2 z"/><path d="M104 22 c 6 -2 10 2 9 7 c -5 0 -9 -2 -9 -7 z"/><path d="M30 6 c 3 -3 7 -2 8 1 c -3 2 -6 2 -8 -1 z"/><circle cx="100" cy="17" r="1.6"/></g></svg>`;
 const vnFlower = s => `<svg viewBox="0 0 20 20" width="${s}" height="${s}" aria-hidden="true"><g fill="currentColor"><circle cx="10" cy="5.2" r="4.4"/><circle cx="14.8" cy="10" r="4.4"/><circle cx="10" cy="14.8" r="4.4"/><circle cx="5.2" cy="10" r="4.4"/></g><circle cx="10" cy="10" r="2.2" class="core"/></svg>`;
@@ -3765,7 +3878,7 @@ function vnMoon(time) {
     const lit = !Number.isFinite(h) ? 6.5 : (h >= 22 || h < 4) ? 0 : 6.5;
     return `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="#1b2130" stroke="currentColor" stroke-width="1.2"/>${lit ? `<path d="M12 1.5 A10.5 10.5 0 0 1 12 22.5 A${lit} 10.5 0 0 0 12 1.5 Z" fill="#efd78f"/>` : '<circle cx="12" cy="12" r="10" fill="#efd78f"/>'}</svg>`;
 }
-const HUD_OPEN = ['#rpg-map-modal.visible', '#rpg-diary-modal.visible', '#rpg-life-host.open'];
+const HUD_OPEN = ['#rpg-map-modal.visible', '#rpg-diary-modal.visible', '#rpg-life-host.open', '#rpg-inventory-modal.visible', '#rpg-eq-modal.visible', '#rpg-vnd-modal.visible', '#rpg-vit-modal.visible'];
 const hudSomethingOpen = () => HUD_OPEN.some(sel => { const el = document.querySelector(sel); return !!el && getComputedStyle(el).display !== 'none'; });
 const NOVEL_BACK = 24;   // messages taken into the novel's timeline
 let novel = null;
@@ -3795,10 +3908,10 @@ function novelStepsFor(id) {
     steps.forEach(x => { x.mid = id; });
     return steps;
 }
-function novelTimeline() {
+function novelTimeline(back = NOVEL_BACK) {
     const chat = getContext().chat || [];
     const steps = [], start = new Map();
-    for (let id = Math.max(0, chat.length - NOVEL_BACK); id < chat.length; id++) {
+    for (let id = Math.max(0, chat.length - back); id < chat.length; id++) {
         const st0 = novelStepsFor(id);
         if (!st0.length) continue;
         start.set(id, steps.length);
@@ -3824,6 +3937,7 @@ function openNovel(fromId = null) {
         <div class="rls-vn-veil"></div>
         <div class="rls-vn-card" aria-live="polite"></div>
         <div class="rls-vn-place"></div>
+        <div class="rls-vn-got" aria-live="polite"></div>
         <div class="rls-vn-info" aria-hidden="true"></div>
         <div class="rls-vn-fight" aria-hidden="true"></div>
         <div class="rls-vn-where"></div>
@@ -3834,7 +3948,7 @@ function openNovel(fromId = null) {
             ${B('rls-vn-next2', 'fa-chevron-right', 'novel_next')}
             ${B('rls-vn-regen', 'fa-rotate-right', 'novel_regen')}
             ${B('rls-vn-stop', 'fa-stop', 'novel_stop')}
-            <button type="button" class="rls-vn-logbtn">${escapeHtml(t('scene_log'))}</button>
+            <button type="button" class="rls-vn-logbtn" title="${escapeHtml(t('scene_log'))}" aria-label="${escapeHtml(t('scene_log'))}"><i class="fa-solid fa-scroll"></i><span>${escapeHtml(t('scene_log'))}</span></button>
             ${B('rls-vn-close', 'fa-xmark', 'novel_exit')}
         </div>
         <div class="rls-vn-choices" hidden></div>
@@ -3859,7 +3973,7 @@ function openNovel(fromId = null) {
     const stage = $q('.rls-vn-stage'), input = $q('.rls-vn-input'), choices = $q('.rls-vn-choices'), log = $q('.rls-vn-log'), list = $q('.rls-vn-loglist');
     // follow: the reader is with the newest message, so a new one is played as it comes;
     // reading back in the log or with ← stops that until they come back to the newest
-    const N = novel = { ov, steps: [], start: new Map(), idx: -1, sprites: {}, bg: '', timer: null, follow: true, waitReply: 0 };
+    const N = novel = { ov, steps: [], start: new Map(), idx: -1, sprites: {}, bg: '', timer: null, follow: true, waitReply: 0, back: NOVEL_BACK, tried: new Set(), ahead: false, got: null };
     const me = () => getContext().name1 || name1;
     const loadSprites = async () => {
         const people = [...new Set(N.steps.filter(x => x.who !== '-' && x.who !== me()).map(x => x.who))].filter(w => !(w in N.sprites));
@@ -4040,7 +4154,7 @@ function openNovel(fromId = null) {
         if (!mine) { el.innerHTML = ''; return; }
         const pct = (a, b) => Math.max(0, Math.min(100, Math.round((Number(a) || 0) / (Number(b) || 1) * 100)));
         const bar = (kind, v, max, label) => `<span class="rls-vn-bar ${kind}"><i style="width:${pct(v, max)}%"></i><b>${label}</b></span>`;
-        const medal = (pic, name) => `<span class="rls-vn-medal">${pic ? `<img src="${escapeHtml(pic)}" alt="" draggable="false">` : `<span>${escapeHtml(String(name || '?').trim().slice(0, 1).toUpperCase())}</span>`}</span>`;
+        const medal = (pic, name) => `<span class="rls-vn-medal">${safeImg(pic) ? `<img src="${escapeHtml(safeImg(pic))}" alt="" draggable="false">` : `<span>${escapeHtml(String(name || '?').trim().slice(0, 1).toUpperCase())}</span>`}</span>`;
         const meIcon = user_avatar ? `/thumbnail?type=persona&file=${encodeURIComponent(user_avatar)}` : '';
         const myBars = (hpOn ? [bar('hp', mine.hp, mine.max, `${Math.round(mine.hp)} / ${Math.round(mine.max)}`)] : [])
             .concat(extra.map(([k, v]) => bar(k, v, 100, `${t('fight_' + k)} ${Math.round(Number(v) || 0)}`)));
@@ -4135,18 +4249,93 @@ function openNovel(fromId = null) {
         box.classList.toggle('waiting', end && stBusy());
         box.classList.toggle('end', end);
         count.textContent = end ? '' : `${k + 1} / ${N.steps.length}`;
+        syncSplitting();
+        readAhead();
         list.querySelectorAll('.rls-vn-logrow.cur').forEach(x => x.classList.remove('cur'));
         const row = list.querySelector(`[data-k="${k}"]`); if (row) row.classList.add('cur');
         syncChoices();
+    };
+    /* Reading back through the chat: the reply on screen and the next two are split by roles ahead of
+       you, one at a time, so an old chat reads as a novel without pressing the button on each reply.
+       Only what you actually reach is asked about; a reply that cannot be split is not asked twice. */
+    const splitKey = id => { const m = getContext().chat[id]; return m ? `${id}#${m.swipe_id ?? 0}#${partsHash(m.mes)}` : ''; };
+    const readAhead = async () => {
+        if (N.ahead || novel !== N || N.idx < 0 || !N.steps[N.idx]) return;
+        const ids = [...N.start.keys()];
+        const from = ids.indexOf(N.steps[N.idx].mid);
+        const todo = ids.slice(Math.max(0, from), from + 6).filter(id => novelNeedsSplit(id) && !N.tried.has(splitKey(id))).slice(0, 3);
+        if (!todo.length) return;
+        N.ahead = true;
+        try {
+            for (const id of todo) {
+                if (novel !== N) return;
+                N.tried.add(splitKey(id));
+                syncSplitting();
+                try { await askParts(id); } catch (e) { console.warn('[Living Scene] novel: reading ahead', e); }
+            }
+        } finally { N.ahead = false; if (novel === N) { syncSplitting(); readAhead(); } }
+    };
+    // the reply on screen is being split right now: a small quiet mark instead of the counter
+    const syncSplitting = () => {
+        const st1 = N.steps[N.idx];
+        const m = st1 && getContext().chat[st1.mid];
+        const busy = !!(m && partsBusy.has(`${getContext().chatId}#${st1.mid}#${m.swipe_id ?? 0}`));
+        box.classList.toggle('splitting', busy);
+        box.title = busy ? t('novel_splitting') : '';
+    };
+    N.syncSplitting = syncSplitting;
+    /* "Received": what reaches the backpack while you read (loot, a reward, coins) shows as a small plate
+       in the novel's own style, gathered into one when several things come at once. What changes while a
+       window of the suite is over the novel is your own doing there (buying, taking off) and is not announced. */
+    const gotEl = $q('.rls-vn-got');
+    const coinWord = n => settings.language === 'ru' ? (n % 10 === 1 && n % 100 !== 11 ? 'монета' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14)) ? 'монеты' : 'монет') : (n === 1 ? 'coin' : 'coins');
+    const gotShow = () => {
+        const q = N.gotQ; N.gotQ = null;
+        if (!q || novel !== N) return;
+        const bits = [...q.names.entries()].map(([nm, c]) => escapeHtml(nm) + (c > 1 ? ` ×${c}` : ''));
+        if (q.coins > 0) bits.push(escapeHtml(settings.language === 'ru' ? t('got_coins', { n: q.coins, coins: coinWord(q.coins) }) : (q.coins === 1 ? '+1 coin' : t('got_coins', { n: q.coins }))));
+        if (!bits.length) return;
+        gotEl.innerHTML = `<em><i class="fa-solid fa-box-open"></i> ${escapeHtml(t('got_title'))}</em><span><span class="rls-got-t">${bits.join(' · ')}</span></span>`;
+        gotEl.classList.remove('on'); void gotEl.offsetWidth; gotEl.classList.add('on');
+        clearTimeout(N.gotOff);
+        N.gotOff = setTimeout(() => gotEl.classList.remove('on'), 3800);
+    };
+    const gotTick = () => {
+        const inv = window.RPG && window.RPG.inventory;
+        if (!inv || !inv.available || typeof inv.list !== 'function') return;
+        if (typeof inv.isEnabled === 'function' && !inv.isEnabled()) return;
+        let items, coins;
+        try { items = inv.list() || []; coins = typeof inv.getCoins === 'function' ? Number(inv.getCoins()) || 0 : 0; } catch (e) { return; }
+        const chatId = getContext().chatId;
+        const old = N.got;
+        N.got = { chatId, ids: new Set(items.map(i => i.id)), coins };
+        if (!old || old.chatId !== chatId || ov.classList.contains('under')) return;
+        const fresh = items.filter(i => !old.ids.has(i.id));
+        const dc = coins - old.coins;
+        if (!fresh.length && dc <= 0) return;
+        const q = N.gotQ || (N.gotQ = { names: new Map(), coins: 0 });
+        fresh.forEach(i => { const nm = String(i.name || '').trim().slice(0, 60); if (nm) q.names.set(nm, (q.names.get(nm) || 0) + 1); });
+        if (dc > 0) q.coins += dc;
+        clearTimeout(N.gotWait);
+        N.gotWait = setTimeout(gotShow, 600);   // what comes together is told together
+    };
+    gotTick();
+    // the novel holds the last NOVEL_BACK messages; going back past the first one brings the ones before it
+    const hasEarlier = () => (getContext().chat || []).length > N.back;
+    const earlier = () => {
+        if (!hasEarlier()) return false;
+        N.back += NOVEL_BACK;
+        refresh(null);          // keeps the line you were on (by its message and place in it)
+        return true;
     };
     // rebuild from the chat; `playFrom` starts a reply from its beginning when the reader was waiting at the end
     const refresh = (playFrom = null) => {
         if (novel !== N) return;
         const cur = N.steps[N.idx];
         const curMid = cur ? cur.mid : null, curOff = cur ? N.idx - N.start.get(cur.mid) : 0;
-        const tl = novelTimeline();
+        const tl = novelTimeline(N.back);
         N.steps = tl.steps; N.start = tl.start;
-        list.innerHTML = N.steps.map((st0, k) => `<button type="button" class="rls-vn-logrow ${st0.kind}${st0.user ? ' mine' : ''}" data-k="${k}"><span class="rls-vn-logwho">${escapeHtml(st0.who === '-' ? '—' : st0.who)}</span><span class="rls-vn-logtext">${stepHtml(st0)}</span></button>`).join('');
+        list.innerHTML = (hasEarlier() ? `<button type="button" class="rls-vn-logrow rls-vn-earlier" data-earlier="1"><i class="fa-solid fa-angles-up"></i> ${escapeHtml(t('novel_earlier'))}</button>` : '') + N.steps.map((st0, k) => `<button type="button" class="rls-vn-logrow ${st0.kind}${st0.user ? ' mine' : ''}" data-k="${k}"><span class="rls-vn-logwho">${escapeHtml(st0.who === '-' ? '—' : st0.who)}</span><span class="rls-vn-logtext">${stepHtml(st0)}</span></button>`).join('');
         let k;
         const onMine = !!(cur && cur.user && playFrom != null && playFrom > cur.mid);   // you sent a line and wait: the answer to it plays
         if (playFrom != null && N.start.has(playFrom) && (N.follow || N.idx < 0 || onMine)) k = N.start.get(playFrom);
@@ -4158,9 +4347,9 @@ function openNovel(fromId = null) {
     N.refresh = refresh;
     N.syncBar = syncBar;
     const next = () => { if (!log.hidden) return; if (N.idx < N.steps.length - 1) show(N.idx + 1, false, true); else { N.follow = true; syncChoices(); if (choices.hidden) input.focus({ preventScroll: true }); } };   // never scroll SillyTavern's page under the novel
-    const prev = () => { if (!log.hidden) return; if (N.idx > 0) show(N.idx - 1, false, true); };
+    const prev = () => { if (!log.hidden) return; if (N.idx === 0 && earlier() && N.idx > 0) { show(N.idx - 1, false, true); return; } if (N.idx > 0) show(N.idx - 1, false, true); };
     const toggleLog = on => { log.hidden = !on; $q('.rls-vn-logbtn').classList.toggle('on', on); if (on) { const row = list.querySelector('.cur'); if (row) { /* only the list scrolls: scrollIntoView moved the whole page and left a grey strip under it */ const lr = list.getBoundingClientRect(), rr = row.getBoundingClientRect(); list.scrollTop += (rr.top - lr.top) - (list.clientHeight - rr.height) / 2; } } };
-    list.addEventListener('click', e => { const row = e.target.closest('.rls-vn-logrow'); if (!row) return; toggleLog(false); show(Number(row.dataset.k), false, true); box.focus(); });
+    list.addEventListener('click', e => { if (e.target.closest('[data-earlier]')) { e.stopPropagation(); const topMid = N.steps[0] && N.steps[0].mid; earlier(); const r0 = topMid != null && N.start.has(topMid) && list.querySelector(`[data-k="${N.start.get(topMid)}"]`); if (r0) list.scrollTop = r0.offsetTop - list.offsetTop - 8; return; } const row = e.target.closest('.rls-vn-logrow'); if (!row) return; toggleLog(false); show(Number(row.dataset.k), false, true); box.focus(); });
     $q('.rls-vn-logbtn').addEventListener('click', e => { e.stopPropagation(); toggleLog(log.hidden); });
     $q('.rls-vn-close').addEventListener('click', e => { e.stopPropagation(); closeNovel(true); });
     $q('.rls-vn-solo').addEventListener('click', e => { e.stopPropagation(); document.getElementById('rpg-end-solo')?.click(); });
@@ -4193,6 +4382,7 @@ function openNovel(fromId = null) {
     });
     const onKey = e => {
         if (novel !== N) return;
+        if (ov.classList.contains('under')) return;   // a window of the suite is over the novel: its keys are its own
         const typing = e.target && (e.target === input || e.target.closest?.('input, textarea, select, [contenteditable="true"]'));
         if (e.key === 'Escape') { e.preventDefault(); if (!log.hidden) toggleLog(false); else if (typing) input.blur(); else closeNovel(true); return; }
         if (typing || !log.hidden || !ov.contains(document.activeElement) && document.activeElement !== document.body) return;
@@ -4207,6 +4397,7 @@ function openNovel(fromId = null) {
         // the map moved: the newest lines are in the new room — on screen at once if they are what you see
         if (roomFollow() && N.idx >= 0 && N.steps[N.idx] && N.steps[N.idx].mid === N.steps[N.steps.length - 1].mid) roomFor(N.idx);
         syncBg(); syncBar(); syncChoices(); box.classList.toggle('waiting', N.idx >= N.steps.length - 1 && stBusy());
+        gotTick(); syncSplitting();
         // your own line is on screen and the answer to it is finished and split: it plays now,
         // even if the event that should have started it was missed
         const cur = N.steps[N.idx];
@@ -4239,6 +4430,7 @@ function closeNovel(byHand = false) {
     clearInterval(N.timer);
     clearInterval(N.underTimer);
     clearTimeout(N.cardTimer);
+    clearTimeout(N.gotWait); clearTimeout(N.gotOff);
     N.ov.classList.add('out');
     setTimeout(() => N.ov.remove(), 220);
     document.body.classList.remove('rls-novel-on');
