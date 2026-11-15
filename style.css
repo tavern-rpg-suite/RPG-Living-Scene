@@ -100,8 +100,8 @@
     font-size: 0.74rem;
     font-weight: 700;
     letter-spacing: 0.3px;
-    color: #b39dff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+    color: #c3b1ff;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);   /* readable over a light background too (it fell to 4.4:1) */
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .rls-chip.think .rls-name { color: #8ec5ff; }
@@ -492,7 +492,9 @@
 .rls-vn-logwho { flex: 0 0 130px; font-size: .8em; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: #f3d48a; overflow: hidden; text-overflow: ellipsis; }
 .rls-vn-logrow.act .rls-vn-logtext, .rls-vn-logrow.narr .rls-vn-logtext { font-style: italic; color: rgba(244, 236, 220, .65); }
 @media (max-width: 700px) {
-    .rls-vn-actor { height: 64%; }
+    /* a narrow screen: the slot's share of the width left the figure a few centimetres tall and hidden behind
+       the text box; the figure is drawn twice as wide, so its height decides its size again */
+    .rls-vn-actor { height: 64%; width: min(96%, calc(var(--slot, 40%) * 2)); }
     .rls-vn-box { padding: 26px 18px 28px; min-height: 130px; }
     .rls-vn-text { font-size: 1.02em; }
     .rls-vn-hint { display: none; }
