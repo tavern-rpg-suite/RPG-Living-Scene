@@ -560,7 +560,7 @@
 .rls-vn-send:hover { filter: brightness(1.08); }
 .rls-vn-send:disabled { opacity: .4; cursor: default; }
 .rls-vn-choices {
-    position: absolute; left: 50%; translate: -50% 0; bottom: calc(max(14px, env(safe-area-inset-bottom)) + 62px + 168px); z-index: 3;
+    position: absolute; left: 50%; translate: -50% 0; bottom: calc(max(14px, env(safe-area-inset-bottom)) + 62px + 168px + 14px); z-index: 3;
     width: min(680px, calc(100% - 48px)); display: flex; flex-direction: column; gap: 8px;
 }
 .rls-vn-choices[hidden] { display: none; }
@@ -571,13 +571,15 @@
     transition: background .2s, border-color .2s, translate .2s;
 }
 .rls-vn-choice:hover, .rls-vn-choice:focus-visible { outline: none; background: rgba(60, 42, 26, .92); border-color: #f3d48a; translate: 4px 0; }
+.rls-vn.box-glass .rls-vn-choice:hover, .rls-vn.box-glass .rls-vn-choice:focus-visible { background: rgba(38, 40, 54, .94); }
 .rls-vn-choice .k { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 12px; background: #f3d48a; color: #1a1210; }
 .rls-vn-choice:nth-child(2) { animation-delay: .06s; } .rls-vn-choice:nth-child(3) { animation-delay: .12s; } .rls-vn-choice:nth-child(4) { animation-delay: .18s; }
 .rls-vn-logrow.cur { background: rgba(243, 212, 138, .1); }
 .rls-vn-logrow.mine .rls-vn-logwho { color: #d9d3c6; }
 /* exploring alone: the words stay down by your line, as in any novel; the choices stand in the middle,
    over the stage, so the people met there are still seen */
-.rls-vn.explore .rls-vn-choices { top: 50%; bottom: auto; translate: -50% -50%; max-height: 46vh; overflow-y: auto; }
+.rls-vn.explore .rls-vn-choices { top: calc(max(10px, env(safe-area-inset-top)) + 64px); translate: -50% 0; justify-content: safe center; overflow-y: auto; scrollbar-width: none; overscroll-behavior: contain; padding: 4px 6px; }
+.rls-vn.explore .rls-vn-choices::-webkit-scrollbar { display: none; }
 .rls-vn.novel .rls-vn-hint { max-width: 40%; }
 @media (max-width: 700px) {
     .rls-vn.novel .rls-vn-top { gap: 4px; right: 8px; }
@@ -585,8 +587,8 @@
     .rls-vn.novel .rls-vn-logbtn span { display: none; }
     .rls-vn.novel .rls-vn-logbtn i { display: inline-block; }
     .rls-vn-where { top: calc(max(14px, env(safe-area-inset-top)) + 40px); max-width: 80%; }
-    .rls-vn-choices { width: calc(100% - 24px); bottom: calc(max(14px, env(safe-area-inset-bottom)) + 62px + 146px); }
-    .rls-vn.explore .rls-vn-choices { top: 42%; }
+    .rls-vn-choices { width: calc(100% - 24px); bottom: calc(max(14px, env(safe-area-inset-bottom)) + 62px + 168px + 10px); }
+    .rls-vn.explore .rls-vn-choices { top: calc(max(10px, env(safe-area-inset-top)) + 84px); gap: 6px; }
 }
 @media (prefers-reduced-motion: reduce) { .rls-vn-choice, .rls-vn-box.waiting .rls-vn-text::after { animation: none; } }
 
@@ -855,23 +857,21 @@
 .rls-vn.box-twilight .rls-vn-foot { color: rgba(243, 234, 217, .8); }
 .rls-vn.box-twilight .rls-vn-next { color: var(--vn-gold); }
 
-/* the choices in these looks: parchment plates with cut corners, grain, a flower — raised clear of the vines */
+/* the choices in these looks: parchment plates with rounded ends, grain, a flower — raised clear of the vines */
 .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choices { bottom: calc(max(14px, env(safe-area-inset-bottom)) + 62px + 168px + 20px); gap: 10px; }
 .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choice {
-    position: relative; border: 0; border-radius: 0; padding: 12px 24px 12px 16px; gap: 12px; color: var(--vn-ink);
+    position: relative; border: 0; border-radius: 13px; padding: 12px 24px 12px 16px; gap: 12px; color: var(--vn-ink);
     font-family: 'RLS Alegreya', Georgia, serif; font-weight: 400; font-size: 1.12em; backdrop-filter: none; -webkit-backdrop-filter: none;
     background:
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40' viewBox='0 0 120 40'%3E%3Cg fill='none' stroke='%232a2522' stroke-width='1.1' stroke-linecap='round' opacity='.14'%3E%3Cpath d='M116 36 C 92 35, 82 24, 88 16 C 92 10, 102 12, 100 18 C 99 22, 93 21, 94 17'/%3E%3Cpath d='M88 16 C 76 12, 70 20, 58 22'/%3E%3C/g%3E%3C/svg%3E") right 6px center / 120px 40px no-repeat,
         url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' seed='5'/%3E%3CfeColorMatrix values='0 0 0 0 .3 0 0 0 0 .22 0 0 0 0 .12 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.16'/%3E%3C/svg%3E"),
         linear-gradient(180deg, var(--vn-paper), var(--vn-paper2));
-    -webkit-mask: radial-gradient(circle 9px at 0 0, #0000 98%, #000) top left / 51% 51% no-repeat, radial-gradient(circle 9px at 100% 0, #0000 98%, #000) top right / 51% 51% no-repeat, radial-gradient(circle 9px at 0 100%, #0000 98%, #000) bottom left / 51% 51% no-repeat, radial-gradient(circle 9px at 100% 100%, #0000 98%, #000) bottom right / 51% 51% no-repeat;
-    mask: radial-gradient(circle 9px at 0 0, #0000 98%, #000) top left / 51% 51% no-repeat, radial-gradient(circle 9px at 100% 0, #0000 98%, #000) top right / 51% 51% no-repeat, radial-gradient(circle 9px at 0 100%, #0000 98%, #000) bottom left / 51% 51% no-repeat, radial-gradient(circle 9px at 100% 100%, #0000 98%, #000) bottom right / 51% 51% no-repeat;
     box-shadow: inset 0 0 0 1px rgba(80, 60, 40, .35), inset 0 0 0 4px rgba(242, 234, 219, .5), inset 0 0 0 5px rgba(42, 37, 34, .25);
 }
 .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choice .k { display: none; }
 .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choice .q { flex: none; display: grid; place-items: center; color: var(--vn-rose); }
 .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choice .q .core { fill: rgba(155, 47, 55, .75); }
-.rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choice:hover, .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choice:focus-visible { outline: none; translate: 0 0; color: var(--vn-cream); background: linear-gradient(180deg, #4a3a33, #2e2420); box-shadow: inset 0 0 0 1px rgba(201, 166, 92, .5); }
+.rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choice:hover, .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choice:focus-visible { outline: none; translate: 0 0; color: var(--vn-cream); background: linear-gradient(180deg, #2c3446, var(--vn-navy2)); box-shadow: inset 0 0 0 1px rgba(201, 166, 92, .6), 0 0 0 1px rgba(23, 28, 39, .5); }
 .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choice:hover .q, .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choice:focus-visible .q { color: #e04b55; }
 .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choice:hover .q .core { fill: rgba(255, 255, 255, .45); }
 .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choice.ask i { color: var(--vn-blood); }
@@ -926,7 +926,7 @@
     .rls-vn:is(.box-grimoire, .box-twilight) .rls-vn-box.face { padding-left: 90px; }
     .rls-vn:is(.box-grimoire, .box-twilight) .rls-vn-box.face.r { padding-left: 18px; padding-right: 90px; }
     .rls-vn.box-ribbon .rls-vn-box.face { padding-left: calc(6% + 74px); padding-right: 22px; } .rls-vn.box-ribbon .rls-vn-box.face.r { padding-left: 22px; padding-right: calc(6% + 74px); }
-    .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choices { bottom: calc(max(14px, env(safe-area-inset-bottom)) + 62px + 146px + 20px); }
+    .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-choices { bottom: calc(max(14px, env(safe-area-inset-bottom)) + 62px + 168px + 22px); }
     .rls-vn-info { top: calc(max(10px, env(safe-area-inset-top)) + 40px); }
     .rls-vn-info-row { font-size: 12px; gap: 7px; padding-right: 30px; }
     .rls-vn-info-t b { font-size: 14px; }
@@ -1058,7 +1058,10 @@ body.rls-novel-on #rpg-buttons-container, body.rls-novel-on .rpg-floating-btn { 
 @media (prefers-reduced-motion: reduce) { .rls-vn-say.wait .rls-vn-send i, .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-say.wait .rls-vn-send { animation: none; } }
 /* RPG Map's own notes and windows that come up during play (the scene's new place, an encounter,
    a locked door, an overheard word) stand over the novel, the way they stand over the chat */
-body.rls-novel-on :is(#rpg-scene-sync, #rpg-encounter-modal, #rpg-unlock-modal, #rpg-oh) { z-index: 10070 !important; }
+body.rls-novel-on :is(#rpg-scene-sync, #rpg-encounter-modal, #rpg-unlock-modal, #rpg-oh, #rpg-loot-popup) { z-index: 10070 !important; }
+/* a window of the suite over the novel: the novel stays behind it as the scene, and SillyTavern's own
+   top bar and the chat's bubbles and wand (which sit between the two) are not seen through */
+body.rls-novel-on:has(.rls-vn.under) :is(#top-bar, #top-settings-holder, #rls-layer) { visibility: hidden !important; }
 
 .rls-vn-logbtn i { display: none; }
 
@@ -1085,3 +1088,29 @@ body.rls-novel-on :is(#rpg-scene-sync, #rpg-encounter-modal, #rpg-unlock-modal, 
 
 /* ---- the novel's log: "Earlier" row ---- */
 .rls-vn-logrow.rls-vn-earlier { justify-content: center; gap: 8px; font-weight: 700; letter-spacing: .06em; opacity: .9; }
+
+/* selected text in the box: in the box's own colours, never the theme's blue on paper */
+.rls-vn ::selection { background: rgba(243, 212, 138, .38); color: inherit; }
+.rls-vn.box-parchment .rls-vn-box ::selection { background: rgba(184, 144, 47, .35); color: #2b2014; }
+.rls-vn.box-grimoire .rls-vn-box ::selection { background: rgba(155, 47, 55, .22); color: var(--vn-ink); }
+.rls-vn:is(.box-twilight, .box-ribbon) .rls-vn-box ::selection { background: rgba(201, 166, 92, .42); color: #fffaf0; }
+
+/* the loupe of RPG Engine in the box: search the reply on screen for things to pick up, as in the chat */
+.rls-vn-loot { display: inline-grid; place-items: center; width: 26px; height: 26px; margin: -6px 0; border-radius: 50%; cursor: pointer; font-size: 13px; color: inherit; opacity: .8; transition: opacity .08s ease-out, transform .08s ease-out, background-color .08s ease-out; }
+.rls-vn-loot[hidden] { display: none; }
+.rls-vn-loot:hover, .rls-vn-loot:focus-visible { opacity: 1; outline: none; transform: scale(1.12); background: rgba(127, 127, 127, .16); }
+.rls-vn-loot:focus-visible { box-shadow: 0 0 0 1.5px currentColor; }
+.rls-vn-loot.spent { opacity: .38; cursor: default; transform: none; background: none; }
+.rls-vn-loot.busy i { animation: rls-loot-look 1s ease-in-out infinite; }
+@keyframes rls-loot-look { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(2px, -1px); } 75% { transform: translate(-2px, 1px); } }
+@media (prefers-reduced-motion: reduce) { .rls-vn-loot, .rls-vn-loot:hover { transition: none; transform: none; } .rls-vn-loot.busy i { animation: none; } }
+@media (hover: none) { .rls-vn-loot { width: 32px; height: 32px; margin: -9px 0; } }
+
+/* the journal in these looks: the box's own navy and gold, the line you are on marked in gold, not a brown wash */
+.rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-log { background: linear-gradient(180deg, rgba(30, 36, 50, .96), rgba(18, 22, 32, .97)); border-color: rgba(201, 166, 92, .45); font-family: 'RLS Alegreya', Georgia, serif; }
+.rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-logtitle { font-family: 'RLS Alegreya', Georgia, serif; font-weight: 800; color: var(--vn-gold); }
+.rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-logwho { color: #e2c886; }
+.rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-logrow:hover, .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-logrow:focus-visible { background: rgba(120, 140, 180, .14); }
+.rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-logrow.cur { background: linear-gradient(90deg, rgba(201, 166, 92, .2), rgba(201, 166, 92, .05)); box-shadow: inset 2px 0 0 var(--vn-gold); }
+.rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-logrow.act .rls-vn-logtext, .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-logrow.narr .rls-vn-logtext { color: rgba(243, 234, 217, .72); }
+.rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-loglist { scrollbar-width: thin; scrollbar-color: rgba(201, 166, 92, .55) transparent; }

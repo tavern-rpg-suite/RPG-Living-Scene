@@ -94,7 +94,7 @@ const I18N = {
         set_novel_face: 'The speaker\'s portrait in the box:', face_always: 'always', face_nosprite: 'only for those without sprites', face_never: 'never',
         set_novel_hud: 'Buttons over the novel: Map, Diary, Life (those installed)', set_novel_place: 'The place\'s name; a new place comes in with a passage',
         hud_map: 'Map', hud_diary: 'Diary', hud_life: 'Life', hud_pack: 'Backpack', hud_gear: 'Gear', hud_shop: 'Vendors', hud_vitals: 'Vitals',
-        got_title: 'Received', got_coins: '+{n} coins', novel_earlier: 'Earlier lines', novel_splitting: 'Sorting out who speaks…', novel_place: 'Place', info_day_n: 'Day {n}',
+        got_title: 'Received', got_coins: '+{n} coins', novel_earlier: 'Earlier lines', novel_splitting: 'Sorting out who speaks…', novel_loot: 'Search the scene', novel_loot_busy: 'Searching…', novel_loot_spent: 'Already searched here', novel_place: 'Place', info_day_n: 'Day {n}',
         set_sec_novel: 'Novel', set_novel_btn: 'A ▶ button on each reply opens it in the novel', set_novel_open: 'Open the novel now', novel_btn: 'Play in the novel',
         set_pass_toast: 'Say in a notice who gets the turn',
         set_mappres: 'Presence from RPG Map ("Who is where")',
@@ -193,7 +193,7 @@ const I18N = {
         set_novel_face: 'Портрет говорящего в окне:', face_always: 'всегда', face_nosprite: 'только у кого нет спрайтов', face_never: 'никогда',
         set_novel_hud: 'Кнопки поверх новеллы: Карта, Дневник, Жизнь (что установлено)', set_novel_place: 'Название места; новое место — с переходом',
         hud_map: 'Карта', hud_diary: 'Дневник', hud_life: 'Жизнь', hud_pack: 'Рюкзак', hud_gear: 'Экипировка', hud_shop: 'Вендоры', hud_vitals: 'Состояние',
-        got_title: 'Получено', got_coins: '+{n} {coins}', novel_earlier: 'Раньше', novel_splitting: 'Разбираю, кто говорит…', novel_place: 'Место', info_day_n: 'День {n}',
+        got_title: 'Получено', got_coins: '+{n} {coins}', novel_earlier: 'Раньше', novel_splitting: 'Разбираю, кто говорит…', novel_loot: 'Обыскать сцену', novel_loot_busy: 'Ищу…', novel_loot_spent: 'Здесь уже искали', novel_place: 'Место', info_day_n: 'День {n}',
         set_sec_novel: 'Новелла', set_novel_btn: 'Кнопка ▶ на каждом ответе открывает его в новелле', set_novel_open: 'Открыть новеллу сейчас', novel_btn: 'Играть в новелле',
         set_pass_toast: 'Сообщать уведомлением, к кому перешёл ход',
         set_mappres: 'Присутствие по карте («Кто где»)',
@@ -3961,7 +3961,7 @@ function openNovel(fromId = null) {
             <span class="rls-vn-plate"></span>
             <span class="rls-vn-face" aria-hidden="true"></span>
             <span class="rls-vn-text"></span>
-            <span class="rls-vn-foot"><span class="rls-vn-count"></span><span class="rls-vn-next">▼</span></span>
+            <span class="rls-vn-foot"><span class="rls-vn-loot" role="button" tabindex="0" hidden><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i></span><span class="rls-vn-count"></span><span class="rls-vn-next">▼</span></span>
         </button>
         <form class="rls-vn-say">
             <textarea rows="1" class="rls-vn-input" placeholder="${escapeHtml(t('novel_say'))}" aria-label="${escapeHtml(t('novel_say'))}"></textarea>
@@ -4249,7 +4249,7 @@ function openNovel(fromId = null) {
         box.classList.toggle('waiting', end && stBusy());
         box.classList.toggle('end', end);
         count.textContent = end ? '' : `${k + 1} / ${N.steps.length}`;
-        syncSplitting();
+        syncSplitting(); syncLoot();
         readAhead();
         list.querySelectorAll('.rls-vn-logrow.cur').forEach(x => x.classList.remove('cur'));
         const row = list.querySelector(`[data-k="${k}"]`); if (row) row.classList.add('cur');
@@ -4284,6 +4284,31 @@ function openNovel(fromId = null) {
         box.title = busy ? t('novel_splitting') : '';
     };
     N.syncSplitting = syncSplitting;
+    /* RPG Engine's loupe for the reply on screen: the same button as in the chat, pressed for you —
+       its search, its popup, its one search per reply. Only where the Engine has put one. */
+    const lootEl = $q('.rls-vn-loot');
+    const lootBtn = () => {
+        const st1 = N.steps[N.idx];
+        if (!st1 || st1.user) return null;
+        return document.querySelector(`#chat .mes[mesid="${Number(st1.mid)}"] .rpg-loot-btn`);
+    };
+    const syncLoot = () => {
+        const b0 = lootBtn();
+        lootEl.hidden = !b0;
+        if (!b0) return;
+        const spent = b0.classList.contains('exhausted'), busy = b0.classList.contains('busy');
+        lootEl.classList.toggle('spent', spent);
+        lootEl.classList.toggle('busy', busy);
+        const lab = t(spent ? 'novel_loot_spent' : busy ? 'novel_loot_busy' : 'novel_loot');
+        if (lootEl.title !== lab) { lootEl.title = lab; lootEl.setAttribute('aria-label', lab); }
+        lootEl.setAttribute('aria-disabled', spent || busy ? 'true' : 'false');
+    };
+    const lootGo = () => {
+        const b0 = lootBtn();
+        if (!b0 || b0.classList.contains('busy')) return;
+        b0.click();
+        syncLoot();
+    };
     /* "Received": what reaches the backpack while you read (loot, a reward, coins) shows as a small plate
        in the novel's own style, gathered into one when several things come at once. What changes while a
        window of the suite is over the novel is your own doing there (buying, taking off) and is not announced. */
@@ -4359,7 +4384,7 @@ function openNovel(fromId = null) {
     $q('.rls-vn-regen').addEventListener('click', e => { e.stopPropagation(); if (stBusy()) return; document.getElementById('option_regenerate')?.click(); });
     $q('.rls-vn-stop').addEventListener('click', e => { e.stopPropagation(); document.getElementById('mes_stop')?.click(); });
 
-    box.addEventListener('click', e => { if (e.target.closest('a')) return; next(); });
+    box.addEventListener('click', e => { if (e.target.closest('a')) return; if (e.target.closest('.rls-vn-loot')) { e.stopPropagation(); lootGo(); return; } next(); });
     stage.addEventListener('click', next);
     // a line of your own: SillyTavern's own box and button send it, as if typed there
     const fit = () => { input.style.height = 'auto'; input.style.height = Math.min(input.scrollHeight, 140) + 'px'; };
@@ -4383,6 +4408,7 @@ function openNovel(fromId = null) {
     const onKey = e => {
         if (novel !== N) return;
         if (ov.classList.contains('under')) return;   // a window of the suite is over the novel: its keys are its own
+        if ((e.key === 'Enter' || e.key === ' ') && e.target && e.target.closest?.('.rls-vn-loot')) { e.preventDefault(); e.stopPropagation(); lootGo(); return; }
         const typing = e.target && (e.target === input || e.target.closest?.('input, textarea, select, [contenteditable="true"]'));
         if (e.key === 'Escape') { e.preventDefault(); if (!log.hidden) toggleLog(false); else if (typing) input.blur(); else closeNovel(true); return; }
         if (typing || !log.hidden || !ov.contains(document.activeElement) && document.activeElement !== document.body) return;
@@ -4397,7 +4423,7 @@ function openNovel(fromId = null) {
         // the map moved: the newest lines are in the new room — on screen at once if they are what you see
         if (roomFollow() && N.idx >= 0 && N.steps[N.idx] && N.steps[N.idx].mid === N.steps[N.steps.length - 1].mid) roomFor(N.idx);
         syncBg(); syncBar(); syncChoices(); box.classList.toggle('waiting', N.idx >= N.steps.length - 1 && stBusy());
-        gotTick(); syncSplitting();
+        gotTick(); syncSplitting(); syncLoot();
         // your own line is on screen and the answer to it is finished and split: it plays now,
         // even if the event that should have started it was missed
         const cur = N.steps[N.idx];
