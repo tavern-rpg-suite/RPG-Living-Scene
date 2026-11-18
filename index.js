@@ -1800,12 +1800,22 @@ function turnKey(messageId, msg) {
    taken out, and the returned function puts it back once the reply is done. What is in the box may
    be the line you have just SENT (on a long chat SillyTavern saves before it clears the box): that is
    not a draft, it is only cleared — put back, your own message came back. */
+/* What was in the box when your message went out. The message itself may read differently —
+   SillyTavern fills in macros ({{user}}…) and runs user-input regex scripts on it — so comparing
+   with the message alone took the line you had just sent for a draft, and put it back. */
+let sentFromBox = { text: '', at: 0 };
+function noteSentBox() {
+    const ta = document.getElementById('send_textarea');
+    const v = ta ? String(ta.value || '') : '';
+    if (v.trim()) sentFromBox = { text: v, at: Date.now() };
+}
 function holdBox(fromUser, msg) {
     const ta = document.getElementById('send_textarea');
     const inBox = ta ? String(ta.value || '') : '';
     const flat = x => String(x || '').replace(/\s+/g, ' ').trim();
     const sentNow = fromUser && msg ? flat(msg.mes) : '';
-    const draft = inBox && !(sentNow && (flat(inBox) === sentNow || sentNow.includes(flat(inBox)))) ? inBox : '';
+    const wasSent = !!inBox && Date.now() - sentFromBox.at < 10 * 60 * 1000 && flat(inBox) === flat(sentFromBox.text);
+    const draft = inBox && !wasSent && !(sentNow && (flat(inBox) === sentNow || sentNow.includes(flat(inBox)))) ? inBox : '';
     if (inBox && ta) { ta.value = ''; ta.dispatchEvent(new Event('input', { bubbles: true })); }
     return () => {
         if (!draft || !ta) return;
@@ -4763,6 +4773,7 @@ jQuery(() => {
     });
 
     eventSource.on(event_types.MESSAGE_SENT, (messageId) => {
+        noteSentBox();                       // in a group the line is still in the box here
         roomMark(messageId);
         turnChain = 0;                       // the player wrote: the chain starts over
         if (settings.reactToUser) setTimeout(() => processMessage(messageId), 60);
