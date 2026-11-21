@@ -3,6 +3,7 @@ import { eventSource, event_types, saveChatDebounced, saveSettingsDebounced, set
 import { selected_group, groups, editGroup } from '../../../group-chats.js';
 import { user_avatar } from '../../../personas.js';
 import * as ST from '../../../../script.js';
+import './suite-core.js';   // the suite's shared core: one seal for the floating buttons, the request queue, one "when and where"
 
 const MODULE_NAME = 'rpg_living_scene';
 const PROMPT_KEY = 'rpg_living_scene_injection';
@@ -67,6 +68,7 @@ const I18N = {
         roster_hint: 'Present characters may quietly react to what happens. Toggle who is actually in the room.',
         roster_npc_ph: 'NPC name (no card needed)…',
         roster_npc_add: 'Add NPC',
+        cut_sec: 'Meanwhile', cut_hint: 'Pick who to look in on: the next reply is a scene about them, without you.', cut_go: 'Show them', cut_armed: 'The next reply shows: {names}{place}', cut_at: ' — {place}', cut_cancel: 'Cancel', cut_none: 'Nobody else is in this story yet.', cut_pick: 'Pick at least one.', cut_toast: 'The next reply is a cutaway: {names}.',
         roster_members: 'Group members', roster_npcs: 'Custom NPCs',
         btn_title: 'Living Scene — who is present',
         bark_reply_title: 'Reply to {name}',
@@ -166,6 +168,7 @@ const I18N = {
         roster_hint: 'Присутствующие могут тихо реагировать на происходящее. Отметь, кто реально в комнате.',
         roster_npc_ph: 'Имя NPC (карточка не нужна)…',
         roster_npc_add: 'Добавить NPC',
+        cut_sec: 'Тем временем', cut_hint: 'Отметь, к кому заглянуть: следующий ответ — сцена про них, без тебя.', cut_go: 'Показать их', cut_armed: 'Следующий ответ покажет: {names}{place}', cut_at: ' — {place}', cut_cancel: 'Отмена', cut_none: 'Других персонажей в этой истории пока нет.', cut_pick: 'Отметь хотя бы одного.', cut_toast: 'Следующий ответ — «тем временем»: {names}.',
         roster_members: 'Участники группы', roster_npcs: 'Свои NPC',
         btn_title: 'Живая сцена — кто присутствует',
         bark_reply_title: 'Ответить персонажу {name}',
@@ -1062,6 +1065,7 @@ async function processMessage(messageId, force = false) {
     const myChat = ctx.chatId;
     const msg = ctx.chat[messageId];
     if (!msg || msg.is_system) return;
+    if (isCutaway(msg)) return;                                   // a cutaway happens elsewhere: the room does not react to it
     if (msg.is_user && !force && !settings.reactToUser) return;   // the room may react to YOU too
 
     // swipes/regens re-fire events — bark exactly once per message variant
@@ -1828,6 +1832,7 @@ async function passTheTurn(messageId, fromUser) {
     // Deliberately NOT gated on the main Living Scene switch: that one is for the
     // thought bubbles. Handing the turn over is its own feature with its own toggle.
     if (!settings.passEnabled) { turnLog('skipped — "hand the turn over" is off in the settings'); return null; }
+    if (isCutaway((getContext().chat || [])[messageId])) { turnLog('skipped — a cutaway (Meanwhile) is not answered by the room'); return null; }
     const key = turnKey(messageId, (getContext().chat || [])[messageId]);
     if (turnHandled.has(key)) return null;
     // Busy deciding the previous one: this message waits its turn instead of being
@@ -2119,6 +2124,83 @@ function renderRosterButton() {
     });
 }
 
+/* ============================================================
+   MEANWHILE (a cutaway): the next reply leaves the player and looks in on others.
+   Armed from the roster; the one-time instruction rides on the next generation, the reply
+   is marked (extra.rls_cutaway: names, place) so the Map does not place them with you and
+   the room does not bark at it; a note right after it reminds the model the player did not see it.
+   ============================================================ */
+const CUT_KEY = 'rpg_living_scene_cutaway';
+const CUT_NOTE_KEYS = ['rpg_living_scene_cutnote_0', 'rpg_living_scene_cutnote_1', 'rpg_living_scene_cutnote_2'];
+let cutArmed = null;                 // { names:[], place:'' } until the reply comes
+const cutPick = new Set();           // names ticked in the roster
+function userNameNow() { return String(getContext().name1 || name1 || 'User'); }
+function cutPlace(names) {
+    // the Map's room, when it knows every one of them is in the same one
+    try {
+        const map = window.RPG && window.RPG.map;
+        if (!map || !map.available || typeof map.whereIs !== 'function' || (map.isEnabled && !map.isEnabled())) return '';
+        const rooms = names.map(n => { const w = map.whereIs(n); return w && w.kind === 'room' && w.room ? String(w.room) : w && w.kind === 'away' && w.text ? String(w.text) : ''; });
+        return rooms.length && rooms.every(r => r && r === rooms[0]) ? rooms[0].slice(0, 80) : '';
+    } catch (e) { return ''; }
+}
+function cutListNames(names) { return names.length < 2 ? names.join('') : names.slice(0, -1).join(', ') + ' and ' + names[names.length - 1]; }
+function cutText(c) {
+    const u = userNameNow();
+    return `[Next reply only — a cutaway. Leave ${u} and the current scene. Show what ${cutListNames(c.names)} are doing right now${c.place ? `, at ${c.place}` : ''}, as a short scene of its own in the same style and tense. ${u} is not there, does not appear, and learns nothing of it. End the cutaway with them; do not return to ${u}.]`;
+}
+function cutArm(names) {
+    const clean = [...new Set(names.map(n => String(n || '').trim()).filter(Boolean))].slice(0, 6);
+    if (!clean.length) { toastr.info(t('cut_pick')); return false; }
+    cutArmed = { names: clean, place: cutPlace(clean) };
+    setExtensionPrompt(CUT_KEY, cutText(cutArmed), 1, 0, false, extension_prompt_roles.SYSTEM);
+    toastr.info(t('cut_toast', { names: clean.join(', ') }));
+    return true;
+}
+function cutDisarm() { cutArmed = null; setExtensionPrompt(CUT_KEY, '', 0, 0, false); }
+function isCutaway(m) { return !!(m && m.extra && m.extra.rls_cutaway && Array.isArray(m.extra.rls_cutaway.names)); }
+// the notes sit right after each of the last three cutaways (a depth counted from the end of the chat)
+function cutNotes() {
+    const chat = getContext().chat || [];
+    const at = [];
+    for (let i = chat.length - 1; i >= 0 && at.length < CUT_NOTE_KEYS.length && i >= chat.length - 120; i--) if (isCutaway(chat[i])) at.push(i);
+    CUT_NOTE_KEYS.forEach((k, j) => {
+        if (j < at.length) setExtensionPrompt(k, `*[Cutaway — ${userNameNow()} did not see this.]*`, 1, Math.max(0, chat.length - 1 - at[j]), false, extension_prompt_roles.SYSTEM);
+        else setExtensionPrompt(k, '', 0, 0, false);
+    });
+}
+function cutOnReply(id) {
+    const chat = getContext().chat || []; const m = chat[id];
+    if (!m || m.is_user || m.is_system) return;
+    if (cutArmed) {
+        if (!m.extra) m.extra = {};
+        m.extra.rls_cutaway = { names: cutArmed.names.slice(), place: cutArmed.place || '' };
+        cutDisarm(); cutPick.clear(); saveChatDebounced();
+        if ($('#rls-roster').hasClass('visible')) renderRoster();
+    }
+    cutNotes();
+}
+// a swipe or a regeneration of a cutaway stays a cutaway
+function cutOnGenerate(type) {
+    if (cutArmed) return;
+    if (type !== 'swipe' && type !== 'regenerate') return;
+    const chat = getContext().chat || []; const last = chat[chat.length - 1];
+    if (isCutaway(last)) { cutArmed = { names: last.extra.rls_cutaway.names.slice(0, 6), place: String(last.extra.rls_cutaway.place || '') }; setExtensionPrompt(CUT_KEY, cutText(cutArmed), 1, 0, false, extension_prompt_roles.SYSTEM); }
+}
+function cutHtml(members, npcs) {
+    const me = userNameNow().toLowerCase();
+    const names = [...new Set([...members.map(m => m.name), ...npcs.map(n => n.name)])].filter(n => n && n.toLowerCase() !== me);
+    let h = `<div class="rls-roster-sec">${escapeHtml(t('cut_sec'))}</div>`;
+    if (cutArmed) {
+        const place = cutArmed.place ? t('cut_at', { place: escapeHtml(cutArmed.place) }) : '';
+        return h + `<div class="rls-cut-armed" role="status"><i class="fa-solid fa-film" aria-hidden="true"></i><span>${t('cut_armed', { names: escapeHtml(cutArmed.names.join(', ')), place })}</span><button type="button" class="rls-cut-cancel">${escapeHtml(t('cut_cancel'))}</button></div>`;
+    }
+    if (!names.length) return h + `<div class="rls-roster-hint">${escapeHtml(t('cut_none'))}</div>`;
+    h += `<div class="rls-roster-hint">${escapeHtml(t('cut_hint'))}</div><div class="rls-cut-chips" role="group" aria-label="${escapeHtml(t('cut_sec'))}">`;
+    h += names.map(n => `<button type="button" class="rls-cut-chip" data-name="${escapeHtml(n)}" aria-pressed="${cutPick.has(n) ? 'true' : 'false'}">${escapeHtml(n)}</button>`).join('');
+    h += `</div><button type="button" class="rls-cut-go"${cutPick.size ? '' : ' disabled'}><i class="fa-solid fa-film" aria-hidden="true"></i> ${escapeHtml(t('cut_go'))}</button>`;
+    return h;
+}
 function renderRoster() {
     const body = $('#rls-roster-body');
     if (!body.length) return;
@@ -2137,7 +2219,7 @@ function renderRoster() {
             ${byMap ? `<span class="rls-auto" title="${escapeHtml(t('roster_map_hint'))}">${t('roster_map')}</span>` : isAuto ? `<span class="rls-auto">${t('roster_auto')}</span>` : ''}
             <i class="fa-solid fa-pen rls-meta-edit" data-name="${escapeHtml(name)}" title="${escapeHtml(t('roster_edit_title'))}"></i>
             ${isNpc ? `<i class="fa-solid fa-trash rls-npc-del" data-name="${escapeHtml(name)}"></i>` : ''}
-            <div class="rls-toggle ${on ? 'on' : ''}" data-name="${escapeHtml(name)}" data-npc="${isNpc ? 1 : 0}"${av ? ` data-member="${escapeHtml(av)}" title="${escapeHtml(t('roster_member_sw'))}"` : ''}><div class="rls-knob"></div></div>
+            <div class="rls-toggle ${on ? 'on' : ''}" role="switch" tabindex="0" aria-checked="${on ? 'true' : 'false'}" aria-label="${escapeHtml(name)}" data-name="${escapeHtml(name)}" data-npc="${isNpc ? 1 : 0}"${av ? ` data-member="${escapeHtml(av)}" title="${escapeHtml(t('roster_member_sw'))}"` : ''}><div class="rls-knob"></div></div>
         </div>
         <div class="rls-meta-editor" data-for="${escapeHtml(name)}" style="display:none;">
             <input type="text" class="text_pole rls-meta-alias" placeholder="${escapeHtml(t('meta_aliases_ph'))}" value="${escapeHtml(meta.aliases || '')}">
@@ -2166,6 +2248,7 @@ function renderRoster() {
     } else {
         html += `<div class="rls-roster-hint">${t('roster_diary_none')}</div>`;
     }
+    html += cutHtml(members, st.npcs);
     html += `<div class="rls-npc-add-row">
         <input type="text" id="rls-npc-name" class="text_pole" placeholder="${escapeHtml(t('roster_npc_ph'))}">
         <button id="rls-npc-add" class="menu_button">${t('roster_npc_add')}</button>
@@ -2176,11 +2259,31 @@ function renderRoster() {
     body.find('.rls-toggle').on('click', async function () {
         const nm = $(this).data('name');
         const av = $(this).attr('data-member');
-        if (av) { await setMemberMuted(av, !memberMuted(av)); renderRoster(); return; }
+        // the knob slides first, then the list is drawn again (redrawing at once made it jump);
+        // the switch keeps the keyboard focus across the redraw
+        const sw = $(this).toggleClass('on'); sw.attr('aria-checked', sw.hasClass('on') ? 'true' : 'false');
+        const hadFocus = document.activeElement === this;
+        const redraw = () => {
+            renderRoster();
+            if (hadFocus) $('#rls-roster .rls-toggle').filter(function () { return String($(this).data('name')) === String(nm); }).first().trigger('focus');
+        };
+        const later = (fn) => setTimeout(fn, window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 200);
+        if (av) { await setMemberMuted(av, !memberMuted(av)); later(redraw); return; }
         const st2 = sceneState();
         st2.present[nm] = !isPresent(nm);
         saveScene();
-        renderRoster();
+        later(redraw);
+    });
+    body.find('.rls-cut-chip').on('click', function () {
+        const n = String($(this).data('name'));
+        if (cutPick.has(n)) cutPick.delete(n); else cutPick.add(n);
+        this.setAttribute('aria-pressed', cutPick.has(n) ? 'true' : 'false');
+        body.find('.rls-cut-go').prop('disabled', !cutPick.size);
+    });
+    body.find('.rls-cut-go').on('click', () => { if (cutArm([...cutPick])) renderRoster(); });
+    body.find('.rls-cut-cancel').on('click', () => { cutDisarm(); renderRoster(); });
+    body.find('.rls-toggle').on('keydown', function (e) {
+        if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); $(this).trigger('click'); }
     });
     body.find('.rls-meta-edit').on('click', function () {
         const nm = $(this).data('name');
@@ -3775,7 +3878,7 @@ function roomMark(id) {
     if (!settings.enabled) return;
     try {
         const m = (getContext().chat || [])[id];
-        if (!m || m.is_system) return;
+        if (!m || m.is_system || isCutaway(m)) return;          // a cutaway is not in the player's room
         const r = roomNow();
         if (!r) return;
         const st = sceneState();
@@ -4123,7 +4226,10 @@ function openNovel(fromId = null) {
         const time = want.time !== false && sc && sc.time ? String(sc.time) : '';
         // the date as the Scene Card wrote it (its "day" is only the first number in that date: 3 March was "Day 3")
         const day = want.date !== false && sc ? String(sc.date || (sc.day ? t('info_day_n', { n: sc.day }) : '')) : '';
-        const place = want.place !== false ? (N.room ? placeText(N.room) : (sc && sc.location ? String(sc.location) : '')) : '';
+        let wp = null;
+        try { const w = window.RPG && window.RPG.world && window.RPG.world.get ? window.RPG.world.get() : null; if (w && w.from === 'scene' && w.place) wp = String(w.place); } catch (e) { wp = null; }
+        // the newer of a move on the Map and the story's change of place (window.RPG.world); as before otherwise
+        const place = want.place !== false ? (wp || (N.room ? placeText(N.room) : (sc && sc.location ? String(sc.location) : ''))) : '';
         const wx = want.weather !== false && sc && sc.weather ? String(sc.weather) : '';
         const sig = [time, day, place, wx].join('|');
         ov.classList.toggle('info-place', !!place);
@@ -4752,6 +4858,10 @@ jQuery(() => {
     }
     window.addEventListener('resize', syncBubbles, { passive: true });
 
+    // Meanwhile — first, so the reply is marked before the barks, the turn and the room look at it
+    eventSource.on(event_types.MESSAGE_RECEIVED, (id) => { try { cutOnReply(Number(id)); } catch (e) { console.warn('[Living Scene] cutaway', e); } });
+    eventSource.on(event_types.GENERATION_STARTED, (type) => { try { cutOnGenerate(type); } catch (e) { } });
+    ['MESSAGE_SENT', 'MESSAGE_DELETED', 'MESSAGE_SWIPED', 'CHAT_CHANGED'].forEach(k => { if (event_types[k]) eventSource.on(event_types[k], () => { if (k === 'CHAT_CHANGED') { cutDisarm(); cutPick.clear(); } setTimeout(() => { try { cutNotes(); } catch (e) { } }, 50); }); });
     eventSource.on(event_types.CHAT_CHANGED, () => {
         $('#rls-roster').removeClass('visible');
         clearAllBubbles();

@@ -162,6 +162,9 @@
     transform: translateY(8px);
     transition: opacity 0.18s, transform 0.18s;
     scrollbar-width: thin;
+    /* with scrollbar-width set, Chrome ignores ::-webkit-scrollbar and draws its grey bar — so the colour goes here too */
+    scrollbar-color: rgba(170, 140, 255, 0.45) transparent;
+    scrollbar-gutter: stable;
 }
 #rls-roster.visible { opacity: 1; pointer-events: auto; transform: translateY(0); }
 #rls-roster::-webkit-scrollbar { width: 6px; }
@@ -190,20 +193,51 @@
 .rls-npc-del:hover { opacity: 1; color: #ff6b6b; }
 
 .rls-toggle {
-    width: 36px; height: 20px; border-radius: 10px;
-    background: rgba(255, 255, 255, 0.12);
+    width: 34px; height: 18px; border-radius: 9px;
+    background: rgba(12, 8, 28, 0.55);
+    box-shadow: inset 0 0 0 1px rgba(205, 188, 255, 0.32), inset 0 1px 2px rgba(0, 0, 0, 0.45);
     cursor: pointer; position: relative; flex-shrink: 0;
-    transition: background 0.2s;
+    transition: background 200ms cubic-bezier(.2, .8, .3, 1), box-shadow 200ms cubic-bezier(.2, .8, .3, 1);
 }
 .rls-toggle .rls-knob {
-    position: absolute; top: 2px; left: 2px;
-    width: 16px; height: 16px; border-radius: 50%;
-    background: #999; transition: left 0.2s, background 0.2s;
+    position: absolute; top: 3px; left: 3px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: #9d8fc4;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+    transition: transform 220ms cubic-bezier(.3, 1.35, .5, 1), background 200ms ease-out;
 }
-.rls-toggle.on { background: rgba(140, 100, 255, 0.45); }
-.rls-toggle.on .rls-knob { left: 18px; background: #cdbcff; }
+.rls-toggle:hover { box-shadow: inset 0 0 0 1px rgba(205, 188, 255, 0.55), inset 0 1px 2px rgba(0, 0, 0, 0.45); }
+.rls-toggle:focus-visible { outline: 2px solid #cdbcff; outline-offset: 2px; }
+.rls-toggle.on {
+    background: linear-gradient(90deg, #7a52ea, #9672ff);
+    box-shadow: inset 0 0 0 1px rgba(220, 205, 255, 0.5), 0 0 10px rgba(138, 99, 255, 0.35);
+}
+.rls-toggle.on .rls-knob { transform: translateX(16px); background: #fbf8ff; box-shadow: 0 1px 3px rgba(30, 10, 80, 0.55); }
+.rls-toggle:active .rls-knob { width: 14px; }
+.rls-toggle.on:active .rls-knob { transform: translateX(14px); }
+@media (prefers-reduced-motion: reduce) {
+    .rls-toggle, .rls-toggle .rls-knob { transition: none; }
+}
 
 .rls-npc-add-row { display: flex; gap: 6px; margin-top: 10px; }
+/* Meanwhile: pick who to look in on */
+.rls-cut-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 2px 0 8px; }
+.rls-cut-chip { all: unset; cursor: pointer; font-size: 0.78rem; line-height: 1; padding: 6px 10px; border-radius: 999px; color: #e4dbff;
+    border: 1px solid rgba(205, 188, 255, 0.32); background: rgba(12, 8, 28, 0.35); transition: background 80ms ease-out, border-color 80ms ease-out, color 80ms ease-out; }
+.rls-cut-chip:hover { border-color: rgba(205, 188, 255, 0.6); }
+.rls-cut-chip[aria-pressed="true"] { background: linear-gradient(90deg, #7a52ea, #9672ff); border-color: rgba(220, 205, 255, 0.6); color: #fff; }
+.rls-cut-chip:focus-visible, .rls-cut-go:focus-visible, .rls-cut-cancel:focus-visible { outline: 2px solid #cdbcff; outline-offset: 2px; }
+.rls-cut-go { all: unset; box-sizing: border-box; width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px; cursor: pointer;
+    padding: 7px 10px; border-radius: 10px; font-size: 0.82rem; font-weight: 600; color: #f1ecff;
+    border: 1px solid rgba(205, 188, 255, 0.5); background: rgba(122, 82, 234, 0.28); transition: background 80ms ease-out, border-color 80ms ease-out; }
+.rls-cut-go:hover:not([disabled]) { background: rgba(122, 82, 234, 0.45); border-color: rgba(220, 205, 255, 0.75); }
+.rls-cut-go:active:not([disabled]) { transform: translateY(1px); }
+.rls-cut-go[disabled] { opacity: 0.45; cursor: default; }
+.rls-cut-armed { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; line-height: 1.35; color: #e4dbff; padding: 7px 9px; border-radius: 10px;
+    border: 1px dashed rgba(205, 188, 255, 0.45); background: rgba(122, 82, 234, 0.14); }
+.rls-cut-armed span { flex: 1; }
+.rls-cut-cancel { all: unset; cursor: pointer; font-size: 0.75rem; color: #cdbcff; padding: 3px 8px; border-radius: 8px; border: 1px solid rgba(205, 188, 255, 0.35); }
+.rls-cut-cancel:hover { background: rgba(205, 188, 255, 0.15); color: #fff; }
 .rls-npc-add-row input { flex: 1; }
 
 /* narrow screens: bubbles auto-hug the message edge (handled in JS via .tight),
