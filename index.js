@@ -104,7 +104,7 @@ const I18N = {
         set_sec_compress: 'Long cards', set_compress: 'Long cards are condensed before they are sent (once, kept)', set_compress_over: 'Condense cards longer than (tokens):',
         set_faces: 'Split replies by roles', set_sec_cast: 'Who is in the scene', set_sec_roles: 'Replies by roles',
         set_faces_hint: 'Each person’s lines and actions in their own block, with their face. One side call per reply. Older replies: the button in the message menu.',
-        parts_btn: 'Split by roles', parts_plain: 'Show as plain text', parts_compact: 'Only the spoken lines', parts_full: 'Lines and actions', parts_failed: 'Could not split this reply.', parts_one: 'Nothing to split here.', scene_btn: 'Play as a scene', scene_log: 'Log', scene_close: 'Close', scene_end: 'End of the reply', scene_hint: 'Click, Space or → — next · ← — back · Esc — close', novel_menu: 'Novel mode', novel_exit: 'Back to the chat', novel_say: 'Your line…', novel_send: 'Send', novel_prev: 'Previous version', novel_next: 'Another version', novel_regen: 'Regenerate', novel_stop: 'Stop', novel_busy: 'Wait until the reply is finished.', novel_wait: 'The reply is on its way…', novel_hint: 'Click or Space — next · ← — back · Enter — send · Esc — back to the chat', novel_return: 'Return to the character', novel_ask: 'Suggest choices', novel_empty: 'Write the first line below.',
+        parts_btn: 'Split by roles', parts_plain: 'Show as plain text', parts_compact: 'Only the spoken lines', parts_full: 'Lines and actions', parts_failed: 'Could not split this reply.', parts_one: 'Nothing to split here.', scene_btn: 'Play as a scene', scene_log: 'Log', scene_close: 'Close', scene_end: 'End of the reply', scene_hint: 'Click, Space or → — next · ← — back · Esc — close', cg_make: 'Draw this moment (Character Lens)', cg_draw_now: 'Draw the moment on screen', cg_memories: 'Memories', cg_count: '{n} scenes', cg_close: 'Close', cg_open: 'Open this scene', cg_del: 'Delete this scene', cg_del_sure: 'Tap again to delete', cg_none: 'No scenes yet. At a turning point the novel draws one by itself — or press the camera.', cg_drawing: 'Character Lens is drawing this moment…', set_cg_auto: 'Full-screen CG at turning points (drawn by Character Lens)', novel_menu: 'Novel mode', novel_exit: 'Back to the chat', novel_say: 'Your line…', novel_send: 'Send', novel_prev: 'Previous version', novel_next: 'Another version', novel_regen: 'Regenerate', novel_stop: 'Stop', novel_busy: 'Wait until the reply is finished.', novel_wait: 'The reply is on its way…', novel_hint: 'Click or Space — next · ← — back · Enter — send · Esc — back to the chat', novel_return: 'Return to the character', novel_ask: 'Suggest choices', novel_empty: 'Write the first line below.',
         set_autonpc: 'Offer diary NPCs in the roster',
         set_autonpc_hint: 'They are listed so you can let them in with "+" or the switch. Being mentioned is not enough — an NPC nobody invited stays silent.',
         roster_diary: 'From the Diary',
@@ -204,7 +204,7 @@ const I18N = {
         set_sec_compress: 'Длинные карточки', set_compress: 'Длинные карточки сжимаются перед отправкой (один раз, запоминается)', set_compress_over: 'Сжимать карточки длиннее (токенов):',
         set_faces: 'Разбивать ответы по ролям', set_sec_cast: 'Кто в сцене', set_sec_roles: 'Ответы по ролям',
         set_faces_hint: 'Реплики и действия каждого — в своём блоке, с портретом. Один запрос к боковой модели на ответ. Для старых сообщений — кнопка в меню сообщения.',
-        parts_btn: 'Разбить по ролям', parts_plain: 'Показать обычным текстом', parts_compact: 'Только реплики', parts_full: 'Реплики и действия', parts_failed: 'Не получилось разбить этот ответ.', parts_one: 'Здесь нечего разбивать.', scene_btn: 'Показать сценой', scene_log: 'Журнал', scene_close: 'Закрыть', scene_end: 'Конец ответа', scene_hint: 'Клик, пробел или → — дальше · ← — назад · Esc — закрыть', novel_menu: 'Режим новеллы', novel_exit: 'Вернуться в чат', novel_say: 'Твоя реплика…', novel_send: 'Отправить', novel_prev: 'Предыдущая версия', novel_next: 'Другая версия', novel_regen: 'Перегенерировать', novel_stop: 'Остановить', novel_busy: 'Дождись, пока ответ допишется.', novel_wait: 'Ответ пишется…', novel_hint: 'Клик или пробел — дальше · ← — назад · Enter — отправить · Esc — в чат', novel_return: 'Вернуться к персонажу', novel_ask: 'Предложить варианты', novel_empty: 'Напиши первую реплику внизу.',
+        parts_btn: 'Разбить по ролям', parts_plain: 'Показать обычным текстом', parts_compact: 'Только реплики', parts_full: 'Реплики и действия', parts_failed: 'Не получилось разбить этот ответ.', parts_one: 'Здесь нечего разбивать.', scene_btn: 'Показать сценой', scene_log: 'Журнал', scene_close: 'Закрыть', scene_end: 'Конец ответа', scene_hint: 'Клик, пробел или → — дальше · ← — назад · Esc — закрыть', cg_make: 'Нарисовать этот момент (Character Lens)', cg_draw_now: 'Нарисовать момент на экране', cg_memories: 'Воспоминания', cg_count: 'сцен: {n}', cg_close: 'Закрыть', cg_open: 'Открыть сцену', cg_del: 'Удалить сцену', cg_del_sure: 'Нажми ещё раз — удалится', cg_none: 'Сцен пока нет. В поворотный момент новелла нарисует её сама — или нажми на фотоаппарат.', cg_drawing: 'Character Lens рисует этот момент…', set_cg_auto: 'CG на весь экран в поворотные моменты (рисует Character Lens)', novel_menu: 'Режим новеллы', novel_exit: 'Вернуться в чат', novel_say: 'Твоя реплика…', novel_send: 'Отправить', novel_prev: 'Предыдущая версия', novel_next: 'Другая версия', novel_regen: 'Перегенерировать', novel_stop: 'Остановить', novel_busy: 'Дождись, пока ответ допишется.', novel_wait: 'Ответ пишется…', novel_hint: 'Клик или пробел — дальше · ← — назад · Enter — отправить · Esc — в чат', novel_return: 'Вернуться к персонажу', novel_ask: 'Предложить варианты', novel_empty: 'Напиши первую реплику внизу.',
         set_autonpc: 'Показывать NPC из дневника в списке сцены',
         set_autonpc_hint: 'Они появляются в списке, чтобы их можно было впустить кнопкой «+» или переключателем. Одного упоминания мало — неприглашённый NPC молчит.',
         roster_diary: 'Из дневника',
@@ -361,6 +361,8 @@ function loadSettings() {
         lineFaces: true,    // a reply is cut into blocks by who speaks and acts (one side call per reply)
         partsCompact: false, // the blocks show only the spoken lines
         novel: false,        // the chat is played as a visual novel (kept between chats and reloads)
+        cgAuto: true,        // (1.9.0) in the novel, a turning point is drawn as a full-screen CG by Character Lens
+        cgLastAt: 0,
         mapPresence: true,   // RPG Map's "Who is where" decides who is present (your switch still wins)
         partsAuto: true,     // every new reply is split by itself (off: only with the button, or while the novel is open)
         partsFold: true,     // older replies show their plain text with a "by roles" button; the last few stay in blocks
@@ -2418,6 +2420,7 @@ function settingsHtml() {
                 </div>`)}
             ${sub(`📖 ${t('set_sec_novel')}`, `
                 <label class="checkbox_label"><input type="checkbox" id="rls-novel-btn"> ${t('set_novel_btn')}</label>
+                <label class="checkbox_label"><input type="checkbox" id="rls-cg-auto"> ${t('set_cg_auto')}</label>
                 <div class="rls-row stack"><label for="rls-novel-box">${t('set_novel_box')}</label><select id="rls-novel-box" class="text_pole"><option value="parchment">${t('box_parchment')}</option><option value="glass">${t('box_glass')}</option><option value="grimoire">${t('box_grimoire')}</option><option value="ribbon">${t('box_ribbon')}</option><option value="twilight">${t('box_twilight')}</option></select></div>
                 <div class="rls-row stack"><label for="rls-novel-sprite">${t('set_novel_sprite')}</label><select id="rls-novel-sprite" class="text_pole"><option value="large">${t('sprite_large')}</option><option value="medium">${t('sprite_medium')}</option><option value="waist">${t('sprite_waist')}</option></select></div>
                 <div class="rls-row stack"><label for="rls-novel-face">${t('set_novel_face')}</label><select id="rls-novel-face" class="text_pole"><option value="nosprite">${t('face_nosprite')}</option><option value="always">${t('face_always')}</option><option value="never">${t('face_never')}</option></select></div>
@@ -2515,6 +2518,7 @@ function setupUI() {
     $('#rls-parts-solo').prop('checked', settings.partsSolo === true).on('change', function () { settings.partsSolo = this.checked; saveSettings(); renderAllParts(); });
     $('#rls-parts-fonts').prop('checked', settings.partsFonts !== false).on('change', function () { settings.partsFonts = this.checked; saveSettings(); renderAllParts(); });
     $('#rls-novel-btn').prop('checked', settings.novelBtn !== false).on('change', function () { settings.novelBtn = this.checked; saveSettings(); renderAllParts(); });
+    $('#rls-cg-auto').prop('checked', settings.cgAuto !== false).on('change', function () { settings.cgAuto = this.checked; saveSettings(); });
     const novelLook = () => { if (novel && novel.look) novel.look(); };
     $('#rls-novel-box').val(settings.novelBox).on('change', function () { settings.novelBox = this.value; saveSettings(); novelLook(); });
     $('#rls-novel-sprite').val(settings.novelSprite).on('change', function () { settings.novelSprite = this.value; saveSettings(); novelLook(); });
@@ -2643,8 +2647,8 @@ If you truly cannot tell, "?".
 A piece that ends in "→ Name" is already settled by the text itself: give it that name (you may leave it out of the answer).
 Also say how each cast member who appears is actually written in this reply, if it differs from the cast name (a card named «Уильям» may be "William" in an English reply).
 For every spoken piece also say how the speaker feels saying it, one word from this list: ${spriteLabels().join(', ')}.
-Answer with JSON only: the number of every piece and whose it is, the written forms, and the feelings —
-{"who":{"0":"Name","1":"-","2":"?",...},"forms":{"Cast name":["form as written"]},"feel":{"1":"joy",...}}`;
+${cgAsk() ? CG_LINE + '\n' : ''}Answer with JSON only: the number of every piece and whose it is, the written forms, and the feelings —
+{"who":{"0":"Name","1":"-","2":"?",...},"forms":{"Cast name":["form as written"]},"feel":{"1":"joy",...}${cgAsk() ? ',"cg":""' : ''}}`;
 }
 function partsUser(messageId, pieces, text, settled = null) {
     const ctx = getContext();
@@ -3176,6 +3180,7 @@ async function askParts(messageId, manual = false, again = false) {
         now.extra.rls_parts[swipeId] = { h: partsHash(mes0), p: pieces.map(x => [x.s, x.e, x.kind === 'say' ? 's' : 'a']), w: who, f: partsFeel(res && res.feel, pieces.length) };
         rememberPeople(who);
         saveScene();
+        if (res && typeof res.cg === 'string' && res.cg.trim()) cgOrder(messageId, res.cg);
         if (mayRetry) {
             const v = partsView(messageId);
             const people = new Set((v ? v.blocks : []).map(b => b.w).filter(w => w && w !== '-' && w !== '?'));
@@ -3967,6 +3972,24 @@ async function roomPicture(r) {
 /* ---------- buttons over the novel: the suite's own windows, opened over it ----------
    Each opens through what that extension itself offers (its button, its bridge), only when it is
    installed. While one of them is open the novel steps back under it, and comes forward again after. */
+/* (1.9.0) CG through Character Lens (asked for by the author): the scenes are drawn there, with
+   its settings; the novel shows them full screen and asks for one at a turning point. */
+function lensOk() { try { return !!(window.RPG && window.RPG.lens && window.RPG.lens.available && window.RPG.lens.isEnabled()); } catch (e) { return false; } }
+function safeCg(url) { const u = String(url || ''); return /^data:image\/(png|jpe?g|webp|gif|avif);/i.test(u) || /^https?:\/\//i.test(u) || (u.startsWith('/') && !u.startsWith('//')) ? u : null; }
+const CG_LINE = `Also: if this beat is a true turning point that a visual novel would show as a full-screen illustration (a confession, a first kiss, a reunion, a betrayal, a battle's climax), describe it for an artist in "cg" — who is in it, pose, place, light, mood — in one English sentence. Otherwise leave "cg" empty. Most beats are not.`;
+const CG_GAP = 30 * 60000;      // one asked-for CG in half an hour at most, so they stay special
+function cgAsk() { return !!((novel || settings.novel) && settings.cgAuto !== false && lensOk()); }
+function cgOrder(messageId, hint) {
+    const h = String(hint || '').replace(/\s+/g, ' ').trim().slice(0, 400);
+    if (!h || !cgAsk()) return;
+    const now = Date.now();
+    if (now - (Number(settings.cgLastAt) || 0) < CG_GAP) return;
+    const msg = getContext().chat?.[messageId];
+    if (!msg || (msg.extra && msg.extra.character_lens_cg) || window.RPG.lens.drawing(messageId)) return;
+    settings.cgLastAt = now; saveSettings();
+    console.log('[Living Scene] a turning point — Character Lens draws it:', h);
+    window.RPG.lens.drawScene(messageId, h).catch(() => {});
+}
 const HUD = [
     { id: 'map', icon: 'fa-map-location-dot', key: 'hud_map', ok: () => !!document.getElementById('rpg-map-btn'), go: () => document.getElementById('rpg-map-btn').click() },
     { id: 'diary', icon: 'fa-book', key: 'hud_diary', ok: () => !!document.getElementById('rpg-diary-btn'), go: () => document.getElementById('rpg-diary-btn').click() },
@@ -4047,6 +4070,7 @@ function openNovel(fromId = null) {
     const B = (cls, icon, key) => `<button type="button" class="${cls}" title="${escapeHtml(t(key))}" aria-label="${escapeHtml(t(key))}"><i class="fa-solid ${icon}"></i></button>`;
     ov.innerHTML = `<div class="rls-vn-bg"></div><div class="rls-vn-shade"></div>
         <div class="rls-vn-stage"></div>
+        <div class="rls-vn-cg" aria-hidden="true"></div>
         <div class="rls-vn-veil"></div>
         <div class="rls-vn-card" aria-live="polite"></div>
         <div class="rls-vn-place"></div>
@@ -4062,6 +4086,7 @@ function openNovel(fromId = null) {
             ${B('rls-vn-regen', 'fa-rotate-right', 'novel_regen')}
             ${B('rls-vn-stop', 'fa-stop', 'novel_stop')}
             <button type="button" class="rls-vn-logbtn" title="${escapeHtml(t('scene_log'))}" aria-label="${escapeHtml(t('scene_log'))}"><i class="fa-solid fa-scroll"></i><span>${escapeHtml(t('scene_log'))}</span></button>
+            ${lensOk() ? B('rls-vn-cgbtn', 'fa-camera', 'cg_make') + `<button type="button" class="rls-vn-membtn" title="${escapeHtml(t('cg_memories'))}" aria-label="${escapeHtml(t('cg_memories'))}"><i class="fa-solid fa-images"></i><span>${escapeHtml(t('cg_memories'))}</span></button>` : ''}
             ${B('rls-vn-close', 'fa-xmark', 'novel_exit')}
         </div>
         <div class="rls-vn-choices" hidden></div>
@@ -4328,6 +4353,39 @@ function openNovel(fromId = null) {
         input.readOnly = wait;
         input.placeholder = t(wait ? 'novel_wait' : 'novel_say');
     };
+    /* (1.9.0) A CG — a scene drawn by Character Lens for this message — fills the whole screen while
+       the novel is on that message: the characters step aside, the text box stays over it. */
+    N.cg = new Map();              // message id → picture | null (looked up once)
+    const cgLayer = $q('.rls-vn-cg');
+    const cgSync = (mid) => {
+        if (mid == null || !lensOk()) { ov.classList.remove('cg-on'); return; }
+        if (N.cg.has(mid)) {
+            const url = N.cg.get(mid);
+            if (url) {
+                const css = `url("${String(url).replace(/["\\\n\r]/g, '')}")`;
+                if (cgLayer.dataset.mid !== String(mid)) { cgLayer.dataset.mid = String(mid); cgLayer.style.backgroundImage = css; cgLayer.classList.remove('in'); void cgLayer.offsetWidth; cgLayer.classList.add('in'); }
+                ov.classList.add('cg-on');
+            } else ov.classList.remove('cg-on');
+            ov.classList.toggle('cg-drawing', !!window.RPG.lens.drawing(mid));
+            return;
+        }
+        N.cg.set(mid, null);
+        window.RPG.lens.sceneFor(mid).then(url => {
+            if (novel !== N) return;
+            N.cg.set(mid, safeCg(url));
+            const cur = N.steps[N.idx];
+            if (cur && cur.mid === mid) cgSync(mid);
+        }).catch(() => {});
+    };
+    N.onLensScene = (e) => {
+        const mid = Number(e && e.detail && e.detail.mesId);
+        if (!Number.isInteger(mid)) return;
+        N.cg.delete(mid);
+        const cur = N.steps[N.idx];
+        if (cur && cur.mid === mid) cgSync(mid);
+        if (N.memOpen) memRender();
+    };
+    document.addEventListener('rpg:lens-scene', N.onLensScene);
     const show = (k, quiet = false, byHand = false) => {
         syncBg(); syncBar();
         if (!N.steps.length) {
@@ -4361,6 +4419,7 @@ function openNovel(fromId = null) {
         if (moved && !quiet) { txt.classList.remove('in'); void txt.offsetWidth; txt.classList.add('in'); }
         faceFor(st0);
         roomFor(k);
+        cgSync(st0.mid);
         const end = k === N.steps.length - 1;
         box.classList.toggle('waiting', end && stBusy());
         box.classList.toggle('end', end);
@@ -4493,6 +4552,63 @@ function openNovel(fromId = null) {
     list.addEventListener('click', e => { if (e.target.closest('[data-earlier]')) { e.stopPropagation(); const topMid = N.steps[0] && N.steps[0].mid; earlier(); const r0 = topMid != null && N.start.has(topMid) && list.querySelector(`[data-k="${N.start.get(topMid)}"]`); if (r0) list.scrollTop = r0.offsetTop - list.offsetTop - 8; return; } const row = e.target.closest('.rls-vn-logrow'); if (!row) return; toggleLog(false); show(Number(row.dataset.k), false, true); box.focus(); });
     $q('.rls-vn-logbtn').addEventListener('click', e => { e.stopPropagation(); toggleLog(log.hidden); });
     $q('.rls-vn-close').addEventListener('click', e => { e.stopPropagation(); closeNovel(true); });
+    // (1.9.0) a CG of the moment on screen, by hand
+    $q('.rls-vn-cgbtn')?.addEventListener('click', e => {
+        e.stopPropagation();
+        const cur = N.steps[N.idx];
+        if (!cur || !lensOk()) return;
+        if (window.RPG.lens.drawing(cur.mid)) return;
+        ov.classList.add('cg-drawing');
+        toastr.info(t('cg_drawing'));
+        window.RPG.lens.drawScene(cur.mid, '').finally(() => { if (novel === N) ov.classList.remove('cg-drawing'); });
+    });
+    // (1.9.0) «Memories»: every CG of this story, a tap opens it full screen, each can be deleted
+    const mem = document.createElement('div');
+    mem.className = 'rls-vn-mem'; mem.hidden = true; mem.setAttribute('role', 'dialog'); mem.setAttribute('aria-label', t('cg_memories'));
+    ov.appendChild(mem);
+    let memSure = '', memSureT = 0;
+    const memRender = async () => {
+        const chat = getContext().chat || [];
+        const ids = [];
+        for (let id = 0; id < chat.length; id++) if (chat[id] && chat[id].extra && chat[id].extra.character_lens_cg) ids.push(id);
+        const tok = N.memTok = (N.memTok || 0) + 1;
+        const items = await Promise.all(ids.map(async id => ({ id, url: safeCg(await window.RPG.lens.sceneFor(id)) })));
+        if (novel !== N || tok !== N.memTok) return;
+        const shown = items.filter(x => x.url).reverse();
+        mem.innerHTML = `<div class="rls-vn-mem-head"><b>${escapeHtml(t('cg_memories'))}</b><small>${escapeHtml(t('cg_count', { n: shown.length }))}</small><button type="button" class="rls-vn-mem-draw"><i class="fa-solid fa-camera"></i> ${escapeHtml(t('cg_draw_now'))}</button><button type="button" class="rls-vn-mem-x" aria-label="${escapeHtml(t('cg_close'))}"><i class="fa-solid fa-xmark"></i></button></div>
+            ${shown.length ? `<div class="rls-vn-mem-grid">${shown.map(x => { const c = memCaption(x.id); return `<div class="rls-vn-mem-card">
+                <button type="button" class="rls-vn-mem-pic" data-id="${x.id}" aria-label="${escapeHtml(t('cg_open'))}"><img src="${escapeHtml(x.url)}" alt="" loading="lazy" draggable="false"></button>
+                <div class="rls-vn-mem-cap">${c.quote ? `<q>${escapeHtml(c.quote)}</q>` : ''}<small>${escapeHtml(c.meta)}</small></div>
+                <button type="button" class="rls-vn-mem-del${memSure === String(x.id) ? ' sure' : ''}" data-id="${x.id}" aria-label="${escapeHtml(t(memSure === String(x.id) ? 'cg_del_sure' : 'cg_del'))}" title="${escapeHtml(t(memSure === String(x.id) ? 'cg_del_sure' : 'cg_del'))}"><i class="fa-solid fa-trash-can"></i></button>
+            </div>`; }).join('')}</div>` : `<p class="rls-vn-mem-empty">${escapeHtml(t('cg_none'))}</p>`}`;
+    };
+    const memCaption = (id) => {
+        const m = getContext().chat[id];
+        const steps = novelStepsFor(id);
+        const say = steps.find(x => x.kind === 'say' && x.who !== '-') || steps.find(x => x.who !== '-') || steps[0];
+        const quote = say ? String(say.parts ? say.parts.map(p0 => p0.text).join(' ') : '').replace(/\s+/g, ' ').trim().slice(0, 120) : '';
+        const r = roomOfMid(id);
+        return { quote, meta: [say && say.who !== '-' ? say.who : (m && m.name) || '', r ? r.room : ''].filter(Boolean).join(' · ') };
+    };
+    $q('.rls-vn-membtn')?.addEventListener('click', e => { e.stopPropagation(); N.memOpen = true; mem.hidden = false; memRender(); });
+    mem.addEventListener('click', async e => {
+        e.stopPropagation();
+        const x = e.target.closest('.rls-vn-mem-x');
+        if (x) { N.memOpen = false; mem.hidden = true; return; }
+        if (e.target.closest('.rls-vn-mem-draw')) { N.memOpen = false; mem.hidden = true; $q('.rls-vn-cgbtn')?.click(); return; }
+        const pic = e.target.closest('.rls-vn-mem-pic');
+        if (pic) { const id = Number(pic.dataset.id); N.memOpen = false; mem.hidden = true; const k = N.start.get(id); if (k != null) show(k, false, true); else { const v = document.createElement('div'); v.className = 'rls-vn-mem-view'; v.innerHTML = `<img src="${escapeHtml(pic.querySelector('img').src)}" alt="">`; v.addEventListener('click', () => v.remove()); ov.appendChild(v); } return; }
+        const del = e.target.closest('.rls-vn-mem-del');
+        if (del) {
+            const id = String(del.dataset.id);
+            if (memSure !== id) { memSure = id; clearTimeout(memSureT); memSureT = setTimeout(() => { memSure = ''; if (N.memOpen) memRender(); }, 3000); memRender(); return; }
+            memSure = '';
+            await window.RPG.lens.deleteScene(Number(id));
+            N.cg.delete(Number(id));
+            const cur = N.steps[N.idx]; if (cur && cur.mid === Number(id)) cgSync(cur.mid);
+            memRender();
+        }
+    });
     $q('.rls-vn-solo').addEventListener('click', e => { e.stopPropagation(); document.getElementById('rpg-end-solo')?.click(); });
     const lastMesEl = () => document.querySelector('#chat .mes.last_mes') || [...document.querySelectorAll('#chat .mes')].pop();
     $q('.rls-vn-prev').addEventListener('click', e => { e.stopPropagation(); lastMesEl()?.querySelector('.swipe_left')?.click(); });
@@ -4569,6 +4685,7 @@ function closeNovel(byHand = false) {
     const N = novel;
     novel = null;
     N.off && N.off();
+    if (N.onLensScene) document.removeEventListener('rpg:lens-scene', N.onLensScene);
     clearInterval(N.timer);
     clearInterval(N.underTimer);
     clearTimeout(N.cardTimer);

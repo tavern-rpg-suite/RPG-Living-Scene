@@ -1150,3 +1150,46 @@ body.rls-novel-on:has(.rls-vn.under) :is(#top-bar, #top-settings-holder, #rls-la
 .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-logrow.cur { background: linear-gradient(90deg, rgba(201, 166, 92, .2), rgba(201, 166, 92, .05)); box-shadow: inset 2px 0 0 var(--vn-gold); }
 .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-logrow.act .rls-vn-logtext, .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-logrow.narr .rls-vn-logtext { color: rgba(243, 234, 217, .72); }
 .rls-vn:is(.box-grimoire, .box-ribbon, .box-twilight) .rls-vn-loglist { scrollbar-width: thin; scrollbar-color: rgba(201, 166, 92, .55) transparent; }
+
+/* ---------- 1.9.0: a CG — the whole screen, edge to edge; the text box stays over it ---------- */
+.rls-vn-cg { position: absolute; inset: 0; z-index: 1; background: center / cover no-repeat; opacity: 0; visibility: hidden; pointer-events: none; transition: opacity .5s ease, visibility 0s linear .5s; }
+.rls-vn.cg-on .rls-vn-cg { opacity: 1; visibility: visible; transition: opacity .5s ease, visibility 0s; }
+/* a soft fall of shade under the text box only, so the words read on a bright picture */
+.rls-vn-cg::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 42%; background: linear-gradient(180deg, transparent, rgba(6, 4, 8, .55)); }
+.rls-vn.cg-on .rls-vn-stage { opacity: 0; pointer-events: none; }
+
+.rls-vn-cg.in { animation: rls-cg-in .5s ease both; }
+@keyframes rls-cg-in { from { opacity: 0; } to { opacity: 1; } }
+.rls-vn-top .rls-vn-cgbtn, .rls-vn-top .rls-vn-membtn { display: inline-flex; align-items: center; gap: 6px; }
+.rls-vn.cg-drawing .rls-vn-cgbtn i { animation: rls-cg-pulse 1.2s ease-in-out infinite; }
+@keyframes rls-cg-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+/* «Memories» */
+.rls-vn-mem { position: absolute; inset: 0; z-index: 6; overflow: auto; padding: max(18px, env(safe-area-inset-top)) 22px 22px; background: linear-gradient(180deg, rgba(20, 13, 24, .97), rgba(12, 8, 15, .98)); color: #f3e6c4; animation: rls-cg-in .22s ease both; }
+.rls-vn-mem[hidden] { display: none; }
+.rls-vn-mem-head { display: flex; align-items: baseline; gap: 12px; max-width: 1180px; margin: 0 auto 16px; }
+.rls-vn-mem-head b { font-size: 26px; font-weight: 800; letter-spacing: .04em; }
+.rls-vn-mem-head small { font-size: 14px; color: #cdbb92; }
+.rls-vn-mem-x { margin-left: auto; width: 38px; height: 38px; border-radius: 10px; border: 1px solid rgba(243, 212, 138, .3); background: rgba(0, 0, 0, .35); color: #f3e6c4; cursor: pointer; }
+.rls-vn-mem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 18px; max-width: 1180px; margin: 0 auto; }
+.rls-vn-mem-card { position: relative; border-radius: 10px; overflow: hidden; background: #241a2c; border: 1px solid rgba(230, 207, 134, .25); animation: rls-cg-in .3s ease both; }
+.rls-vn-mem-pic { display: block; width: 100%; aspect-ratio: 16 / 9; padding: 0; border: 0; background: #120d16; cursor: zoom-in; }
+.rls-vn-mem-pic img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .2s ease; }
+.rls-vn-mem-pic:hover img { transform: scale(1.03); }
+.rls-vn-mem-cap { padding: 10px 12px 12px; }
+.rls-vn-mem-cap q { display: block; font-style: italic; font-size: 14.5px; line-height: 1.35; color: #f6eedb; }
+.rls-vn-mem-cap small { display: block; margin-top: 6px; font-size: 12px; color: #cdbb92; }
+.rls-vn-mem-del { position: absolute; top: 8px; right: 8px; width: 30px; height: 30px; border-radius: 9px; border: 0; background: rgba(0, 0, 0, .55); color: #f3e6c4; cursor: pointer; font-size: 12px; }
+.rls-vn-mem-del.sure { background: #b3263a; color: #fff; }
+.rls-vn-mem-empty { max-width: 560px; margin: 40px auto; text-align: center; color: #cdbb92; font-size: 15px; line-height: 1.5; }
+.rls-vn-mem-view { position: absolute; inset: 0; z-index: 7; background: #000 center / contain no-repeat; display: grid; place-items: center; cursor: zoom-out; }
+.rls-vn-mem-view img { width: 100%; height: 100%; object-fit: cover; }
+.rls-vn-mem :focus-visible { outline: 2px solid #e6cf86; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .rls-vn-cg, .rls-vn-cg.in, .rls-vn-mem, .rls-vn-mem-card, .rls-vn.cg-drawing .rls-vn-cgbtn i { animation: none !important; transition: none !important; } }
+@media (max-width: 1100px) { .rls-vn.novel .rls-vn-membtn span { display: none; } }
+@media (max-width: 700px) {
+    /* a narrow screen: the camera moves into «Memories» (its «Draw the moment on screen» button) — still one tap away */
+    .rls-vn.novel .rls-vn-top .rls-vn-cgbtn { display: none; }
+}
+
+.rls-vn-mem-draw { margin-left: auto; padding: 7px 12px; border-radius: 10px; border: 1px solid rgba(243, 212, 138, .35); background: rgba(243, 212, 138, .12); color: #f3e6c4; font: inherit; font-size: 13px; cursor: pointer; }
+.rls-vn-mem-draw + .rls-vn-mem-x { margin-left: 8px; }
